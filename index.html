@@ -9,20 +9,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <style>
-    .hero-video {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  overflow: hidden;
-}
-
-.hero-video video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.12;
-  filter: grayscale(20%);
-}
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
@@ -66,9 +52,21 @@
 
     ::selection { background: var(--gold); color: #fff; }
 
+    /* ── SCROLL PROGRESS BAR ── */
+    .scroll-progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--accent));
+      z-index: 200;
+      transition: width 0.05s linear;
+    }
+
     /* ── NAV ── */
     nav {
-      position: fixed; top: 0; width: 100%; z-index: 100;
+      position: fixed; top: 2px; width: 100%; z-index: 100;
       background: rgba(248, 247, 244, 0.92);
       backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid transparent;
@@ -101,7 +99,6 @@
     nav .nav-links a:hover { color: var(--ink); }
     nav .nav-links a:hover::after { width: 100%; }
 
-    /* language toggle */
     .lang-toggle {
       display: flex; align-items: center;
       border: 1px solid var(--rule); border-radius: 2px; overflow: hidden; margin-left: 0.8rem;
@@ -115,6 +112,92 @@
     .lang-btn.active { background: var(--accent); color: #fff; }
     .lang-btn:not(.active):hover { background: var(--cream); color: var(--ink); }
     .lang-divider { width: 1px; height: 16px; background: var(--rule); }
+
+    /* ── HAMBURGER ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      z-index: 110;
+      background: none;
+      border: none;
+    }
+
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--ink);
+      transition: all 0.3s ease;
+      transform-origin: center;
+    }
+
+    .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(4.5px, 4.5px); }
+    .hamburger.active span:nth-child(2) { opacity: 0; }
+    .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(4.5px, -4.5px); }
+
+    /* ── MOBILE MENU OVERLAY ── */
+    .mobile-menu {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(248, 247, 244, 0.98);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      z-index: 99;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    .mobile-menu.open {
+      display: flex;
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .mobile-menu a {
+      font-family: var(--serif);
+      font-size: 1.8rem;
+      font-weight: 400;
+      text-decoration: none;
+      color: var(--ink);
+      letter-spacing: 0.02em;
+      transition: color 0.3s;
+    }
+
+    .mobile-menu a:hover { color: var(--gold); }
+
+    .mobile-menu .mobile-lang {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .mobile-menu .mobile-lang button {
+      padding: 0.5rem 1.2rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      border: 1px solid var(--rule);
+      background: transparent;
+      color: var(--dim);
+      cursor: pointer;
+      font-family: var(--sans);
+      transition: all 0.3s;
+    }
+
+    .mobile-menu .mobile-lang button.active {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
 
     /* ── HERO ── */
     .hero {
@@ -132,6 +215,21 @@
       background: linear-gradient(90deg, transparent, var(--rule-gold), transparent);
     }
     .hero .container { max-width: 1140px; margin: 0 auto; width: 100%; position: relative; z-index: 1; }
+
+    .hero-video {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .hero-video video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.12;
+      filter: grayscale(20%);
+    }
 
     .hero-eyebrow {
       font-size: 0.68rem; font-weight: 500; letter-spacing: 0.25em;
@@ -290,10 +388,38 @@
     footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em; }
 
     /* ── ANIMATIONS ── */
-    .reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     .reveal.visible { opacity: 1; transform: translateY(0); }
     .rd1 { transition-delay: 0.08s; } .rd2 { transition-delay: 0.16s; }
     .rd3 { transition-delay: 0.24s; } .rd4 { transition-delay: 0.32s; }
+
+    /* slide from left */
+    .reveal-left {
+      opacity: 0;
+      transform: translateX(-40px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-left.visible { opacity: 1; transform: translateX(0); }
+
+    /* slide from right */
+    .reveal-right {
+      opacity: 0;
+      transform: translateX(40px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-right.visible { opacity: 1; transform: translateX(0); }
+
+    /* scale up */
+    .reveal-scale {
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal-scale.visible { opacity: 1; transform: scale(1); }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
@@ -303,21 +429,29 @@
       .exp-item, .edu-item { grid-template-columns: 1fr; gap: 0.5rem; }
       .skills-grid { grid-template-columns: 1fr; gap: 2rem; }
     }
-    @media (max-width: 480px) {
-      nav .nav-inner { padding: 1rem 1.2rem; }
-      nav .nav-links { gap: 1rem; }
-      nav .nav-links a { font-size: 0.65rem; letter-spacing: 0.1em; }
+
+    @media (max-width: 680px) {
+      nav .nav-inner { padding: 1rem 1.5rem; }
+
+      /* hide desktop nav, show hamburger */
+      nav .nav-right .nav-links { display: none; }
+      nav .nav-right .lang-toggle { display: none; }
+      .hamburger { display: flex; }
+
       .hero { padding: 7rem 1.5rem 5rem; }
       .hero h1 { font-size: 2.6rem; }
       .about-details { grid-template-columns: 1fr; }
       .contact-heading h2 { font-size: 2.2rem; }
       .project-card { padding: 2rem; min-height: auto; }
       .hero-actions { flex-direction: column; align-items: flex-start; }
-      .nav-right { gap: 1.2rem; }
+      .section-header { margin-bottom: 2.5rem; }
     }
   </style>
 </head>
 <body>
+
+  <!-- SCROLL PROGRESS -->
+  <div class="scroll-progress" id="scrollProgress"></div>
 
   <!-- NAV -->
   <nav id="navbar">
@@ -336,9 +470,25 @@
           <span class="lang-divider"></span>
           <button class="lang-btn" data-lang="no">NO</button>
         </div>
+        <button class="hamburger" id="hamburger" aria-label="Menu">
+          <span></span><span></span><span></span>
+        </button>
       </div>
     </div>
   </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#about" class="mobile-nav-link"><span data-en="About" data-no="Om meg">About</span></a>
+    <a href="#education" class="mobile-nav-link"><span data-en="Education" data-no="Utdanning">Education</span></a>
+    <a href="#experience" class="mobile-nav-link"><span data-en="Experience" data-no="Erfaring">Experience</span></a>
+    <a href="#projects" class="mobile-nav-link"><span data-en="Projects" data-no="Prosjekter">Projects</span></a>
+    <a href="#contact" class="mobile-nav-link"><span data-en="Contact" data-no="Kontakt">Contact</span></a>
+    <div class="mobile-lang">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="no">NO</button>
+    </div>
+  </div>
 
   <!-- HERO -->
   <section class="hero" id="top">
@@ -376,12 +526,12 @@
         <span class="section-line"></span>
       </div>
       <div class="about-grid">
-        <div class="about-text reveal rd1">
+        <div class="about-text reveal-left">
           <h2><span data-en="A disciplined approach to <em>markets</em> and capital allocation." data-no="En disiplinert tilnærming til <em>markeder</em> og kapitalallokering.">A disciplined approach to <em>markets</em> and capital allocation.</span></h2>
           <p><span data-en="I'm a high-performing finance student with a strong quantitative foundation and a genuine curiosity for how capital flows shape markets. My master's thesis investigates pricing effects and inefficiencies in the S&P 500 resulting from index inclusion and passive capital flows — sitting at the intersection of market microstructure and investment strategy." data-no="Jeg er en ambisiøs finansstudent med et sterkt kvantitativt grunnlag og en genuin nysgjerrighet for hvordan kapitalstrømmer former markeder. Masteroppgaven min undersøker priseffekter og ineffektiviteter i S&P 500 som følge av indeksinkludering og passive kapitalstrømmer — i skjæringspunktet mellom markedsmikrostruktur og investeringsstrategi.">I'm a high-performing finance student with a strong quantitative foundation and a genuine curiosity for how capital flows shape markets. My master's thesis investigates pricing effects and inefficiencies in the S&P 500 resulting from index inclusion and passive capital flows — sitting at the intersection of market microstructure and investment strategy.</span></p>
           <p><span data-en="Beyond academics, I bring real operational experience: I've automated invoicing processes using VBA, reducing manual processing time by 50%, and managed logistics for high-profile clients in service-critical environments where discretion and precision are non-negotiable." data-no="Utover akademia har jeg reell operasjonell erfaring: Jeg har automatisert faktureringsprosesser med VBA og redusert manuell behandlingstid med 50%, samt koordinert logistikk for profilerte kunder i servicekritiske miljøer der diskresjon og presisjon er avgjørende.">Beyond academics, I bring real operational experience: I've automated invoicing processes using VBA, reducing manual processing time by 50%, and managed logistics for high-profile clients in service-critical environments where discretion and precision are non-negotiable.</span></p>
         </div>
-        <div class="about-right reveal rd2">
+        <div class="about-right reveal-right">
           <div class="about-details">
             <div class="detail-item">
               <div class="label" data-en="University" data-no="Universitet">University</div>
@@ -488,7 +638,7 @@
         <span class="section-line"></span>
       </div>
       <div class="skills-grid">
-        <div class="skill-group reveal">
+        <div class="skill-group reveal-scale">
           <h4 data-en="Technical" data-no="Teknisk">Technical</h4>
           <div class="skill-tags">
             <span class="skill-tag">Python</span>
@@ -499,7 +649,7 @@
             <span class="skill-tag" data-en="Apparently HTML as well now" data-no="Tydeligvis HTML også nå">Apparently HTML as well now</span>
           </div>
         </div>
-        <div class="skill-group reveal rd1">
+        <div class="skill-group reveal-scale rd1">
           <h4 data-en="Certifications" data-no="Sertifiseringer">Certifications</h4>
           <div class="skill-tags">
             <span class="skill-tag">Bloomberg: Market Concepts</span>
@@ -507,7 +657,7 @@
             <span class="skill-tag">Data Visualization in Power BI</span>
           </div>
         </div>
-        <div class="skill-group reveal rd2">
+        <div class="skill-group reveal-scale rd2">
           <h4 data-en="Languages" data-no="Språk">Languages</h4>
           <div class="skill-tags">
             <span class="skill-tag" data-en="Norwegian (native)" data-no="Norsk (morsmål)">Norwegian (native)</span>
@@ -535,7 +685,7 @@
         <span class="section-line"></span>
       </div>
       <div class="projects-grid">
-        <a href="#" class="project-card reveal">
+        <a href="#" class="project-card reveal-scale">
           <div>
             <div class="project-tag" data-en="Master's Thesis" data-no="Masteroppgave">Master's Thesis</div>
             <h3 data-en="S&P 500 Index Inclusion & Passive Capital Flows" data-no="S&P 500-indeksinkludering & Passive Kapitalstrømmer">S&P 500 Index Inclusion & Passive Capital Flows</h3>
@@ -543,7 +693,7 @@
           </div>
           <div class="project-arrow"><span data-en="Read more" data-no="Les mer">Read more</span> <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </a>
-        <a href="#" class="project-card reveal rd1">
+        <a href="#" class="project-card reveal-scale rd1">
           <div>
             <div class="project-tag" data-en="Process Automation" data-no="Prosessautomatisering">Process Automation</div>
             <h3 data-en="Invoicing Automation (Excel / VBA)" data-no="Faktureringsautomatisering (Excel / VBA)">Invoicing Automation (Excel / VBA)</h3>
@@ -551,7 +701,7 @@
           </div>
           <div class="project-arrow"><span data-en="Read more" data-no="Les mer">Read more</span> <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </a>
-        <a href="#" class="project-card reveal rd2">
+        <a href="#" class="project-card reveal-scale rd2">
           <div>
             <div class="project-tag" data-en="Academic" data-no="Akademisk">Academic</div>
             <h3 data-en="Bloomberg Midterm Exam Development" data-no="Utvikling av Bloomberg Midtveiseksamen">Bloomberg Midterm Exam Development</h3>
@@ -559,7 +709,7 @@
           </div>
           <div class="project-arrow"><span data-en="Read more" data-no="Les mer">Read more</span> <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
         </a>
-        <a href="#" class="project-card reveal rd3">
+        <a href="#" class="project-card reveal-scale rd3">
           <div>
             <div class="project-tag" data-en="Add Your Own" data-no="Legg til ditt eget">Add Your Own</div>
             <h3 data-en="[Your Next Project]" data-no="[Ditt neste prosjekt]">[Your Next Project]</h3>
@@ -580,11 +730,11 @@
         <span class="section-line"></span>
       </div>
       <div class="contact-grid">
-        <div class="contact-heading reveal rd1">
+        <div class="contact-heading reveal-left">
           <h2><span data-en="Let's start a<br/><em>conversation.</em>" data-no="La oss starte en<br/><em>samtale.</em>">Let's start a<br/><em>conversation.</em></span></h2>
           <p><span data-en="Open to opportunities in investment banking, asset management, and corporate finance. Based in Oslo, Norway." data-no="Åpen for muligheter innen investment banking, kapitalforvaltning og corporate finance. Basert i Oslo, Norge.">Open to opportunities in investment banking, asset management, and corporate finance. Based in Oslo, Norway.</span></p>
         </div>
-        <div class="contact-links reveal rd2">
+        <div class="contact-links reveal-right">
           <a href="mailto:Alex.halvorsrod@gmail.com" class="contact-link">
             <span class="c-label" data-en="Email" data-no="E-post">Email</span>
             <span class="c-value">Alex.halvorsrod@gmail.com</span>
@@ -611,20 +761,31 @@
   </footer>
 
   <script>
-    // Nav scroll effect
+    // ── Scroll progress bar ──
+    const progressBar = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      progressBar.style.width = progress + '%';
+    });
+
+    // ── Nav scroll effect ──
     const nav = document.getElementById('navbar');
     window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
 
-    // Scroll reveal
-    const observer = new IntersectionObserver((entries) => {
+    // ── Scroll reveal (all animation types) ──
+    const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
     }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-    // Smooth scroll — logo goes to top
+    document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale').forEach(el => revealObserver.observe(el));
+
+    // ── Smooth scroll — logo goes to top ──
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
         e.preventDefault();
+        closeMobileMenu();
         const id = a.getAttribute('href');
         if (id === '#top') {
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -635,21 +796,53 @@
       });
     });
 
-    // Language toggle (EN / NO)
-    let currentLang = 'en';
-    document.querySelectorAll('.lang-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const lang = btn.dataset.lang;
-        if (lang === currentLang) return;
-        currentLang = lang;
-        document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        document.documentElement.lang = lang === 'no' ? 'no' : 'en';
-        document.querySelectorAll('[data-en][data-no]').forEach(el => {
-          const text = el.getAttribute('data-' + lang);
-          if (text) el.innerHTML = text;
-        });
+    // ── Hamburger & mobile menu ──
+    const hamburger = document.getElementById('hamburger');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      mobileMenu.classList.toggle('open');
+      document.body.style.overflow = mobileMenu.classList.contains('open') ? 'hidden' : '';
+    });
+
+    function closeMobileMenu() {
+      hamburger.classList.remove('active');
+      mobileMenu.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // close menu when tapping a link
+    document.querySelectorAll('.mobile-nav-link').forEach(a => {
+      a.addEventListener('click', e => {
+        e.preventDefault();
+        closeMobileMenu();
+        const id = a.getAttribute('href');
+        setTimeout(() => {
+          const t = document.querySelector(id);
+          if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       });
+    });
+
+    // ── Language toggle (both desktop and mobile) ──
+    let currentLang = 'en';
+
+    function switchLang(lang) {
+      if (lang === currentLang) return;
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+      document.documentElement.lang = lang === 'no' ? 'no' : 'en';
+      document.querySelectorAll('[data-en][data-no]').forEach(el => {
+        const text = el.getAttribute('data-' + lang);
+        if (text) el.innerHTML = text;
+      });
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchLang(btn.dataset.lang));
     });
   </script>
 
