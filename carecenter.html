@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invoice Automation — CareCenter AS — Alexander Moe Halvorsrød</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1a1a1a;
+      --paper: #f8f7f4;
+      --cream: #f0eee8;
+      --accent: #2c3e50;
+      --gold: #9e8a6a;
+      --gold-dim: rgba(158, 138, 106, 0.12);
+      --gold-glow: rgba(158, 138, 106, 0.06);
+      --muted: #6b6b6b;
+      --dim: #999;
+      --rule: #d4d0c8;
+      --rule-gold: rgba(158, 138, 106, 0.25);
+      --red-dim: rgba(180, 70, 60, 0.08);
+      --red: #b4463c;
+      --green-dim: rgba(60, 120, 80, 0.1);
+      --green: #4a7c5a;
+      --serif: 'Cormorant Garamond', 'Georgia', serif;
+      --sans: 'DM Sans', 'Helvetica Neue', sans-serif;
+      --mono: 'JetBrains Mono', 'Menlo', monospace;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.7;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 128px 128px;
+    }
+
+    ::selection { background: var(--gold); color: #fff; }
+
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--accent));
+      z-index: 200; transition: width 0.05s linear;
+    }
+
+    nav {
+      position: fixed; top: 2px; width: 100%; z-index: 100;
+      background: rgba(248, 247, 244, 0.92);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid transparent; transition: border-color 0.4s;
+    }
+    nav.scrolled { border-bottom-color: var(--rule); }
+    nav .nav-inner {
+      max-width: 1140px; margin: 0 auto; padding: 1.2rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    nav .logo {
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 500;
+      color: var(--ink); text-decoration: none; letter-spacing: 0.02em;
+    }
+    nav .nav-links { display: flex; gap: 2.4rem; }
+    nav .nav-links a {
+      font-size: 0.72rem; font-weight: 500; text-decoration: none;
+      color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase;
+      transition: color 0.3s; position: relative;
+    }
+    nav .nav-links a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: var(--gold); transition: width 0.35s ease;
+    }
+    nav .nav-links a:hover { color: var(--ink); }
+    nav .nav-links a:hover::after { width: 100%; }
+    nav .nav-links a.active { color: var(--gold); }
+    nav .nav-links a.active::after { width: 100%; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 60vh; display: flex; align-items: flex-end;
+      position: relative; padding: 10rem 2.5rem 5rem;
+      border-bottom: 1px solid var(--rule-gold);
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 10%; right: 5%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .hero .container { max-width: 1140px; margin: 0 auto; width: 100%; }
+
+    .hero-eyebrow {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1.2rem;
+    }
+    .hero-eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
+
+    .hero h1 {
+      font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 400; line-height: 1.1; letter-spacing: -0.01em;
+      margin-bottom: 1.8rem; max-width: 820px;
+    }
+    .hero h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+
+    .hero-meta {
+      display: flex; gap: 3rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+    }
+    .hero-meta-item .label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 0.2rem;
+    }
+    .hero-meta-item .value {
+      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--ink);
+    }
+
+    .hero-actions { display: flex; gap: 1.8rem; align-items: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.8rem;
+      padding: 0.9rem 2rem; background: var(--accent); color: #fff;
+      text-decoration: none; font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-primary:hover { background: #1a2a38; transform: translateY(-1px); }
+    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; transition: transform 0.25s; }
+    .btn-primary:hover svg { transform: translateX(3px); }
+
+    /* ── LAYOUT ── */
+    .page-body {
+      max-width: 1140px; margin: 0 auto; padding: 5rem 2.5rem;
+      display: grid; grid-template-columns: 260px 1fr; gap: 5rem; align-items: start;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: sticky; top: 5rem; }
+    .sidebar-section { margin-bottom: 2.5rem; }
+    .sidebar-label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 1rem;
+      padding-bottom: 0.6rem; border-bottom: 1px solid var(--rule);
+    }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.1rem; }
+    .sidebar-nav a {
+      font-size: 0.82rem; font-weight: 400; color: var(--muted);
+      text-decoration: none; padding: 0.45rem 0;
+      border-left: 2px solid transparent; padding-left: 0.8rem;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      color: var(--gold); border-left-color: var(--gold);
+    }
+
+    .stat-block {
+      padding: 1.2rem 1.4rem; border: 1px solid var(--rule);
+      background: var(--cream); margin-bottom: 0.6rem;
+    }
+    .stat-block .stat-label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 0.3rem;
+    }
+    .stat-block .stat-value {
+      font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--ink);
+    }
+    .stat-block .stat-sub {
+      font-size: 0.75rem; color: var(--muted); font-weight: 300; margin-top: 0.1rem;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main-content { min-width: 0; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem;
+    }
+    .section-num {
+      font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400;
+    }
+    .section-label-text {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .section-line {
+      flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent);
+    }
+
+    .content-block {
+      padding-bottom: 4rem; margin-bottom: 4rem;
+      border-bottom: 1px solid var(--rule-gold);
+    }
+    .content-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .content-block h2 {
+      font-family: var(--serif); font-size: 1.9rem; font-weight: 400;
+      line-height: 1.25; margin-bottom: 1.4rem;
+    }
+    .content-block h2 em { font-style: italic; font-weight: 300; color: var(--gold); }
+    .content-block h3 {
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 500;
+      margin-bottom: 0.8rem; margin-top: 2rem; color: var(--ink);
+    }
+    .content-block p {
+      color: var(--muted); font-size: 0.93rem; font-weight: 300;
+      line-height: 1.85; margin-bottom: 1rem; max-width: 680px;
+    }
+
+    /* Order-number column on "after" — highlight gold to show grouping */
+    .col-order {
+      color: var(--gold); font-weight: 600;
+    }
+
+    /* ── BEFORE SNAPSHOT (static illustration) ── */
+    .before-snapshot {
+      margin: 2rem 0 2.5rem;
+      background: var(--cream);
+      border: 1px solid var(--rule);
+      padding: 1.6rem;
+    }
+    .before-label {
+      display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+      margin-bottom: 1.2rem;
+    }
+    .before-tag {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--red);
+      padding: 0.3rem 0.7rem; border: 1px solid rgba(180, 70, 60, 0.35);
+      background: rgba(180, 70, 60, 0.06);
+    }
+    .before-caption {
+      font-size: 0.82rem; color: var(--muted); font-style: italic;
+    }
+
+    .before-sheet {
+      background: #fff;
+      border: 1px solid var(--rule);
+      padding: 1rem 1.2rem;
+      font-family: var(--mono); font-size: 0.78rem;
+    }
+    .bs-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 1fr 90px 70px;
+      gap: 0.6rem;
+      padding: 0.4rem 0.5rem;
+      align-items: center;
+      transition: background 0.3s;
+    }
+    .bs-head {
+      font-family: var(--sans);
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--dim);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 0.5rem; margin-bottom: 0.25rem;
+    }
+    .bs-customer { color: var(--ink); font-weight: 500; }
+    .bs-amount { text-align: right; color: var(--muted); }
+    .bs-highlight {
+      background: rgba(168, 198, 134, 0.45);
+      box-shadow: inset 3px 0 0 #4a7c5a;
+    }
+
+    .before-note {
+      display: flex; align-items: flex-start; gap: 0.7rem;
+      margin-top: 1rem; padding: 0.8rem 1rem;
+      background: rgba(180, 70, 60, 0.05);
+      border-left: 2px solid var(--red);
+      font-size: 0.8rem; color: var(--muted);
+      line-height: 1.6;
+    }
+    .before-note svg {
+      width: 16px; height: 16px; flex-shrink: 0;
+      color: var(--red); margin-top: 2px;
+    }
+
+    @media (max-width: 600px) {
+      .bs-row {
+        grid-template-columns: 60px 1fr 70px 50px;
+        gap: 0.4rem;
+        font-size: 0.7rem;
+      }
+      .bs-row > div:nth-child(4) { display: none; }
+    }
+
+    /* ── LIVE DEMO STAGE ── */
+    .demo-stage { margin: 2rem 0 1rem; }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: 280px 60px 1fr;
+      gap: 0;
+      align-items: stretch;
+      background: var(--cream);
+      border: 1px solid var(--rule);
+      padding: 1.6rem;
+    }
+    .demo-panel {
+      background: #fff;
+      border: 1px solid var(--rule);
+      padding: 1.2rem;
+      display: flex; flex-direction: column;
+      min-height: 320px;
+    }
+    .destination-panel {
+      background: transparent;
+      border: none;
+      padding: 0;
+      display: flex; flex-direction: column;
+      gap: 0.8rem;
+    }
+    .dest-sheet {
+      background: #fff;
+      border: 1px solid var(--rule);
+      padding: 1rem 1.1rem;
+      flex: 1;
+    }
+    .panel-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding-bottom: 0.7rem; margin-bottom: 0.9rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .panel-num {
+      font-family: var(--mono); font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase;
+    }
+    .panel-title {
+      font-family: var(--serif); font-size: 0.92rem; font-weight: 500;
+      color: var(--ink);
+    }
+
+    /* Form fields */
+    .form-grid {
+      display: flex; flex-direction: column; gap: 0.6rem; flex: 1;
+    }
+    .form-field {
+      display: flex; flex-direction: column; gap: 0.2rem;
+    }
+    .form-field label {
+      font-size: 0.55rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--dim);
+    }
+    .form-input {
+      font-family: var(--mono); font-size: 0.78rem;
+      color: var(--ink); padding: 0.45rem 0.6rem;
+      border: 1px solid var(--rule); background: var(--paper);
+      min-height: 1.8rem;
+      transition: border-color 0.3s, background 0.3s;
+      position: relative;
+    }
+    .form-input.amount { text-align: right; }
+    .form-input.typing {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+    }
+    .form-input.typing::after {
+      content: '|';
+      color: var(--gold);
+      animation: cursor-blink 0.8s steps(2) infinite;
+      margin-left: 1px;
+    }
+    @keyframes cursor-blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
+    }
+
+    .form-btn {
+      margin-top: 0.9rem;
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+      padding: 0.7rem 1.4rem;
+      background: var(--accent); color: #fff;
+      font-family: var(--sans); font-size: 0.7rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      border: none; cursor: pointer;
+      transition: background 0.3s, transform 0.15s;
+      align-self: flex-start;
+    }
+    .form-btn svg { width: 12px; height: 12px; stroke: currentColor; }
+    .form-btn.pressed {
+      background: var(--gold);
+      transform: scale(0.96);
+    }
+
+    .form-status {
+      font-family: var(--mono); font-size: 0.66rem;
+      color: var(--dim); margin-top: 0.6rem;
+      min-height: 1em; letter-spacing: 0.02em;
+    }
+    .form-status.success { color: var(--green); }
+
+    /* Routing column with curved guide lines */
+    .demo-router {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .router-svg {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none;
+    }
+
+    /* The flying row that travels from form to destination */
+    .flying-row {
+      position: absolute;
+      top: 50%; left: 0;
+      transform: translateY(-50%);
+      background: #2c3e50;
+      border: 1px solid #2c3e50;
+      padding: 0.55rem 0.9rem;
+      font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
+      color: #fff;
+      display: none;
+      gap: 0.7rem;
+      box-shadow: 0 8px 24px rgba(44, 62, 80, 0.35), 0 2px 6px rgba(0,0,0,0.15);
+      white-space: nowrap;
+      z-index: 5;
+      max-width: 100%;
+    }
+    .flying-row.active {
+      display: inline-flex;
+    }
+    .flying-row.travel-up {
+      animation: fly-to-log-then-invoice 1.6s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+    }
+    .flying-row.travel-down {
+      animation: fly-to-log-only 1.0s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+    }
+    /* Invoice path: form → Sheet 2 (top) → Sheet 3 (bottom) */
+    @keyframes fly-to-log-then-invoice {
+      0%   { left: -270px; top: 50%; opacity: 0; transform: translateY(-50%) scale(0.95); }
+      10%  { left: -270px; top: 50%; opacity: 1; transform: translateY(-50%) scale(1); }
+      45%  { left: 110%; top: 25%; opacity: 1; transform: translateY(-50%) scale(0.96); }
+      55%  { left: 110%; top: 25%; opacity: 0.9; transform: translateY(-50%) scale(0.96); }
+      100% { left: 110%; top: 78%; opacity: 0; transform: translateY(-50%) scale(0.92); }
+    }
+    /* Cash/card path: form → Sheet 2 (top) only */
+    @keyframes fly-to-log-only {
+      0%   { left: -270px; top: 50%; opacity: 0; transform: translateY(-50%) scale(0.95); }
+      15%  { left: -270px; top: 50%; opacity: 1; transform: translateY(-50%) scale(1); }
+      100% { left: 110%; top: 25%; opacity: 0; transform: translateY(-50%) scale(0.92); }
+    }
+    .flying-row .fly-customer { font-weight: 600; }
+    .flying-row .fly-sum { color: var(--gold); font-weight: 600; }
+    .flying-row .fly-pay {
+      font-size: 0.62rem; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; padding: 0.15rem 0.5rem;
+      border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.8);
+    }
+
+    /* Destination rows */
+    .dest-rows {
+      display: flex; flex-direction: column; gap: 0.15rem;
+      font-family: var(--mono); font-size: 0.7rem;
+    }
+    .dest-head, .dest-row {
+      display: grid;
+      grid-template-columns: 70px 1fr 70px 60px 60px;
+      gap: 0.4rem;
+      padding: 0.3rem 0.4rem;
+      align-items: center;
+    }
+    .dest-head {
+      font-family: var(--sans);
+      font-size: 0.55rem; font-weight: 600; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--dim);
+      border-bottom: 1px solid var(--rule);
+      padding-bottom: 0.4rem; margin-bottom: 0.2rem;
+    }
+    .dest-row {
+      opacity: 0; transform: translateX(-8px);
+      animation: row-land 0.4s ease-out forwards;
+      border-left: 2px solid transparent;
+    }
+    .dest-row.fresh {
+      border-left-color: var(--gold);
+      background: var(--gold-dim);
+    }
+    @keyframes row-land {
+      to { opacity: 1; transform: translateX(0); }
+    }
+    .dest-row .d-order { color: var(--gold); font-weight: 600; }
+    .dest-row .d-customer { color: var(--ink); font-weight: 500; }
+    .dest-row .d-work { color: var(--muted); }
+    .dest-row .d-amount { text-align: right; color: var(--muted); }
+
+    .demo-caption {
+      font-size: 0.78rem; color: var(--dim); font-style: italic;
+      margin-top: 0.9rem; font-family: var(--sans);
+      text-align: center; max-width: 100%;
+    }
+
+    @media (max-width: 800px) {
+      .demo-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      .demo-router { display: none; }
+      .flying-row { display: none !important; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .form-input.typing::after,
+      .flying-row.travel-up,
+      .flying-row.travel-down,
+      .dest-row {
+        animation: none !important;
+      }
+      .dest-row { opacity: 1; transform: none; }
+    }
+
+    /* Flow diagram container */
+    .flow-container {
+      margin: 2rem 0; padding: 2.2rem 1.5rem; background: var(--cream);
+      border: 1px solid var(--rule); overflow-x: auto;
+    }
+    .flow-svg { width: 100%; min-width: 720px; height: auto; }
+
+    /* Highlight cards */
+    .highlight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
+    .highlight-card {
+      border: 1px solid var(--rule); padding: 1.6rem; background: var(--paper);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .highlight-card:hover { border-color: var(--gold); background: var(--cream); }
+    .highlight-card .h-label {
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .highlight-card .h-name {
+      font-family: var(--serif); font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem;
+    }
+    .highlight-card p {
+      font-size: 0.83rem; color: var(--muted); font-weight: 300;
+      line-height: 1.7; max-width: 100%; margin: 0;
+    }
+
+    /* Code block */
+    .code-block {
+      background: #1e1e1e; color: #d4d4d4; padding: 1.6rem 1.8rem;
+      border-radius: 2px; margin: 1.5rem 0; overflow-x: auto;
+      font-family: var(--mono); font-size: 0.78rem; line-height: 1.7;
+      border: 1px solid var(--rule);
+    }
+    .code-block .c-comment { color: #6a9955; font-style: italic; }
+    .code-block .c-keyword { color: #569cd6; }
+    .code-block .c-string { color: #ce9178; }
+    .code-block .c-type { color: #4ec9b0; }
+    .code-block .c-fn { color: #dcdcaa; }
+    .code-caption {
+      font-size: 0.72rem; color: var(--dim); font-style: italic;
+      margin-top: -0.5rem; margin-bottom: 1.5rem;
+    }
+
+    /* Result stats */
+    .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0; }
+    .result-card {
+      padding: 2rem 1.6rem; border: 1px solid var(--rule); text-align: left;
+      background: var(--paper); transition: border-color 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .result-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, var(--gold), transparent);
+    }
+    .result-card:hover { border-color: var(--gold); }
+    .result-card .r-value {
+      font-family: var(--serif); font-size: 2.6rem; font-weight: 400;
+      color: var(--ink); line-height: 1; margin-bottom: 0.5rem;
+    }
+    .result-card .r-label {
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .result-card .r-desc { font-size: 0.78rem; color: var(--muted); font-weight: 300; }
+
+    /* Note callout */
+    .note {
+      padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold);
+      background: var(--gold-dim); margin: 1.5rem 0;
+    }
+    .note p {
+      font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 100%;
+      font-style: italic;
+    }
+
+    /* Footer */
+    footer { padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule); margin-top: 4rem; }
+    footer .container { max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em; }
+    footer a { color: var(--gold); text-decoration: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+    footer a:hover { color: var(--ink); }
+
+    /* Reveal animations */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      .page-body { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 1.8rem; }
+      .sidebar { position: static; }
+      .highlight-grid { grid-template-columns: 1fr; }
+      .result-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 7rem 1.5rem 4rem; }
+      nav .nav-links { display: none; }
+      .hero-meta { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">AMH.</a>
+      <div class="nav-links">
+        <a href="index.html#about">About</a>
+        <a href="index.html#experience">Experience</a>
+        <a href="index.html#projects" class="active">Research</a>
+        <a href="index.html#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow reveal">Process Automation · CareCenter AS · Hotel Continental, Oslo</div>
+      <h1 class="reveal">An end-to-end <em>invoicing pipeline</em> built in Excel & VBA</h1>
+      <div class="hero-meta reveal">
+        <div class="hero-meta-item">
+          <div class="label">Role</div>
+          <div class="value">Garage Administrator</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Built with</div>
+          <div class="value">Excel · VBA · Tripletex</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Customer base</div>
+          <div class="value">568 corporate accounts</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Time saved</div>
+          <div class="value">~50% per billing cycle</div>
+        </div>
+      </div>
+      <div class="hero-actions reveal">
+        <a href="#problem" class="btn-primary">
+          See the problem
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <nav class="sidebar-nav">
+          <a href="#problem">The Problem</a>
+          <a href="#solution">The Solution</a>
+          <a href="#flow">Process Flow</a>
+          <a href="#technical">Technical Highlights</a>
+          <a href="#results">Results</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">At a glance</div>
+        <div class="stat-block">
+          <div class="stat-label">Customer DB</div>
+          <div class="stat-value">568</div>
+          <div class="stat-sub">corporate accounts</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Time saved</div>
+          <div class="stat-value">~50%</div>
+          <div class="stat-sub">per billing cycle</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Lost entries</div>
+          <div class="stat-value">0</div>
+          <div class="stat-sub">post-deployment</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- PROBLEM -->
+      <div class="content-block reveal" id="problem">
+        <div class="section-header">
+          <span class="section-num">01</span>
+          <span class="section-label-text">The Problem</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>A spreadsheet that <em>quietly bled time</em></h2>
+        <p>CareCenter operates a service garage at Hotel Continental in Oslo. Mechanics log every job — the work performed, the customer, the price, and the payment method — into a shared Excel sheet as the day unfolds. That part worked fine.</p>
+
+        <div class="before-snapshot">
+          <div class="before-label">
+            <span class="before-tag">Before</span>
+            <span class="before-caption">One chronological list — manager scans for each customer, row by row.</span>
+          </div>
+          <div class="before-sheet">
+            <div class="bs-row bs-head">
+              <div>Date</div>
+              <div>Customer</div>
+              <div>Work</div>
+              <div>Payment</div>
+              <div class="bs-amount">Sum</div>
+            </div>
+            <div class="bs-row">
+              <div>01.01.26</div>
+              <div class="bs-customer">Alpha AS</div>
+              <div>Utv</div>
+              <div>Faktura</div>
+              <div class="bs-amount">1 000</div>
+            </div>
+            <div class="bs-row">
+              <div></div>
+              <div class="bs-customer">Alpha AS</div>
+              <div>Innv</div>
+              <div>Faktura</div>
+              <div class="bs-amount">500</div>
+            </div>
+            <div class="bs-row bs-highlight">
+              <div></div>
+              <div class="bs-customer">Bravo AS</div>
+              <div>Polering</div>
+              <div>Kort</div>
+              <div class="bs-amount">1 000</div>
+            </div>
+            <div class="bs-row">
+              <div>04.01.26</div>
+              <div class="bs-customer">Charlie AS</div>
+              <div>tp</div>
+              <div>Faktura</div>
+              <div class="bs-amount">100</div>
+            </div>
+            <div class="bs-row bs-highlight">
+              <div></div>
+              <div class="bs-customer">Bravo AS</div>
+              <div>tp</div>
+              <div>Faktura</div>
+              <div class="bs-amount">120</div>
+            </div>
+          </div>
+          <div class="before-note">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="8" cy="8" r="6.5"/>
+              <path d="M8 5v3.5M8 11h0.01"/>
+            </svg>
+            <span>Highlighted in green: the rows for one customer. Repeat for every other customer, every billing cycle. Miss one — that revenue disappears.</span>
+          </div>
+        </div>
+
+        <p>The problem started at the end of each billing cycle. To prepare invoices, the manager had to scan the entire chronological log, manually identify every row tied to a single corporate customer, highlight them as he went, and re-enter each one into Tripletex by hand. Then repeat for the next customer. And the next. And the next.</p>
+        <p>It was slow, but more importantly it was fragile: a single missed row meant an unbilled job — revenue lost without anyone noticing.</p>
+
+        <!-- LIVE DEMO -->
+        <div class="demo-stage" id="demoStage">
+          <div class="demo-grid">
+            <!-- INPUT FORM (left) -->
+            <div class="demo-panel input-panel">
+              <div class="panel-header">
+                <span class="panel-num">SHEET 1</span>
+                <span class="panel-title">Front · Input form</span>
+              </div>
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Date</label>
+                  <div class="form-input" data-field="date"></div>
+                </div>
+                <div class="form-field">
+                  <label>Customer</label>
+                  <div class="form-input" data-field="customer"></div>
+                </div>
+                <div class="form-field">
+                  <label>Work performed</label>
+                  <div class="form-input" data-field="work"></div>
+                </div>
+                <div class="form-field">
+                  <label>Payment</label>
+                  <div class="form-input" data-field="payment"></div>
+                </div>
+                <div class="form-field">
+                  <label>Sum (NOK)</label>
+                  <div class="form-input amount" data-field="sum"></div>
+                </div>
+              </div>
+              <button class="form-btn" id="formBtn">
+                <span>Lagre</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+              <div class="form-status" id="formStatus"></div>
+            </div>
+
+            <!-- ROUTING ARROWS -->
+            <div class="demo-router">
+              <svg class="router-svg" viewBox="0 0 100 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Path: form → Sheet 2 (top, all jobs) -->
+                <path d="M 0 160 Q 50 160, 50 100 T 100 80" fill="none" stroke="#9e8a6a" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.4"/>
+                <!-- Path: Sheet 2 → Sheet 3 (only invoice rows) -->
+                <path d="M 100 80 Q 60 200, 100 240" fill="none" stroke="#9e8a6a" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.25"/>
+              </svg>
+              <div class="flying-row" id="flyingRow">
+                <span class="fly-customer"></span>
+                <span class="fly-work"></span>
+                <span class="fly-pay"></span>
+                <span class="fly-sum"></span>
+              </div>
+            </div>
+
+            <!-- DESTINATION SHEETS (right) -->
+            <div class="demo-panel destination-panel">
+              <div class="dest-sheet" id="destLog">
+                <div class="panel-header">
+                  <span class="panel-num">SHEET 2</span>
+                  <span class="panel-title">Tabell · Master log (all jobs)</span>
+                </div>
+                <div class="dest-rows">
+                  <div class="dest-head">
+                    <div>Date</div>
+                    <div>Customer</div>
+                    <div>Work</div>
+                    <div>Pay</div>
+                    <div class="d-amount">Sum</div>
+                  </div>
+                  <!-- rows injected by JS -->
+                </div>
+              </div>
+              <div class="dest-sheet" id="destInvoice">
+                <div class="panel-header">
+                  <span class="panel-num">SHEET 3</span>
+                  <span class="panel-title">Fakturakunder · Invoice rows only</span>
+                </div>
+                <div class="dest-rows">
+                  <div class="dest-head">
+                    <div>Order</div>
+                    <div>Customer</div>
+                    <div>Work</div>
+                    <div>Cust ID</div>
+                    <div class="d-amount">Sum</div>
+                  </div>
+                  <!-- rows injected by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="demo-caption">
+            Watch a job entry move from the input form to its destination — invoice rows are grouped under a generated order number; cash and card rows go to the master log.
+          </div>
+        </div>
+      </div>
+
+      <!-- SOLUTION -->
+      <div class="content-block reveal" id="solution">
+        <div class="section-header">
+          <span class="section-num">02</span>
+          <span class="section-label-text">The Solution</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>One macro that does <em>five things at once</em></h2>
+        <p>The system keeps the mechanics' workflow untouched — they still log every job into a simple form on a single sheet. The complexity sits behind a button labelled "Lagre".</p>
+        <p>When pressed, the macro validates the input, writes the raw entry to a master log, separates invoice customers into their own sheet, generates a unique order number per customer per month, looks up the customer's Tripletex ID from a database of 568 corporate accounts, and finally produces a Tripletex-ready import file with a single additional click.</p>
+        <p>Five things that used to be five different mental steps — collapsed into one.</p>
+
+        <div class="note">
+          <p>The biggest change is structural, not just technical: invoice customers now live grouped in their own sheet. The manager no longer hunts for "Pål" through fifty rows of mixed entries — every Pål-job is already gathered, ordered, and tagged with its customer ID.</p>
+        </div>
+      </div>
+
+      <!-- FLOW DIAGRAM -->
+      <div class="content-block reveal" id="flow">
+        <div class="section-header">
+          <span class="section-num">03</span>
+          <span class="section-label-text">Process Flow</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>From entry to <em>Tripletex</em></h2>
+        <p>The data path moves through five sheets, each with a clear purpose. The mechanic only ever sees the first.</p>
+
+        <div class="flow-container">
+          <svg class="flow-svg" viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+                <path d="M0,0 L0,6 L8,3 z" fill="#9e8a6a"/>
+              </marker>
+              <linearGradient id="cardGrad" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stop-color="#fff"/>
+                <stop offset="100%" stop-color="#f8f7f4"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Stage 1: Front (input) -->
+            <g>
+              <rect x="20" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#2c3e50" stroke-width="1.5"/>
+              <text x="85" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 1</text>
+              <text x="85" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Front</text>
+              <text x="85" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Mechanic input</text>
+            </g>
+
+            <!-- Stage 2: Tabell (raw log) -->
+            <g>
+              <rect x="180" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
+              <text x="245" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 2</text>
+              <text x="245" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Tabell</text>
+              <text x="245" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Master log (all jobs)</text>
+            </g>
+
+            <!-- Stage 3: Filter -->
+            <g>
+              <rect x="340" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
+              <text x="405" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 3</text>
+              <text x="405" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Fakturakunder</text>
+              <text x="405" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Invoice rows only</text>
+            </g>
+
+            <!-- Stage 4: Faste Kunder lookup -->
+            <g>
+              <rect x="340" y="220" width="130" height="80" fill="url(#cardGrad)" stroke="#d4d0c8" stroke-width="1.5" stroke-dasharray="3,3"/>
+              <text x="405" y="245" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">REFERENCE</text>
+              <text x="405" y="265" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Faste Kunder</text>
+              <text x="405" y="283" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">568 customers</text>
+            </g>
+
+            <!-- Stage 5: Tripletex export sheet -->
+            <g>
+              <rect x="500" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
+              <text x="565" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 4</text>
+              <text x="565" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">order_import</text>
+              <text x="565" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Tripletex format</text>
+            </g>
+
+            <!-- Stage 6: Tripletex (external) -->
+            <g>
+              <rect x="640" y="60" width="100" height="80" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.5"/>
+              <text x="690" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">EXTERNAL</text>
+              <text x="690" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#fff" text-anchor="middle">Tripletex</text>
+              <text x="690" y="123" font-family="DM Sans" font-size="10" fill="#d4d0c8" text-anchor="middle">Accounting</text>
+            </g>
+
+            <!-- Arrows -->
+            <line x1="150" y1="100" x2="178" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <line x1="310" y1="100" x2="338" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <line x1="470" y1="100" x2="498" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+            <line x1="630" y1="100" x2="638" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+
+            <!-- Lookup arrow (Faste Kunder → Fakturakunder) -->
+            <line x1="405" y1="220" x2="405" y2="142" stroke="#9e8a6a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+            <text x="415" y="185" font-family="DM Sans" font-size="9" fill="#6b6b6b" font-style="italic">customer ID lookup</text>
+
+            <!-- Labels above arrows -->
+            <text x="164" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">log</text>
+            <text x="324" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">filter</text>
+            <text x="484" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">format</text>
+
+            <!-- Bottom annotations -->
+            <text x="85" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">Date · Customer · Work · Price</text>
+            <text x="245" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">All jobs, all payment types</text>
+            <text x="405" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">Grouped, order # assigned</text>
+            <text x="565" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">8-column export schema</text>
+
+            <!-- Bottom title -->
+            <text x="380" y="335" font-family="DM Sans" font-size="10" fill="#9e8a6a" text-anchor="middle" letter-spacing="2" font-weight="600">DATA FLOW · ONE BUTTON · END-TO-END</text>
+          </svg>
+        </div>
+      </div>
+
+      <!-- TECHNICAL -->
+      <div class="content-block reveal" id="technical">
+        <div class="section-header">
+          <span class="section-num">04</span>
+          <span class="section-label-text">Technical Highlights</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Three problems worth <em>solving carefully</em></h2>
+        <p>Most of the macro is straightforward bookkeeping. Three pieces required actual design decisions.</p>
+
+        <div class="highlight-grid">
+          <div class="highlight-card">
+            <div class="h-label">Order Number Logic</div>
+            <div class="h-name">Customer-Month Sequencing</div>
+            <p>Each customer should receive one invoice per month with multiple line items grouped together. The macro uses a Scripting.Dictionary keyed on <code>customer + month</code> to either fetch the existing order number or assign the next available one in that month — ensuring jobs for the same customer collapse into one Tripletex order.</p>
+          </div>
+          <div class="highlight-card">
+            <div class="h-label">Customer Lookup</div>
+            <div class="h-name">568-Row Reference Table</div>
+            <p>A separate sheet holds CareCenter's full corporate customer database — 568 entries with Tripletex IDs, addresses, and contact details. Every invoice row gets enriched with the correct customer ID via a name-based match before export. No manual ID entry required.</p>
+          </div>
+          <div class="highlight-card">
+            <div class="h-label">Tripletex Export</div>
+            <div class="h-name">Schema-compliant File Output</div>
+            <p>The export macro copies the formatted sheet into a new workbook, applies a timestamped filename (<code>Tripletex_Export_yyyymmdd_hhmmss.xlsx</code>), and saves it directly to the Desktop in <code>xlOpenXMLWorkbook</code> format. Tripletex accepts the file as-is — no manual reformatting.</p>
+          </div>
+          <div class="highlight-card">
+            <div class="h-label">Validation & UX</div>
+            <div class="h-name">Required Fields, Quick Drafts</div>
+            <p>The form blocks submission unless all mandatory fields are filled, preventing the silent loss of jobs that plagued the old system. A separate row of "kladd"-shortcuts lets mechanics queue up several jobs and copy them into the form one at a time during quiet moments.</p>
+          </div>
+        </div>
+
+        <h3>Order number generation — the core of the design</h3>
+        <p>The snippet below shows the simplified logic used to assign order numbers. Customer names and IDs are illustrative only.</p>
+        <div class="code-block"><span class="c-comment">' For each invoice row, check if this customer already has</span>
+<span class="c-comment">' an order number assigned for the current month.</span>
+<span class="c-comment">' If yes — reuse it. If no — assign the next available.</span>
+
+<span class="c-keyword">Dim</span> dictOrder <span class="c-keyword">As</span> <span class="c-type">Object</span>
+<span class="c-keyword">Set</span> dictOrder = <span class="c-fn">CreateObject</span>(<span class="c-string">"Scripting.Dictionary"</span>)
+
+<span class="c-keyword">For</span> <span class="c-keyword">Each</span> row <span class="c-keyword">In</span> invoiceRows
+    orderKey = customer & <span class="c-string">"_"</span> & <span class="c-fn">Format</span>(jobDate, <span class="c-string">"yyyymm"</span>)
+
+    <span class="c-keyword">If</span> dictOrder.<span class="c-fn">Exists</span>(orderKey) <span class="c-keyword">Then</span>
+        currentOrderNum = dictOrder(orderKey)
+    <span class="c-keyword">Else</span>
+        currentOrderNum = maxOrderNumInMonth + 1
+        dictOrder.<span class="c-fn">Add</span> orderKey, currentOrderNum
+        maxOrderNumInMonth = currentOrderNum
+    <span class="c-keyword">End</span> <span class="c-keyword">If</span>
+
+    <span class="c-comment">' Write order number back to the row</span>
+    row.<span class="c-fn">Cells</span>(1, COL_ORDER_NUM).Value = currentOrderNum
+<span class="c-keyword">Next</span> row</div>
+        <div class="code-caption">Simplified excerpt. The full implementation also handles month rollover and re-runs idempotently.</div>
+      </div>
+
+      <!-- RESULTS -->
+      <div class="content-block reveal" id="results">
+        <div class="section-header">
+          <span class="section-num">05</span>
+          <span class="section-label-text">Results</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>What <em>changed</em></h2>
+        <p>The improvement is measured in two dimensions — the time the manager spends on each billing cycle, and the number of jobs that quietly disappeared between the spreadsheet and Tripletex.</p>
+
+        <div class="result-grid">
+          <div class="result-card">
+            <div class="r-label">Time</div>
+            <div class="r-value">~50%</div>
+            <div class="r-desc">reduction in manual processing time per billing cycle</div>
+          </div>
+          <div class="result-card">
+            <div class="r-label">Coverage</div>
+            <div class="r-value">100%</div>
+            <div class="r-desc">of invoice-eligible jobs captured — no more missed entries</div>
+          </div>
+          <div class="result-card">
+            <div class="r-label">Scale</div>
+            <div class="r-value">568</div>
+            <div class="r-desc">corporate customers handled by automatic lookup</div>
+          </div>
+        </div>
+
+        <p>The system has been in daily production use at CareCenter since 2024 and replaced an entirely manual workflow. The mechanics' input experience is unchanged — only the manager's end-of-month workflow was transformed.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Alexander Moe Halvorsrød</p>
+      <a href="index.html">← Back to main site</a>
+    </div>
+  </footer>
+
+  <script>
+    const progressBar = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = ((scrollTop / docHeight) * 100) + '%';
+    });
+
+    const nav = document.getElementById('navbar');
+    window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    const sections = document.querySelectorAll('[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          sidebarLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+          });
+        }
+      });
+    }, { threshold: 0.4 });
+    sections.forEach(s => observer.observe(s));
+
+    // ── LIVE DEMO ANIMATION ──
+    const demoStage = document.getElementById('demoStage');
+    const formInputs = {
+      date: document.querySelector('[data-field="date"]'),
+      customer: document.querySelector('[data-field="customer"]'),
+      work: document.querySelector('[data-field="work"]'),
+      payment: document.querySelector('[data-field="payment"]'),
+      sum: document.querySelector('[data-field="sum"]'),
+    };
+    const formBtn = document.getElementById('formBtn');
+    const formStatus = document.getElementById('formStatus');
+    const flyingRow = document.getElementById('flyingRow');
+    const destLog = document.querySelector('#destLog .dest-rows');
+    const destInvoice = document.querySelector('#destInvoice .dest-rows');
+
+    // Job sequence — all go to master log; invoice payments additionally go to invoice sheet
+    const jobs = [
+      { date: '01.01.26', customer: 'Alpha AS',   work: 'Utv',      payment: 'Faktura', sum: '1 000', order: '2601001', custId: '10369', isInvoice: true  },
+      { date: '01.01.26', customer: 'Alpha AS',   work: 'Innv',     payment: 'Faktura', sum: '500',   order: '2601001', custId: '10369', isInvoice: true  },
+      { date: '02.01.26', customer: 'Bravo AS',   work: 'Polering', payment: 'Kort',    sum: '1 200',                                     isInvoice: false },
+      { date: '04.01.26', customer: 'Charlie AS', work: 'tp',       payment: 'Faktura', sum: '700',   order: '2601002', custId: '10211', isInvoice: true  },
+    ];
+
+    const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+    async function typeInto(el, text, speed = 35) {
+      el.classList.add('typing');
+      el.textContent = '';
+      for (let i = 0; i < text.length; i++) {
+        el.textContent += text[i];
+        await wait(speed + Math.random() * 25);
+      }
+      el.classList.remove('typing');
+    }
+
+    function clearForm() {
+      Object.values(formInputs).forEach(el => { el.textContent = ''; });
+      formStatus.textContent = '';
+      formStatus.classList.remove('success');
+    }
+
+    function trimDest(container, maxRows = 4) {
+      const rows = container.querySelectorAll('.dest-row');
+      if (rows.length > maxRows) {
+        rows[0].remove();
+      }
+    }
+
+    function addLogRow(job) {
+      const row = document.createElement('div');
+      row.className = 'dest-row fresh';
+      row.innerHTML = `
+        <div class="d-order">${job.date}</div>
+        <div class="d-customer">${job.customer}</div>
+        <div class="d-work">${job.work}</div>
+        <div class="d-work">${job.payment}</div>
+        <div class="d-amount">${job.sum}</div>
+      `;
+      destLog.appendChild(row);
+      setTimeout(() => row.classList.remove('fresh'), 1400);
+      trimDest(destLog);
+    }
+
+    function addInvoiceRow(job) {
+      const row = document.createElement('div');
+      row.className = 'dest-row fresh';
+      row.innerHTML = `
+        <div class="d-order">${job.order}</div>
+        <div class="d-customer">${job.customer}</div>
+        <div class="d-work">${job.work}</div>
+        <div class="d-work">${job.custId}</div>
+        <div class="d-amount">${job.sum}</div>
+      `;
+      destInvoice.appendChild(row);
+      setTimeout(() => row.classList.remove('fresh'), 1400);
+      trimDest(destInvoice);
+    }
+
+    async function flyToDestination(job) {
+      flyingRow.querySelector('.fly-customer').textContent = job.customer;
+      flyingRow.querySelector('.fly-work').textContent = job.work;
+      flyingRow.querySelector('.fly-pay').textContent = job.payment;
+      flyingRow.querySelector('.fly-sum').textContent = job.sum + ' kr';
+
+      flyingRow.classList.remove('travel-up', 'travel-down');
+      void flyingRow.offsetWidth;
+      flyingRow.classList.add('active');
+      // Invoice path is longer (log → invoice); cash path stops at log
+      flyingRow.classList.add(job.isInvoice ? 'travel-up' : 'travel-down');
+
+      if (job.isInvoice) {
+        // Land in master log first (around 45% of 1.6s ≈ 720ms)
+        await wait(720);
+        addLogRow(job);
+        // Then continue to invoice sheet (rest of animation)
+        await wait(880);
+        addInvoiceRow(job);
+      } else {
+        // Cash/card: only lands in master log
+        await wait(900);
+        addLogRow(job);
+        await wait(150);
+      }
+
+      flyingRow.classList.remove('active', 'travel-up', 'travel-down');
+    }
+
+    async function runJob(job) {
+      clearForm();
+      await wait(300);
+      await typeInto(formInputs.date, job.date);
+      await wait(120);
+      await typeInto(formInputs.customer, job.customer);
+      await wait(120);
+      await typeInto(formInputs.work, job.work);
+      await wait(120);
+      await typeInto(formInputs.payment, job.payment);
+      await wait(120);
+      await typeInto(formInputs.sum, job.sum);
+      await wait(280);
+
+      formBtn.classList.add('pressed');
+      formStatus.textContent = job.isInvoice
+        ? '→ logged to Tabell, queued for invoice'
+        : '→ logged to Tabell';
+      formStatus.classList.add('success');
+      await wait(220);
+      formBtn.classList.remove('pressed');
+
+      await flyToDestination(job);
+      await wait(700);
+    }
+
+    let demoRunning = false;
+    async function runDemoLoop() {
+      if (demoRunning) return;
+      demoRunning = true;
+      while (demoRunning) {
+        for (const job of jobs) {
+          if (!demoRunning) break;
+          await runJob(job);
+        }
+        await wait(1500);
+        destLog.querySelectorAll('.dest-row').forEach(r => r.remove());
+        destInvoice.querySelectorAll('.dest-row').forEach(r => r.remove());
+        await wait(400);
+      }
+    }
+
+    // Start demo when scrolled into view; pause when out of view to save resources
+    const demoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !demoRunning) {
+          runDemoLoop();
+        } else if (!entry.isIntersecting) {
+          demoRunning = false;
+        }
+      });
+    }, { threshold: 0.25 });
+    if (demoStage) demoObserver.observe(demoStage);
+  </script>
+</body>
+</html>
