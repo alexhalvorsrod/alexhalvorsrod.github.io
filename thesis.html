@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Master's Thesis — Alexander Moe Halvorsrød</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@200;300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1a1a1a;
+      --paper: #f8f7f4;
+      --cream: #f0eee8;
+      --accent: #2c3e50;
+      --gold: #9e8a6a;
+      --gold-dim: rgba(158, 138, 106, 0.12);
+      --gold-glow: rgba(158, 138, 106, 0.06);
+      --muted: #6b6b6b;
+      --dim: #999;
+      --rule: #d4d0c8;
+      --rule-gold: rgba(158, 138, 106, 0.25);
+      --serif: 'Cormorant Garamond', 'Georgia', serif;
+      --sans: 'DM Sans', 'Helvetica Neue', sans-serif;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      font-family: var(--sans);
+      background: var(--paper);
+      color: var(--ink);
+      line-height: 1.7;
+      font-weight: 400;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 128px 128px;
+    }
+
+    ::selection { background: var(--gold); color: #fff; }
+
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--accent));
+      z-index: 200; transition: width 0.05s linear;
+    }
+
+    nav {
+      position: fixed; top: 2px; width: 100%; z-index: 100;
+      background: rgba(248, 247, 244, 0.92);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid transparent; transition: border-color 0.4s;
+    }
+    nav.scrolled { border-bottom-color: var(--rule); }
+    nav .nav-inner {
+      max-width: 1140px; margin: 0 auto; padding: 1.2rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    nav .logo {
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 500;
+      color: var(--ink); text-decoration: none; letter-spacing: 0.02em;
+    }
+    nav .nav-links { display: flex; gap: 2.4rem; }
+    nav .nav-links a {
+      font-size: 0.72rem; font-weight: 500; text-decoration: none;
+      color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase;
+      transition: color 0.3s; position: relative;
+    }
+    nav .nav-links a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: var(--gold); transition: width 0.35s ease;
+    }
+    nav .nav-links a:hover { color: var(--ink); }
+    nav .nav-links a:hover::after { width: 100%; }
+    nav .nav-links a.active { color: var(--gold); }
+    nav .nav-links a.active::after { width: 100%; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 60vh; display: flex; align-items: flex-end;
+      position: relative; padding: 10rem 2.5rem 5rem;
+      border-bottom: 1px solid var(--rule-gold);
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 10%; right: 5%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .hero .container { max-width: 1140px; margin: 0 auto; width: 100%; }
+
+    .hero-eyebrow {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1.2rem;
+    }
+    .hero-eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
+
+    .hero h1 {
+      font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 400; line-height: 1.1; letter-spacing: -0.01em;
+      margin-bottom: 1.8rem; max-width: 820px;
+    }
+    .hero h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+
+    .hero-meta {
+      display: flex; gap: 3rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+    }
+    .hero-meta-item { }
+    .hero-meta-item .label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 0.2rem;
+    }
+    .hero-meta-item .value {
+      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--ink);
+    }
+
+    .hero-actions { display: flex; gap: 1.8rem; align-items: center; flex-wrap: wrap; }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 0.8rem;
+      padding: 0.9rem 2rem; background: var(--accent); color: #fff;
+      text-decoration: none; font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .btn-primary:hover { background: #1a2a38; transform: translateY(-1px); }
+    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; transition: transform 0.25s; }
+    .btn-primary:hover svg { transform: translateX(3px); }
+    .btn-ghost {
+      font-size: 0.76rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase; text-decoration: none; color: var(--ink);
+      padding-bottom: 2px; border-bottom: 1.5px solid var(--gold);
+      transition: color 0.3s;
+    }
+    .btn-ghost:hover { color: var(--gold); }
+
+    /* ── LAYOUT ── */
+    .page-body {
+      max-width: 1140px; margin: 0 auto; padding: 5rem 2.5rem;
+      display: grid; grid-template-columns: 260px 1fr; gap: 5rem; align-items: start;
+    }
+
+    /* ── SIDEBAR ── */
+    .sidebar { position: sticky; top: 5rem; }
+    .sidebar-section { margin-bottom: 2.5rem; }
+    .sidebar-label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 1rem;
+      padding-bottom: 0.6rem; border-bottom: 1px solid var(--rule);
+    }
+    .sidebar-nav { display: flex; flex-direction: column; gap: 0.1rem; }
+    .sidebar-nav a {
+      font-size: 0.82rem; font-weight: 400; color: var(--muted);
+      text-decoration: none; padding: 0.45rem 0;
+      border-left: 2px solid transparent; padding-left: 0.8rem;
+      transition: color 0.3s, border-color 0.3s;
+    }
+    .sidebar-nav a:hover, .sidebar-nav a.active {
+      color: var(--gold); border-left-color: var(--gold);
+    }
+
+    .stat-block {
+      padding: 1.2rem 1.4rem; border: 1px solid var(--rule);
+      background: var(--cream); margin-bottom: 0.6rem;
+    }
+    .stat-block .stat-label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 0.3rem;
+    }
+    .stat-block .stat-value {
+      font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--ink);
+    }
+    .stat-block .stat-sub {
+      font-size: 0.75rem; color: var(--muted); font-weight: 300; margin-top: 0.1rem;
+    }
+
+    /* ── MAIN CONTENT ── */
+    .main-content { min-width: 0; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem;
+    }
+    .section-num {
+      font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400;
+    }
+    .section-label-text {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .section-line {
+      flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent);
+    }
+
+    .content-block {
+      padding-bottom: 4rem; margin-bottom: 4rem;
+      border-bottom: 1px solid var(--rule-gold);
+    }
+    .content-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .content-block h2 {
+      font-family: var(--serif); font-size: 1.9rem; font-weight: 400;
+      line-height: 1.25; margin-bottom: 1.4rem;
+    }
+    .content-block h2 em { font-style: italic; font-weight: 300; color: var(--gold); }
+    .content-block h3 {
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 500;
+      margin-bottom: 0.8rem; margin-top: 2rem; color: var(--ink);
+    }
+    .content-block p {
+      color: var(--muted); font-size: 0.93rem; font-weight: 300;
+      line-height: 1.85; margin-bottom: 1rem; max-width: 680px;
+    }
+
+    /* Hypothesis cards */
+    .hypothesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 2rem 0; }
+    .hypothesis-card {
+      border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden;
+      transition: border-color 0.4s, box-shadow 0.4s;
+    }
+    .hypothesis-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    .hypothesis-card:hover { border-color: var(--gold); box-shadow: 0 4px 24px var(--gold-dim); }
+    .hypothesis-tag {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem;
+    }
+    .hypothesis-card h4 {
+      font-family: var(--serif); font-size: 1.15rem; font-weight: 500;
+      margin-bottom: 0.6rem; line-height: 1.3;
+    }
+    .hypothesis-card p {
+      font-size: 0.83rem; color: var(--muted); font-weight: 300; max-width: 100%;
+    }
+
+    /* Data source table */
+    .data-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
+    .data-table thead th {
+      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--dim);
+      padding: 0.7rem 1rem; text-align: left;
+      border-bottom: 2px solid var(--rule); background: var(--cream);
+    }
+    .data-table tbody tr {
+      border-bottom: 1px solid var(--rule); transition: background 0.2s;
+    }
+    .data-table tbody tr:hover { background: var(--cream); }
+    .data-table tbody td {
+      padding: 1rem 1rem; font-size: 0.85rem; color: var(--ink); font-weight: 300;
+      vertical-align: top;
+    }
+    .data-table tbody td:first-child { font-weight: 500; font-family: var(--serif); font-size: 0.95rem; }
+    .data-table .tag {
+      display: inline-block; font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.2rem 0.6rem; border: 1px solid var(--rule-gold);
+      color: var(--gold); background: var(--gold-dim);
+    }
+
+    /* Dataset cards */
+    .dataset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
+    .dataset-card {
+      border: 1px solid var(--rule); padding: 1.6rem; background: var(--paper);
+      transition: border-color 0.3s, background 0.3s;
+    }
+    .dataset-card:hover { border-color: var(--gold); background: var(--cream); }
+    .dataset-card .ds-label {
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
+    }
+    .dataset-card .ds-name {
+      font-family: var(--serif); font-size: 1.05rem; font-weight: 500; margin-bottom: 0.3rem;
+    }
+    .dataset-card .ds-filename {
+      font-size: 0.72rem; color: var(--dim); font-family: monospace;
+      margin-bottom: 0.6rem; letter-spacing: 0.02em;
+    }
+    .dataset-card .ds-stats {
+      display: flex; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap;
+    }
+    .dataset-card .ds-stat {
+      font-size: 0.72rem; color: var(--muted);
+    }
+    .dataset-card .ds-stat span {
+      font-weight: 600; color: var(--ink);
+    }
+    .dataset-card p {
+      font-size: 0.8rem; color: var(--muted); font-weight: 300;
+      line-height: 1.7; max-width: 100%; margin: 0;
+    }
+
+    /* Controls list */
+    .controls-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1.5rem 0; }
+    .control-item {
+      padding: 1.1rem 1.3rem; border: 1px solid var(--rule);
+      transition: border-color 0.3s;
+    }
+    .control-item:hover { border-color: var(--gold); }
+    .control-item .c-source {
+      font-size: 0.58rem; font-weight: 600; letter-spacing: 0.16em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 0.3rem;
+    }
+    .control-item .c-name {
+      font-size: 0.88rem; font-weight: 500; margin-bottom: 0.15rem;
+    }
+    .control-item .c-desc { font-size: 0.75rem; color: var(--muted); font-weight: 300; }
+
+    /* Method pills */
+    .method-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+    .method-tag {
+      font-size: 0.78rem; font-weight: 400; color: var(--ink);
+      padding: 0.4rem 1rem; border: 1px solid var(--rule);
+      background: var(--paper); transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .method-tag:hover { border-color: var(--gold); box-shadow: 0 2px 8px var(--gold-dim); }
+
+    /* Timeline */
+    .timeline { margin: 1.5rem 0; }
+    .timeline-item {
+      display: grid; grid-template-columns: 120px 1fr; gap: 2rem;
+      padding: 1.5rem 0; border-bottom: 1px solid var(--rule); align-items: start;
+    }
+    .timeline-item:last-child { border-bottom: none; }
+    .timeline-date {
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--dim); padding-top: 0.2rem;
+    }
+    .timeline-content h4 {
+      font-family: var(--serif); font-size: 1.1rem; font-weight: 500; margin-bottom: 0.3rem;
+    }
+    .timeline-content p { font-size: 0.82rem; color: var(--muted); margin: 0; max-width: 100%; }
+
+    /* Inline note */
+    .note {
+      padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold);
+      background: var(--gold-dim); margin: 1.5rem 0;
+    }
+    .note p {
+      font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 100%;
+      font-style: italic;
+    }
+
+    /* Footer */
+    footer { padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule); margin-top: 4rem; }
+    footer .container { max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em; }
+    footer a { color: var(--gold); text-decoration: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+    footer a:hover { color: var(--ink); }
+
+    /* Reveal animations */
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .rd1 { transition-delay: 0.08s; } .rd2 { transition-delay: 0.16s; }
+    .rd3 { transition-delay: 0.24s; } .rd4 { transition-delay: 0.32s; }
+
+    @media (max-width: 900px) {
+      .page-body { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 1.8rem; }
+      .sidebar { position: static; }
+      .hypothesis-grid, .dataset-grid { grid-template-columns: 1fr; }
+      .controls-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero { padding: 7rem 1.5rem 4rem; }
+      nav .nav-links { display: none; }
+      .controls-grid { grid-template-columns: 1fr; }
+      .hero-meta { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">AMH.</a>
+      <div class="nav-links">
+        <a href="index.html#about">About</a>
+        <a href="index.html#experience">Experience</a>
+        <a href="index.html#projects" class="active">Research</a>
+        <a href="index.html#contact">Contact</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow reveal">Master's Thesis · BI Norwegian Business School · 2026</div>
+      <h1 class="reveal rd1">Passive Dominance and<br/><em>Market Efficiency</em></h1>
+      <div class="hero-meta reveal rd2">
+        <div class="hero-meta-item">
+          <div class="label">Authors</div>
+          <div class="value">Alexander Moe Halvorsrød & Benjamin Egeland Billington</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Supervisor</div>
+          <div class="value">Ignacio Garcia de Olalla Lopez</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Sample Period</div>
+          <div class="value">1992 — 2024</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="label">Status</div>
+          <div class="value">In progress</div>
+        </div>
+      </div>
+      <div class="hero-actions reveal rd3">
+        <a href="#overview" class="btn-primary">
+          Read overview
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
+        <a href="assets/thesis.pdf" target="_blank" class="btn-ghost">Download PDF</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-body">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">On this page</div>
+        <nav class="sidebar-nav">
+          <a href="#overview">Overview</a>
+          <a href="#hypotheses">Hypotheses</a>
+          <a href="#data">Data Sources</a>
+          <a href="#controls">Controls</a>
+          <a href="#method">Methodology</a>
+        </nav>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Dataset at a glance</div>
+        <div class="stat-block">
+          <div class="stat-label">S&P 500 Panel</div>
+          <div class="stat-value">6.5M</div>
+          <div class="stat-sub">constituent-day observations</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Unique firms</div>
+          <div class="stat-value">1,255</div>
+          <div class="stat-sub">PERMNOs, 1992–2024</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Morningstar flows</div>
+          <div class="stat-value">383</div>
+          <div class="stat-sub">monthly obs., 1993–2024</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-label">Non-index universe</div>
+          <div class="stat-value">447K</div>
+          <div class="stat-sub">comparison firm-months</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main-content">
+
+      <!-- OVERVIEW -->
+      <div class="content-block reveal" id="overview">
+        <div class="section-header">
+          <span class="section-num">01</span>
+          <span class="section-label-text">Overview</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Evidence from <em>US Equities</em></h2>
+        <p>Passive investing now accounts for more than 60% of total US fund assets. As index-tracking vehicles mechanically allocate capital based on index membership rather than fundamental value, a growing body of literature questions whether this structural shift impairs the price discovery process that underpins market efficiency.</p>
+        <p>This thesis investigates two related but distinct channels through which passive dominance may distort equity markets: valuation inflation among index constituents, and the deterioration of return independence as correlation structures become increasingly driven by mechanical rebalancing rather than firm-specific information.</p>
+        <p>The empirical framework draws on over three decades of CRSP daily data, Compustat valuation ratios, and Morningstar fund flow data — covering 1,255 S&P 500 constituent firms across 8,311 trading days. All estimation is performed in Python using a reproducible, point-in-time pipeline with no look-ahead bias.</p>
+
+        <div class="note">
+          <p>Theoretical anchors: Grossman & Stiglitz (1980) — the information acquisition paradox — and Asness (2024) — the Less-Efficient Market Hypothesis (LEMH).</p>
+        </div>
+      </div>
+
+      <!-- HYPOTHESES -->
+      <div class="content-block reveal" id="hypotheses">
+        <div class="section-header">
+          <span class="section-num">02</span>
+          <span class="section-label-text">Hypotheses</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Two <em>Research Questions</em></h2>
+        <p>The thesis tests two primary hypotheses, each addressing a distinct dimension of market quality under passive dominance.</p>
+        <div class="hypothesis-grid">
+          <div class="hypothesis-card">
+            <div class="hypothesis-tag">H1 — Price Distortion</div>
+            <h4>Passive flows inflate valuations beyond fundamentals</h4>
+            <p>Passive capital inflows decouple stock prices from fundamental value, driving P/E and P/B multiples of index constituents beyond what earnings growth explains. Index membership creates a valuation premium unrelated to firm quality.</p>
+          </div>
+          <div class="hypothesis-card">
+            <div class="hypothesis-tag">H2 — Systematic Fragility</div>
+            <h4>Passive investing increases correlation and concentration risk</h4>
+            <p>Mechanical rebalancing increases return co-movement, price synchronicity, and correlation asymmetry — particularly during market downturns. This increases systemic risk across the index and reduces the portfolio diversification benefit for investors.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATA SOURCES -->
+      <div class="content-block reveal" id="data">
+        <div class="section-header">
+          <span class="section-num">03</span>
+          <span class="section-label-text">Data Sources</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Four <em>Primary Sources</em></h2>
+        <p>The empirical analysis draws on four distinct data sources, spanning January 1992 to December 2024. All data assembly is performed in Python with point-in-time integrity enforced throughout — no data item is used before its public availability date.</p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Provider</th>
+              <th>Content</th>
+              <th>Coverage</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>CRSP Daily Stock File</td>
+              <td><span class="tag">WRDS</span></td>
+              <td>Daily returns, prices, volume, market cap for S&P 500 constituents and large-cap comparison universe</td>
+              <td>1992–2024</td>
+            </tr>
+            <tr>
+              <td>Compustat Fundamentals</td>
+              <td><span class="tag">WRDS</span></td>
+              <td>Quarterly P/E and P/B ratios at the firm level via WRDS firm_ratio; winsorised at 1st/99th percentile</td>
+              <td>1992–2022</td>
+            </tr>
+            <tr>
+              <td>S&P 500 Constituent History</td>
+              <td><span class="tag">WRDS + GitHub</span></td>
+              <td>Annual snapshots 1992–2022 from WRDS; 2023–2024 extended via fja05680/sp500 change log with backward merge_asof join</td>
+              <td>1992–2024</td>
+            </tr>
+            <tr>
+              <td>Morningstar Direct</td>
+              <td><span class="tag">Morningstar</span></td>
+              <td>Monthly active vs. passive net flows, total net assets, and organic growth rates at fund and category level</td>
+              <td>1993–2024</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Constructed Datasets</h3>
+        <p>Raw source data is assembled into four analysis-ready files:</p>
+
+        <div class="dataset-grid">
+          <div class="dataset-card">
+            <div class="ds-label">Primary Panel</div>
+            <div class="ds-name">S&P 500 Constituent Panel</div>
+            <div class="ds-filename">daily_panel.csv</div>
+            <div class="ds-stats">
+              <div class="ds-stat">Rows: <span>6,495,873</span></div>
+              <div class="ds-stat">Cols: <span>13</span></div>
+            </div>
+            <p>Daily constituent-level panel. Includes closing price, return, shares outstanding, volume, market cap, and winsorised P/E and P/B. Covers all trading days 1992–2024 across 1,255 unique PERMNOs (498–507 constituents per day).</p>
+          </div>
+          <div class="dataset-card">
+            <div class="ds-label">Comparison Universe</div>
+            <div class="ds-name">Non-Index Large-Cap Panel</div>
+            <div class="ds-filename">crsp_nonindex.csv</div>
+            <div class="ds-stats">
+              <div class="ds-stat">Rows: <span>447,659</span></div>
+              <div class="ds-stat">Cols: <span>12</span></div>
+            </div>
+            <p>Monthly panel of large-cap stocks outside the S&P 500. Used as the control group for difference-in-differences and cross-sectional tests, allowing isolation of index membership effects.</p>
+          </div>
+          <div class="dataset-card">
+            <div class="ds-label">Membership History</div>
+            <div class="ds-name">Constituent Membership Log</div>
+            <div class="ds-filename">sp500_membership.csv</div>
+            <div class="ds-stats">
+              <div class="ds-stat">Rows: <span>4,165,036</span></div>
+              <div class="ds-stat">Cols: <span>4</span></div>
+            </div>
+            <p>Point-in-time panel recording daily index membership for each PERMNO. Built from 33 annual WRDS snapshots and supplemented with GitHub change-log data for 2023–2024. Zero orphaned in-index observations.</p>
+          </div>
+          <div class="dataset-card">
+            <div class="ds-label">Fund Flows</div>
+            <div class="ds-name">Morningstar Flow Panel</div>
+            <div class="ds-filename">morningstar.csv</div>
+            <div class="ds-stats">
+              <div class="ds-stat">Rows: <span>383</span></div>
+              <div class="ds-stat">Cols: <span>11</span></div>
+            </div>
+            <p>Monthly active vs. passive net flows and total net assets from Morningstar Direct. Key regression variable is organic growth rate (flow / lagged AUM), not total AUM, to avoid scale distortion. Covers 1993–2024.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="content-block reveal" id="controls">
+        <div class="section-header">
+          <span class="section-num">04</span>
+          <span class="section-label-text">Controls</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Macroeconomic <em>Controls</em></h2>
+        <p>To isolate the effect of passive flows from broader macroeconomic conditions, six external control series are merged into the analysis panel. The key passive flow variable is orthogonalised against interest rates and active flows to address multi-collinearity.</p>
+
+        <div class="controls-grid">
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">10-Year Treasury Yield</div>
+            <div class="c-desc">GS10 — monthly, risk-free rate proxy</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">Fed Funds Rate</div>
+            <div class="c-desc">FEDFUNDS — monetary policy stance</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">CPI Inflation</div>
+            <div class="c-desc">CPIAUCSL — YoY % change, monthly</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">Real GDP Growth</div>
+            <div class="c-desc">A191RL1Q225SBEA — quarterly, interpolated</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">CBOE</div>
+            <div class="c-name">VIX</div>
+            <div class="c-desc">Daily volatility index, collapsed to monthly</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">Ken French</div>
+            <div class="c-name">Fama-French 5 Factors</div>
+            <div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA — monthly</div>
+          </div>
+        </div>
+
+        <div class="note">
+          <p>The passive share variable is double-orthogonalised against the 10-year Treasury yield and active flow rate before entry into panel regressions, producing <code>passive_share_orth</code>. This removes the mechanical correlation between passive growth and the broader rate environment.</p>
+        </div>
+      </div>
+
+      <!-- METHODOLOGY -->
+      <div class="content-block reveal" id="method">
+        <div class="section-header">
+          <span class="section-num">05</span>
+          <span class="section-label-text">Methodology</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Econometric <em>Framework</em></h2>
+        <p>The analysis employs a suite of time-series and panel econometric methods, selected to address both the cointegration properties of passive share and valuation multiples, and the panel structure of firm-level data.</p>
+
+        <h3>Time-Series Methods</h3>
+        <div class="method-tags">
+          <span class="method-tag">OLS-HAC</span>
+          <span class="method-tag">FMOLS (Phillips & Hansen 1990)</span>
+          <span class="method-tag">DOLS</span>
+          <span class="method-tag">Error Correction Model (ECM)</span>
+          <span class="method-tag">Granger Causality via VAR</span>
+          <span class="method-tag">ADF / KPSS Unit Root Tests</span>
+          <span class="method-tag">Johansen Cointegration</span>
+        </div>
+
+        <h3>Panel Methods</h3>
+        <div class="method-tags">
+          <span class="method-tag">Panel Fixed Effects (firm + time FE)</span>
+          <span class="method-tag">Difference-in-Differences</span>
+          <span class="method-tag">PCA Variance Decomposition</span>
+          <span class="method-tag">Crisis Period Subsample Analysis</span>
+        </div>
+
+        <h3>Implementation</h3>
+        <p>All estimation is conducted in Python using <code>statsmodels</code>, <code>linearmodels</code>, and <code>scipy</code>. CRSP data is accessed via WRDS using SQLAlchemy with <code>sqlalchemy.text()</code> after resolving a psycopg2 incompatibility. Point-in-time merges use <code>pd.merge_asof</code> throughout to prevent look-ahead bias.</p>
+      </div>
+
+    </main>
+  </div>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Alexander Moe Halvorsrød</p>
+      <a href="index.html">← Back to main site</a>
+    </div>
+  </footer>
+
+  <script>
+    // Scroll progress
+    const progressBar = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = ((scrollTop / docHeight) * 100) + '%';
+    });
+
+    // Nav scroll
+    const nav = document.getElementById('navbar');
+    window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
+
+    // Reveal
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+    // Sidebar active link highlight
+    const sections = document.querySelectorAll('[id]');
+    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          sidebarLinks.forEach(a => {
+            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
+          });
+        }
+      });
+    }, { threshold: 0.4 });
+    sections.forEach(s => observer.observe(s));
+  </script>
+</body>
+</html>
