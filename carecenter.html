@@ -64,12 +64,15 @@
     }
 
     nav {
-      position: fixed; top: 2px; width: 100%; z-index: 100;
-      background: rgba(248, 247, 244, 0.92);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid transparent; transition: border-color 0.4s;
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid transparent; transition: border-color 0.4s, background 0.4s;
     }
-    nav.scrolled { border-bottom-color: var(--rule); }
+    nav.scrolled {
+      border-bottom-color: var(--rule);
+      background: rgba(248, 247, 244, 0.96);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
     nav .nav-inner {
       max-width: 1140px; margin: 0 auto; padding: 1.2rem 2.5rem;
       display: flex; justify-content: space-between; align-items: center;
@@ -151,7 +154,7 @@
     }
 
     /* ── SIDEBAR ── */
-    .sidebar { position: sticky; top: 5rem; }
+    .sidebar { position: sticky; top: 6rem; }
     .sidebar-section { margin-bottom: 2.5rem; }
     .sidebar-label {
       font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2em;
@@ -309,42 +312,46 @@
     /* ── LIVE DEMO STAGE ── */
     .demo-stage { margin: 2rem 0 1rem; }
     .demo-grid {
-      display: grid;
-      grid-template-columns: 280px 60px 1fr;
-      gap: 0;
-      align-items: stretch;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
       background: var(--cream);
       border: 1px solid var(--rule);
       padding: 1.6rem;
+      position: relative;
     }
     .demo-panel {
       background: #fff;
       border: 1px solid var(--rule);
       padding: 1.2rem;
       display: flex; flex-direction: column;
-      min-height: 320px;
+      position: relative;
+      z-index: 2;
     }
     .destination-panel {
       background: transparent;
       border: none;
       padding: 0;
       display: flex; flex-direction: column;
-      gap: 0.8rem;
+      gap: 1rem;
+      position: relative;
+      z-index: 2;
     }
     .dest-sheet {
       background: #fff;
       border: 1px solid var(--rule);
-      padding: 1rem 1.1rem;
-      flex: 1;
+      padding: 1rem 1.2rem;
     }
     .panel-header {
       display: flex; justify-content: space-between; align-items: baseline;
       padding-bottom: 0.7rem; margin-bottom: 0.9rem;
       border-bottom: 1px solid var(--rule);
+      gap: 1rem;
     }
     .panel-num {
       font-family: var(--mono); font-size: 0.6rem; font-weight: 600;
       letter-spacing: 0.2em; color: var(--gold); text-transform: uppercase;
+      flex-shrink: 0;
     }
     .panel-title {
       font-family: var(--serif); font-size: 0.92rem; font-weight: 500;
@@ -353,11 +360,15 @@
 
     /* Form fields */
     .form-grid {
-      display: flex; flex-direction: column; gap: 0.6rem; flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem 1rem;
     }
     .form-field {
-      display: flex; flex-direction: column; gap: 0.2rem;
+      display: flex; flex-direction: column; gap: 0.25rem;
+      min-width: 0;
     }
+    .form-field.full-width { grid-column: 1 / -1; }
     .form-field label {
       font-size: 0.55rem; font-weight: 600; letter-spacing: 0.16em;
       text-transform: uppercase; color: var(--dim);
@@ -387,7 +398,7 @@
     }
 
     .form-btn {
-      margin-top: 0.9rem;
+      margin-top: 1rem;
       display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
       padding: 0.7rem 1.4rem;
       background: var(--accent); color: #fff;
@@ -410,56 +421,62 @@
     }
     .form-status.success { color: var(--green); }
 
-    /* Routing column with curved guide lines */
+    /* Vertical routing arrow between panels */
     .demo-router {
-      position: relative;
       display: flex; align-items: center; justify-content: center;
-      overflow: visible;
+      padding: 0.4rem 0;
+      position: relative;
+      z-index: 1;
     }
-    .router-svg {
-      position: absolute; inset: 0; width: 100%; height: 100%;
-      pointer-events: none;
+    .router-arrow {
+      width: 14px; height: 22px;
+      color: var(--gold);
+      opacity: 0.5;
+    }
+    .router-label {
+      font-family: var(--mono); font-size: 0.6rem;
+      color: var(--gold); letter-spacing: 0.1em;
+      margin-left: 0.6rem; text-transform: uppercase;
+      opacity: 0.7;
     }
 
-    /* The flying row that travels from form to destination */
+    /* The flying row that travels vertically between stacked panels */
     .flying-row {
       position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
+      left: 50%;
+      transform: translateX(-50%);
       background: #2c3e50;
       border: 1px solid #2c3e50;
-      padding: 0.4rem 0.6rem;
-      font-family: var(--mono); font-size: 0.62rem; font-weight: 500;
+      padding: 0.45rem 0.75rem;
+      font-family: var(--mono); font-size: 0.66rem; font-weight: 500;
       color: #fff;
       display: none;
-      gap: 0.4rem;
-      box-shadow: 0 6px 18px rgba(44, 62, 80, 0.35), 0 2px 4px rgba(0,0,0,0.15);
+      gap: 0.5rem;
+      box-shadow: 0 6px 18px rgba(44, 62, 80, 0.4), 0 2px 4px rgba(0,0,0,0.15);
       white-space: nowrap;
-      z-index: 5;
+      z-index: 10;
       pointer-events: none;
     }
-    .flying-row.active {
-      display: inline-flex;
-    }
+    .flying-row.active { display: inline-flex; }
     .flying-row.travel-up {
-      animation: fly-to-log-then-invoice 1.6s cubic-bezier(0.5, 0, 0.5, 1) forwards;
+      animation: fly-vertical-invoice 1.8s cubic-bezier(0.5, 0, 0.5, 1) forwards;
     }
     .flying-row.travel-down {
-      animation: fly-to-log-only 1.0s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+      animation: fly-vertical-cash 1.0s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
     }
-    /* Invoice path: form → Sheet 2 (top) → Sheet 3 (bottom) */
-    @keyframes fly-to-log-then-invoice {
-      0%   { left: -20%; top: 80%; opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-      12%  { left: 50%; top: 80%; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      45%  { left: 110%; top: 25%; opacity: 1; transform: translate(-50%, -50%) scale(0.96); }
-      55%  { left: 110%; top: 25%; opacity: 0.85; transform: translate(-50%, -50%) scale(0.96); }
-      100% { left: 110%; top: 78%; opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+    /* Invoice path: form bottom → Sheet 2 → Sheet 3 (vertical) */
+    @keyframes fly-vertical-invoice {
+      0%   { top: var(--form-bottom, 35%); opacity: 0; transform: translateX(-50%) scale(0.95); }
+      10%  { top: var(--form-bottom, 35%); opacity: 1; transform: translateX(-50%) scale(1); }
+      45%  { top: var(--log-pos, 60%); opacity: 1; transform: translateX(-50%) scale(0.97); }
+      55%  { top: var(--log-pos, 60%); opacity: 0.85; transform: translateX(-50%) scale(0.97); }
+      100% { top: var(--invoice-pos, 90%); opacity: 0; transform: translateX(-50%) scale(0.92); }
     }
-    /* Cash/card path: form → Sheet 2 (top) only */
-    @keyframes fly-to-log-only {
-      0%   { left: -20%; top: 80%; opacity: 0; transform: translate(-50%, -50%) scale(0.95); }
-      18%  { left: 50%; top: 80%; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-      100% { left: 110%; top: 25%; opacity: 0; transform: translate(-50%, -50%) scale(0.92); }
+    /* Cash/card path: form bottom → Sheet 2 only */
+    @keyframes fly-vertical-cash {
+      0%   { top: var(--form-bottom, 35%); opacity: 0; transform: translateX(-50%) scale(0.95); }
+      18%  { top: var(--form-bottom, 35%); opacity: 1; transform: translateX(-50%) scale(1); }
+      100% { top: var(--log-pos, 60%); opacity: 0; transform: translateX(-50%) scale(0.92); }
     }
     .flying-row .fly-customer { font-weight: 600; }
     .flying-row .fly-sum { color: var(--gold); font-weight: 600; }
@@ -518,15 +535,14 @@
       text-align: center; max-width: 100%;
     }
 
-    @media (max-width: 900px) {
-      .demo-grid {
-        grid-template-columns: 1fr;
-        gap: 1rem;
-        padding: 1rem;
+    @media (max-width: 600px) {
+      .demo-grid { padding: 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .dest-head, .dest-row {
+        grid-template-columns: 0.9fr 1.3fr 0.9fr 0.7fr;
+        font-size: 0.65rem;
       }
-      .demo-router { display: none; }
-      .flying-row { display: none !important; }
-      .demo-panel { min-height: auto; }
+      .dest-head > div:nth-child(4), .dest-row > div:nth-child(4) { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -541,10 +557,13 @@
 
     /* Flow diagram container */
     .flow-container {
-      margin: 2rem 0; padding: 2.2rem 1.5rem; background: var(--cream);
-      border: 1px solid var(--rule); overflow-x: auto;
+      margin: 2rem 0; padding: 1.6rem 1rem; background: var(--cream);
+      border: 1px solid var(--rule);
     }
-    .flow-svg { width: 100%; min-width: 720px; height: auto; }
+    .flow-svg {
+      width: 100%; height: auto; display: block;
+      max-width: 100%;
+    }
 
     /* Highlight cards */
     .highlight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
@@ -627,7 +646,7 @@
 
     @media (max-width: 900px) {
       .page-body { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 1.8rem; }
-      .sidebar { position: static; }
+      .sidebar { display: none; }
       .highlight-grid { grid-template-columns: 1fr; }
       .result-grid { grid-template-columns: 1fr; }
     }
@@ -797,8 +816,8 @@
         <!-- LIVE DEMO -->
         <div class="demo-stage" id="demoStage">
           <div class="demo-grid">
-            <!-- INPUT FORM (left) -->
-            <div class="demo-panel input-panel">
+            <!-- INPUT FORM -->
+            <div class="demo-panel input-panel" id="inputPanel">
               <div class="panel-header">
                 <span class="panel-num">SHEET 1</span>
                 <span class="panel-title">Front · Input form</span>
@@ -820,7 +839,7 @@
                   <label>Payment</label>
                   <div class="form-input" data-field="payment"></div>
                 </div>
-                <div class="form-field">
+                <div class="form-field full-width">
                   <label>Sum (NOK)</label>
                   <div class="form-input amount" data-field="sum"></div>
                 </div>
@@ -832,61 +851,67 @@
               <div class="form-status" id="formStatus"></div>
             </div>
 
-            <!-- ROUTING ARROWS -->
+            <!-- ROUTER 1 (form → master log) -->
             <div class="demo-router">
-              <svg class="router-svg" viewBox="0 0 100 320" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Path: form → Sheet 2 (top, all jobs) -->
-                <path d="M 0 160 Q 50 160, 50 100 T 100 80" fill="none" stroke="#9e8a6a" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.4"/>
-                <!-- Path: Sheet 2 → Sheet 3 (only invoice rows) -->
-                <path d="M 100 80 Q 60 200, 100 240" fill="none" stroke="#9e8a6a" stroke-width="1.2" stroke-dasharray="3,3" opacity="0.25"/>
+              <svg class="router-arrow" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M7 1v18M2 14l5 5 5-5"/>
               </svg>
-              <div class="flying-row" id="flyingRow">
-                <span class="fly-customer"></span>
-                <span class="fly-work"></span>
-                <span class="fly-pay"></span>
-                <span class="fly-sum"></span>
+              <span class="router-label">All jobs logged</span>
+            </div>
+
+            <!-- MASTER LOG -->
+            <div class="dest-sheet" id="destLog">
+              <div class="panel-header">
+                <span class="panel-num">SHEET 2</span>
+                <span class="panel-title">Tabell · Master log (all jobs)</span>
+              </div>
+              <div class="dest-rows">
+                <div class="dest-head">
+                  <div>Date</div>
+                  <div>Customer</div>
+                  <div>Work</div>
+                  <div>Pay</div>
+                  <div class="d-amount">Sum</div>
+                </div>
               </div>
             </div>
 
-            <!-- DESTINATION SHEETS (right) -->
-            <div class="demo-panel destination-panel">
-              <div class="dest-sheet" id="destLog">
-                <div class="panel-header">
-                  <span class="panel-num">SHEET 2</span>
-                  <span class="panel-title">Tabell · Master log (all jobs)</span>
-                </div>
-                <div class="dest-rows">
-                  <div class="dest-head">
-                    <div>Date</div>
-                    <div>Customer</div>
-                    <div>Work</div>
-                    <div>Pay</div>
-                    <div class="d-amount">Sum</div>
-                  </div>
-                  <!-- rows injected by JS -->
+            <!-- ROUTER 2 (master log → invoice, only invoice rows) -->
+            <div class="demo-router">
+              <svg class="router-arrow" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M7 1v18M2 14l5 5 5-5"/>
+              </svg>
+              <span class="router-label">Only invoice rows continue</span>
+            </div>
+
+            <!-- INVOICE QUEUE -->
+            <div class="dest-sheet" id="destInvoice">
+              <div class="panel-header">
+                <span class="panel-num">SHEET 3</span>
+                <span class="panel-title">Fakturakunder · Invoice rows only</span>
+              </div>
+              <div class="dest-rows">
+                <div class="dest-head">
+                  <div>Order</div>
+                  <div>Customer</div>
+                  <div>Work</div>
+                  <div>Cust ID</div>
+                  <div class="d-amount">Sum</div>
                 </div>
               </div>
-              <div class="dest-sheet" id="destInvoice">
-                <div class="panel-header">
-                  <span class="panel-num">SHEET 3</span>
-                  <span class="panel-title">Fakturakunder · Invoice rows only</span>
-                </div>
-                <div class="dest-rows">
-                  <div class="dest-head">
-                    <div>Order</div>
-                    <div>Customer</div>
-                    <div>Work</div>
-                    <div>Cust ID</div>
-                    <div class="d-amount">Sum</div>
-                  </div>
-                  <!-- rows injected by JS -->
-                </div>
-              </div>
+            </div>
+
+            <!-- Flying row (positioned absolutely over the stack) -->
+            <div class="flying-row" id="flyingRow">
+              <span class="fly-customer"></span>
+              <span class="fly-work"></span>
+              <span class="fly-pay"></span>
+              <span class="fly-sum"></span>
             </div>
           </div>
 
           <div class="demo-caption">
-            Watch a job entry move from the input form to its destination — invoice rows are grouped under a generated order number; cash and card rows go to the master log.
+            Watch a job entry move from the input form to its destination — invoice rows are grouped under a generated order number; cash and card rows stop at the master log.
           </div>
         </div>
       </div>
@@ -1218,21 +1243,43 @@
       flyingRow.querySelector('.fly-pay').textContent = job.payment;
       flyingRow.querySelector('.fly-sum').textContent = job.sum + ' kr';
 
+      // Compute vertical positions relative to the demo-grid container
+      const grid = document.querySelector('.demo-grid');
+      const inputPanel = document.getElementById('inputPanel');
+      const logSheet = document.getElementById('destLog');
+      const invoiceSheet = document.getElementById('destInvoice');
+      if (grid && inputPanel && logSheet && invoiceSheet) {
+        const gridRect = grid.getBoundingClientRect();
+        const inputRect = inputPanel.getBoundingClientRect();
+        const logRect = logSheet.getBoundingClientRect();
+        const invRect = invoiceSheet.getBoundingClientRect();
+
+        // Position just below the Lagre button (~bottom of input panel)
+        const formBottomPct = ((inputRect.bottom - gridRect.top - 30) / gridRect.height) * 100;
+        // Land in the middle of master log sheet
+        const logPct = ((logRect.top + logRect.height / 2 - gridRect.top) / gridRect.height) * 100;
+        // Land in the middle of invoice sheet
+        const invPct = ((invRect.top + invRect.height / 2 - gridRect.top) / gridRect.height) * 100;
+
+        flyingRow.style.setProperty('--form-bottom', formBottomPct + '%');
+        flyingRow.style.setProperty('--log-pos', logPct + '%');
+        flyingRow.style.setProperty('--invoice-pos', invPct + '%');
+      }
+
       flyingRow.classList.remove('travel-up', 'travel-down');
       void flyingRow.offsetWidth;
       flyingRow.classList.add('active');
-      // Invoice path is longer (log → invoice); cash path stops at log
       flyingRow.classList.add(job.isInvoice ? 'travel-up' : 'travel-down');
 
       if (job.isInvoice) {
-        // Land in master log first (around 45% of 1.6s ≈ 720ms)
-        await wait(720);
+        // Invoice path: lands at master log first (~45% of 1.8s = ~810ms)
+        await wait(810);
         addLogRow(job);
-        // Then continue to invoice sheet (rest of animation)
-        await wait(880);
+        // Then continues to invoice sheet
+        await wait(990);
         addInvoiceRow(job);
       } else {
-        // Cash/card: only lands in master log
+        // Cash/card: only lands at master log
         await wait(900);
         addLogRow(job);
         await wait(150);
