@@ -23,9 +23,7 @@
       --dim: #999;
       --rule: #d4d0c8;
       --rule-gold: rgba(158, 138, 106, 0.25);
-      --red-dim: rgba(180, 70, 60, 0.08);
       --red: #b4463c;
-      --green-dim: rgba(60, 120, 80, 0.1);
       --green: #4a7c5a;
       --serif: 'Cormorant Garamond', 'Georgia', serif;
       --sans: 'DM Sans', 'Helvetica Neue', sans-serif;
@@ -45,11 +43,7 @@
     }
 
     body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      pointer-events: none;
+      content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
       opacity: 0.018;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       background-size: 128px 128px;
@@ -63,6 +57,7 @@
       z-index: 200; transition: width 0.05s linear;
     }
 
+    /* ── NAV ── */
     nav {
       position: fixed; top: 0; width: 100%; z-index: 100;
       background: var(--paper);
@@ -96,10 +91,25 @@
     nav .nav-links a.active { color: var(--gold); }
     nav .nav-links a.active::after { width: 100%; }
 
+    .nav-right { display: flex; align-items: center; gap: 2rem; }
+
+    .lang-toggle {
+      display: flex; align-items: center;
+      border: 1px solid var(--rule); border-radius: 2px; overflow: hidden;
+    }
+    .lang-btn {
+      padding: 0.3rem 0.65rem; font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      border: none; background: transparent; color: var(--dim);
+      cursor: pointer; transition: all 0.3s; font-family: var(--sans);
+    }
+    .lang-btn.active { background: var(--accent); color: #fff; }
+    .lang-btn:not(.active):hover { background: var(--cream); color: var(--ink); }
+    .lang-divider { width: 1px; height: 16px; background: var(--rule); }
+
     /* ── HERO ── */
     .hero {
-      min-height: 60vh; display: flex; align-items: flex-end;
-      position: relative; padding: 10rem 2.5rem 5rem;
+      position: relative; padding: 9rem 2.5rem 4rem;
       border-bottom: 1px solid var(--rule-gold);
     }
     .hero::before {
@@ -109,106 +119,65 @@
       border-radius: 50%; pointer-events: none;
     }
     .hero .container { max-width: 1140px; margin: 0 auto; width: 100%; }
-
     .hero-eyebrow {
       font-size: 0.68rem; font-weight: 500; letter-spacing: 0.25em;
       text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
       display: flex; align-items: center; gap: 1.2rem;
     }
     .hero-eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
-
     .hero h1 {
       font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4rem);
       font-weight: 400; line-height: 1.1; letter-spacing: -0.01em;
       margin-bottom: 1.8rem; max-width: 820px;
     }
     .hero h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
-
-    .hero-meta {
-      display: flex; gap: 3rem; flex-wrap: wrap; margin-bottom: 2.5rem;
+    .hero-sub {
+      font-size: 1rem; color: var(--muted); max-width: 620px;
+      line-height: 1.8; font-weight: 300;
     }
-    .hero-meta-item .label {
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      max-width: 1140px; margin: 0 auto; padding: 0 2.5rem;
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--rule);
+    }
+    .stat-cell {
+      padding: 1.6rem 1.4rem;
+      border-right: 1px solid var(--rule);
+    }
+    .stat-cell:last-child { border-right: none; }
+    .stat-cell .s-label {
       font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em;
-      text-transform: uppercase; color: var(--dim); margin-bottom: 0.2rem;
+      text-transform: uppercase; color: var(--dim); margin-bottom: 0.4rem;
     }
-    .hero-meta-item .value {
-      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--ink);
+    .stat-cell .s-value {
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 500;
+      color: var(--ink); line-height: 1.15; margin-bottom: 0.2rem;
     }
-
-    .hero-actions { display: flex; gap: 1.8rem; align-items: center; flex-wrap: wrap; }
-    .btn-primary {
-      display: inline-flex; align-items: center; gap: 0.8rem;
-      padding: 0.9rem 2rem; background: var(--accent); color: #fff;
-      text-decoration: none; font-size: 0.72rem; font-weight: 500;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      transition: background 0.3s, transform 0.2s;
-    }
-    .btn-primary:hover { background: #1a2a38; transform: translateY(-1px); }
-    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; transition: transform 0.25s; }
-    .btn-primary:hover svg { transform: translateX(3px); }
-
-    /* ── LAYOUT ── */
-    .page-body {
-      max-width: 1140px; margin: 0 auto; padding: 5rem 2.5rem;
-      display: grid; grid-template-columns: 260px 1fr; gap: 5rem; align-items: start;
+    .stat-cell .s-sub {
+      font-size: 0.78rem; color: var(--muted); font-weight: 300;
     }
 
-    /* ── SIDEBAR ── */
-    .sidebar { position: sticky; top: 6rem; }
-    .sidebar-section { margin-bottom: 2.5rem; }
-    .sidebar-label {
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2em;
-      text-transform: uppercase; color: var(--dim); margin-bottom: 1rem;
-      padding-bottom: 0.6rem; border-bottom: 1px solid var(--rule);
+    /* ── MAIN ── */
+    main {
+      max-width: 880px; margin: 0 auto; padding: 5rem 2.5rem;
     }
-    .sidebar-nav { display: flex; flex-direction: column; gap: 0.1rem; }
-    .sidebar-nav a {
-      font-size: 0.82rem; font-weight: 400; color: var(--muted);
-      text-decoration: none; padding: 0.45rem 0;
-      border-left: 2px solid transparent; padding-left: 0.8rem;
-      transition: color 0.3s, border-color 0.3s;
-    }
-    .sidebar-nav a:hover, .sidebar-nav a.active {
-      color: var(--gold); border-left-color: var(--gold);
-    }
-
-    .stat-block {
-      padding: 1.2rem 1.4rem; border: 1px solid var(--rule);
-      background: var(--cream); margin-bottom: 0.6rem;
-    }
-    .stat-block .stat-label {
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--dim); margin-bottom: 0.3rem;
-    }
-    .stat-block .stat-value {
-      font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--ink);
-    }
-    .stat-block .stat-sub {
-      font-size: 0.75rem; color: var(--muted); font-weight: 300; margin-top: 0.1rem;
-    }
-
-    /* ── MAIN CONTENT ── */
-    .main-content { min-width: 0; }
-
-    .section-header {
-      display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem;
-    }
-    .section-num {
-      font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400;
-    }
-    .section-label-text {
-      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em;
-      text-transform: uppercase; color: var(--muted);
-    }
-    .section-line {
-      flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent);
-    }
-
     .content-block {
       padding-bottom: 4rem; margin-bottom: 4rem;
       border-bottom: 1px solid var(--rule-gold);
     }
     .content-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .section-header {
+      display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem;
+    }
+    .section-num { font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400; }
+    .section-label-text {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--muted);
+    }
+    .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent); }
 
     .content-block h2 {
       font-family: var(--serif); font-size: 1.9rem; font-weight: 400;
@@ -220,20 +189,14 @@
       margin-bottom: 0.8rem; margin-top: 2rem; color: var(--ink);
     }
     .content-block p {
-      color: var(--muted); font-size: 0.93rem; font-weight: 300;
-      line-height: 1.85; margin-bottom: 1rem; max-width: 680px;
+      color: var(--muted); font-size: 0.95rem; font-weight: 300;
+      line-height: 1.85; margin-bottom: 1rem;
     }
 
-    /* Order-number column on "after" — highlight gold to show grouping */
-    .col-order {
-      color: var(--gold); font-weight: 600;
-    }
-
-    /* ── BEFORE SNAPSHOT (static illustration) ── */
+    /* ── BEFORE SNAPSHOT ── */
     .before-snapshot {
       margin: 2rem 0 2.5rem;
-      background: var(--cream);
-      border: 1px solid var(--rule);
+      background: var(--cream); border: 1px solid var(--rule);
       padding: 1.6rem;
     }
     .before-label {
@@ -246,35 +209,22 @@
       padding: 0.3rem 0.7rem; border: 1px solid rgba(180, 70, 60, 0.35);
       background: rgba(180, 70, 60, 0.06);
     }
-    .before-caption {
-      font-size: 0.82rem; color: var(--muted); font-style: italic;
-    }
-
+    .before-caption { font-size: 0.82rem; color: var(--muted); font-style: italic; }
     .before-sheet {
-      background: #fff;
-      border: 1px solid var(--rule);
-      padding: 0.8rem 1rem;
-      font-family: var(--mono); font-size: 0.78rem;
-      overflow-x: auto;
+      background: #fff; border: 1px solid var(--rule);
+      padding: 0.9rem 1rem; font-family: var(--mono); font-size: 0.78rem;
     }
     .bs-row {
       display: grid;
       grid-template-columns: 0.8fr 1.3fr 1fr 0.9fr 0.7fr;
-      gap: 0.5rem;
-      padding: 0.4rem 0.4rem;
-      align-items: center;
-      min-width: 0;
+      gap: 0.5rem; padding: 0.4rem; align-items: center;
     }
     .bs-row > div {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .bs-head {
-      font-family: var(--sans);
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--dim);
+      font-family: var(--sans); font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim);
       border-bottom: 1px solid var(--rule);
       padding-bottom: 0.5rem; margin-bottom: 0.2rem;
     }
@@ -282,71 +232,46 @@
     .bs-amount { text-align: right; color: var(--muted); }
     .bs-highlight {
       background: rgba(168, 198, 134, 0.45);
-      box-shadow: inset 3px 0 0 #4a7c5a;
+      box-shadow: inset 3px 0 0 var(--green);
     }
-
     .before-note {
       display: flex; align-items: flex-start; gap: 0.7rem;
       margin-top: 1rem; padding: 0.8rem 1rem;
       background: rgba(180, 70, 60, 0.05);
       border-left: 2px solid var(--red);
-      font-size: 0.8rem; color: var(--muted);
-      line-height: 1.6;
+      font-size: 0.82rem; color: var(--muted); line-height: 1.6;
     }
     .before-note svg {
       width: 16px; height: 16px; flex-shrink: 0;
       color: var(--red); margin-top: 2px;
     }
 
-    @media (max-width: 600px) {
-      .before-snapshot { padding: 1rem; }
-      .before-sheet { padding: 0.6rem 0.7rem; font-size: 0.7rem; }
-      .bs-row {
-        grid-template-columns: 1fr 1fr 0.9fr 0.7fr;
-        gap: 0.4rem;
-      }
-      /* Hide payment column on mobile - 4th child of each row */
-      .bs-row > div:nth-child(4) { display: none; }
+    /* ── NOTE ── */
+    .note {
+      padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold);
+      background: var(--gold-dim); margin: 1.5rem 0;
     }
+    .note p { font-size: 0.88rem; color: var(--muted); margin: 0; font-style: italic; }
 
-    /* ── LIVE DEMO STAGE ── */
+    /* ── LIVE DEMO ── */
     .demo-stage { margin: 2rem 0 1rem; }
     .demo-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      background: var(--cream);
-      border: 1px solid var(--rule);
-      padding: 1.6rem;
-      position: relative;
+      display: flex; flex-direction: column; gap: 1rem;
+      background: var(--cream); border: 1px solid var(--rule);
+      padding: 1.6rem; position: relative;
     }
     .demo-panel {
-      background: #fff;
-      border: 1px solid var(--rule);
-      padding: 1.2rem;
-      display: flex; flex-direction: column;
-      position: relative;
-      z-index: 2;
-    }
-    .destination-panel {
-      background: transparent;
-      border: none;
-      padding: 0;
-      display: flex; flex-direction: column;
-      gap: 1rem;
-      position: relative;
-      z-index: 2;
+      background: #fff; border: 1px solid var(--rule);
+      padding: 1.2rem; position: relative; z-index: 2;
     }
     .dest-sheet {
-      background: #fff;
-      border: 1px solid var(--rule);
-      padding: 1rem 1.2rem;
+      background: #fff; border: 1px solid var(--rule);
+      padding: 1rem 1.2rem; position: relative; z-index: 2;
     }
     .panel-header {
       display: flex; justify-content: space-between; align-items: baseline;
       padding-bottom: 0.7rem; margin-bottom: 0.9rem;
-      border-bottom: 1px solid var(--rule);
-      gap: 1rem;
+      border-bottom: 1px solid var(--rule); gap: 1rem;
     }
     .panel-num {
       font-family: var(--mono); font-size: 0.6rem; font-weight: 600;
@@ -354,43 +279,31 @@
       flex-shrink: 0;
     }
     .panel-title {
-      font-family: var(--serif); font-size: 0.92rem; font-weight: 500;
-      color: var(--ink);
+      font-family: var(--serif); font-size: 0.92rem; font-weight: 500; color: var(--ink);
     }
 
-    /* Form fields */
     .form-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0.8rem 1rem;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem 1rem;
     }
-    .form-field {
-      display: flex; flex-direction: column; gap: 0.25rem;
-      min-width: 0;
-    }
+    .form-field { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
     .form-field.full-width { grid-column: 1 / -1; }
     .form-field label {
       font-size: 0.55rem; font-weight: 600; letter-spacing: 0.16em;
       text-transform: uppercase; color: var(--dim);
     }
     .form-input {
-      font-family: var(--mono); font-size: 0.78rem;
-      color: var(--ink); padding: 0.45rem 0.6rem;
-      border: 1px solid var(--rule); background: var(--paper);
-      min-height: 1.8rem;
-      transition: border-color 0.3s, background 0.3s;
-      position: relative;
+      font-family: var(--mono); font-size: 0.78rem; color: var(--ink);
+      padding: 0.45rem 0.6rem; border: 1px solid var(--rule);
+      background: var(--paper); min-height: 1.8rem;
+      transition: border-color 0.3s, background 0.3s; position: relative;
     }
     .form-input.amount { text-align: right; }
     .form-input.typing {
-      border-color: var(--gold);
-      background: var(--gold-dim);
+      border-color: var(--gold); background: var(--gold-dim);
     }
     .form-input.typing::after {
-      content: '|';
-      color: var(--gold);
-      animation: cursor-blink 0.8s steps(2) infinite;
-      margin-left: 1px;
+      content: '|'; color: var(--gold);
+      animation: cursor-blink 0.8s steps(2) infinite; margin-left: 1px;
     }
     @keyframes cursor-blink {
       0%, 50% { opacity: 1; }
@@ -400,8 +313,7 @@
     .form-btn {
       margin-top: 1rem;
       display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
-      padding: 0.7rem 1.4rem;
-      background: var(--accent); color: #fff;
+      padding: 0.7rem 1.4rem; background: var(--accent); color: #fff;
       font-family: var(--sans); font-size: 0.7rem; font-weight: 500;
       letter-spacing: 0.14em; text-transform: uppercase;
       border: none; cursor: pointer;
@@ -409,10 +321,7 @@
       align-self: flex-start;
     }
     .form-btn svg { width: 12px; height: 12px; stroke: currentColor; }
-    .form-btn.pressed {
-      background: var(--gold);
-      transform: scale(0.96);
-    }
+    .form-btn.pressed { background: var(--gold); transform: scale(0.96); }
 
     .form-status {
       font-family: var(--mono); font-size: 0.66rem;
@@ -421,41 +330,25 @@
     }
     .form-status.success { color: var(--green); }
 
-    /* Vertical routing arrow between panels */
     .demo-router {
       display: flex; align-items: center; justify-content: center;
-      padding: 0.4rem 0;
-      position: relative;
-      z-index: 1;
+      padding: 0.4rem 0; position: relative; z-index: 1;
     }
-    .router-arrow {
-      width: 14px; height: 22px;
-      color: var(--gold);
-      opacity: 0.5;
-    }
+    .router-arrow { width: 14px; height: 22px; color: var(--gold); opacity: 0.5; }
     .router-label {
       font-family: var(--mono); font-size: 0.6rem;
       color: var(--gold); letter-spacing: 0.1em;
-      margin-left: 0.6rem; text-transform: uppercase;
-      opacity: 0.7;
+      margin-left: 0.6rem; text-transform: uppercase; opacity: 0.7;
     }
 
-    /* The flying row that travels vertically between stacked panels */
     .flying-row {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #2c3e50;
-      border: 1px solid #2c3e50;
+      position: absolute; left: 50%; transform: translateX(-50%);
+      background: #2c3e50; border: 1px solid #2c3e50;
       padding: 0.45rem 0.75rem;
       font-family: var(--mono); font-size: 0.66rem; font-weight: 500;
-      color: #fff;
-      display: none;
-      gap: 0.5rem;
+      color: #fff; display: none; gap: 0.5rem;
       box-shadow: 0 6px 18px rgba(44, 62, 80, 0.4), 0 2px 4px rgba(0,0,0,0.15);
-      white-space: nowrap;
-      z-index: 10;
-      pointer-events: none;
+      white-space: nowrap; z-index: 10; pointer-events: none;
     }
     .flying-row.active { display: inline-flex; }
     .flying-row.travel-up {
@@ -464,7 +357,6 @@
     .flying-row.travel-down {
       animation: fly-vertical-cash 1.0s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
     }
-    /* Invoice path: form bottom → Sheet 2 → Sheet 3 (vertical) */
     @keyframes fly-vertical-invoice {
       0%   { top: var(--form-bottom, 35%); opacity: 0; transform: translateX(-50%) scale(0.95); }
       10%  { top: var(--form-bottom, 35%); opacity: 1; transform: translateX(-50%) scale(1); }
@@ -472,7 +364,6 @@
       55%  { top: var(--log-pos, 60%); opacity: 0.85; transform: translateX(-50%) scale(0.97); }
       100% { top: var(--invoice-pos, 90%); opacity: 0; transform: translateX(-50%) scale(0.92); }
     }
-    /* Cash/card path: form bottom → Sheet 2 only */
     @keyframes fly-vertical-cash {
       0%   { top: var(--form-bottom, 35%); opacity: 0; transform: translateX(-50%) scale(0.95); }
       18%  { top: var(--form-bottom, 35%); opacity: 1; transform: translateX(-50%) scale(1); }
@@ -486,7 +377,6 @@
       border: 1px solid rgba(255,255,255,0.3); color: rgba(255,255,255,0.85);
     }
 
-    /* Destination rows */
     .dest-rows {
       display: flex; flex-direction: column; gap: 0.15rem;
       font-family: var(--mono); font-size: 0.7rem;
@@ -494,21 +384,15 @@
     .dest-head, .dest-row {
       display: grid;
       grid-template-columns: 0.9fr 1.2fr 0.8fr 0.8fr 0.7fr;
-      gap: 0.4rem;
-      padding: 0.3rem 0.4rem;
-      align-items: center;
-      min-width: 0;
+      gap: 0.4rem; padding: 0.3rem 0.4rem;
+      align-items: center; min-width: 0;
     }
     .dest-head > div, .dest-row > div {
-      min-width: 0;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+      min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
     .dest-head {
-      font-family: var(--sans);
-      font-size: 0.55rem; font-weight: 600; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--dim);
+      font-family: var(--sans); font-size: 0.55rem; font-weight: 600;
+      letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim);
       border-bottom: 1px solid var(--rule);
       padding-bottom: 0.4rem; margin-bottom: 0.2rem;
     }
@@ -518,57 +402,35 @@
       border-left: 2px solid transparent;
     }
     .dest-row.fresh {
-      border-left-color: var(--gold);
-      background: var(--gold-dim);
+      border-left-color: var(--gold); background: var(--gold-dim);
     }
-    @keyframes row-land {
-      to { opacity: 1; transform: translateX(0); }
-    }
+    @keyframes row-land { to { opacity: 1; transform: translateX(0); } }
     .dest-row .d-order { color: var(--gold); font-weight: 600; }
     .dest-row .d-customer { color: var(--ink); font-weight: 500; }
     .dest-row .d-work { color: var(--muted); }
     .dest-row .d-amount { text-align: right; color: var(--muted); }
 
     .demo-caption {
-      font-size: 0.78rem; color: var(--dim); font-style: italic;
+      font-size: 0.82rem; color: var(--dim); font-style: italic;
       margin-top: 0.9rem; font-family: var(--sans);
-      text-align: center; max-width: 100%;
+      text-align: center;
     }
 
-    @media (max-width: 600px) {
-      .demo-grid { padding: 1rem; }
-      .form-grid { grid-template-columns: 1fr; }
-      .dest-head, .dest-row {
-        grid-template-columns: 0.9fr 1.3fr 0.9fr 0.7fr;
-        font-size: 0.65rem;
-      }
-      .dest-head > div:nth-child(4), .dest-row > div:nth-child(4) { display: none; }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .form-input.typing::after,
-      .flying-row.travel-up,
-      .flying-row.travel-down,
-      .dest-row {
-        animation: none !important;
-      }
-      .dest-row { opacity: 1; transform: none; }
-    }
-
-    /* Flow diagram container */
+    /* ── FLOW DIAGRAM ── */
     .flow-container {
-      margin: 2rem 0; padding: 1.6rem 1rem; background: var(--cream);
-      border: 1px solid var(--rule);
+      margin: 2rem 0; padding: 1.6rem 1rem;
+      background: var(--cream); border: 1px solid var(--rule);
     }
-    .flow-svg {
-      width: 100%; height: auto; display: block;
-      max-width: 100%;
-    }
+    .flow-svg { width: 100%; height: auto; display: block; max-width: 100%; }
 
-    /* Highlight cards */
-    .highlight-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
+    /* ── HIGHLIGHT CARDS ── */
+    .highlight-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 1rem; margin: 1.5rem 0;
+    }
     .highlight-card {
-      border: 1px solid var(--rule); padding: 1.6rem; background: var(--paper);
+      border: 1px solid var(--rule); padding: 1.6rem;
+      background: var(--paper);
       transition: border-color 0.3s, background 0.3s;
     }
     .highlight-card:hover { border-color: var(--gold); background: var(--cream); }
@@ -580,16 +442,16 @@
       font-family: var(--serif); font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem;
     }
     .highlight-card p {
-      font-size: 0.83rem; color: var(--muted); font-weight: 300;
-      line-height: 1.7; max-width: 100%; margin: 0;
+      font-size: 0.85rem; color: var(--muted); font-weight: 300;
+      line-height: 1.7; margin: 0;
     }
 
-    /* Code block */
+    /* ── CODE BLOCK ── */
     .code-block {
-      background: #1e1e1e; color: #d4d4d4; padding: 1.6rem 1.8rem;
-      border-radius: 2px; margin: 1.5rem 0; overflow-x: auto;
+      background: #1e1e1e; color: #d4d4d4;
+      padding: 1.6rem 1.8rem; margin: 1.5rem 0;
       font-family: var(--mono); font-size: 0.78rem; line-height: 1.7;
-      border: 1px solid var(--rule);
+      border: 1px solid var(--rule); overflow-x: auto;
     }
     .code-block .c-comment { color: #6a9955; font-style: italic; }
     .code-block .c-keyword { color: #569cd6; }
@@ -597,63 +459,93 @@
     .code-block .c-type { color: #4ec9b0; }
     .code-block .c-fn { color: #dcdcaa; }
     .code-caption {
-      font-size: 0.72rem; color: var(--dim); font-style: italic;
-      margin-top: -0.5rem; margin-bottom: 1.5rem;
+      font-size: 0.75rem; color: var(--dim); font-style: italic;
+      margin-top: -0.6rem; margin-bottom: 1.5rem;
     }
 
-    /* Result stats */
-    .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 2rem 0; }
+    /* ── RESULTS ── */
+    .result-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1rem; margin: 2rem 0;
+    }
     .result-card {
-      padding: 2rem 1.6rem; border: 1px solid var(--rule); text-align: left;
-      background: var(--paper); transition: border-color 0.3s;
-      position: relative; overflow: hidden;
+      padding: 2rem 1.6rem; border: 1px solid var(--rule);
+      background: var(--paper); position: relative; overflow: hidden;
+      transition: border-color 0.3s;
     }
     .result-card::before {
       content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
       background: linear-gradient(90deg, var(--gold), transparent);
     }
     .result-card:hover { border-color: var(--gold); }
-    .result-card .r-value {
-      font-family: var(--serif); font-size: 2.6rem; font-weight: 400;
-      color: var(--ink); line-height: 1; margin-bottom: 0.5rem;
-    }
     .result-card .r-label {
       font-size: 0.68rem; font-weight: 600; letter-spacing: 0.16em;
       text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem;
     }
-    .result-card .r-desc { font-size: 0.78rem; color: var(--muted); font-weight: 300; }
-
-    /* Note callout */
-    .note {
-      padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold);
-      background: var(--gold-dim); margin: 1.5rem 0;
+    .result-card .r-value {
+      font-family: var(--serif); font-size: 2.6rem; font-weight: 400;
+      color: var(--ink); line-height: 1; margin-bottom: 0.5rem;
     }
-    .note p {
-      font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 100%;
-      font-style: italic;
-    }
+    .result-card .r-desc { font-size: 0.82rem; color: var(--muted); font-weight: 300; }
 
-    /* Footer */
-    footer { padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule); margin-top: 4rem; }
-    footer .container { max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-    footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em; }
-    footer a { color: var(--gold); text-decoration: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+    /* ── FOOTER ── */
+    footer {
+      padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule);
+      margin-top: 4rem;
+    }
+    footer .container {
+      max-width: 1140px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    footer p {
+      font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em;
+    }
+    footer a {
+      color: var(--gold); text-decoration: none;
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
     footer a:hover { color: var(--ink); }
 
-    /* Reveal animations */
-    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+    /* ── REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
-    @media (max-width: 900px) {
-      .page-body { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 1.8rem; }
-      .sidebar { display: none; }
-      .highlight-grid { grid-template-columns: 1fr; }
-      .result-grid { grid-template-columns: 1fr; }
+    /* ── RESPONSIVE ── */
+    @media (max-width: 800px) {
+      main { padding: 3rem 1.8rem; }
+      .hero { padding: 7rem 1.8rem 3rem; }
+      .stats-strip {
+        grid-template-columns: 1fr 1fr; padding: 0 1.8rem;
+      }
+      .stat-cell:nth-child(2) { border-right: none; }
+      .stat-cell:nth-child(1), .stat-cell:nth-child(2) { border-bottom: 1px solid var(--rule); }
+      .highlight-grid, .result-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .dest-head, .dest-row {
+        grid-template-columns: 0.9fr 1.3fr 0.9fr 0.7fr; font-size: 0.65rem;
+      }
+      .dest-head > div:nth-child(4), .dest-row > div:nth-child(4) { display: none; }
     }
     @media (max-width: 600px) {
-      .hero { padding: 7rem 1.5rem 4rem; }
       nav .nav-links { display: none; }
-      .hero-meta { gap: 1.5rem; }
+      .stats-strip { grid-template-columns: 1fr; }
+      .stat-cell { border-right: none; border-bottom: 1px solid var(--rule); }
+      .stat-cell:last-child { border-bottom: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .form-input.typing::after,
+      .flying-row.travel-up,
+      .flying-row.travel-down,
+      .dest-row, .reveal {
+        animation: none !important;
+        opacity: 1 !important; transform: none !important;
+      }
     }
   </style>
 </head>
@@ -664,408 +556,373 @@
   <nav id="navbar">
     <div class="nav-inner">
       <a href="index.html" class="logo">AMH.</a>
-      <div class="nav-links">
-        <a href="index.html#about">About</a>
-        <a href="index.html#experience">Experience</a>
-        <a href="index.html#projects" class="active">Research</a>
-        <a href="index.html#contact">Contact</a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="index.html"><span data-en="Home" data-no="Hjem">Home</span></a>
+          <a href="index.html#about"><span data-en="About" data-no="Om meg">About</span></a>
+          <a href="index.html#experience"><span data-en="Experience" data-no="Erfaring">Experience</span></a>
+          <a href="index.html#projects" class="active"><span data-en="Research" data-no="Prosjekter">Research</span></a>
+          <a href="index.html#contact"><span data-en="Contact" data-no="Kontakt">Contact</span></a>
+        </div>
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <span class="lang-divider"></span>
+          <button class="lang-btn" data-lang="no">NO</button>
+        </div>
       </div>
     </div>
   </nav>
 
   <section class="hero">
     <div class="container">
-      <div class="hero-eyebrow reveal">Process Automation · CareCenter AS · Hotel Continental, Oslo</div>
-      <h1 class="reveal">An end-to-end <em>invoicing pipeline</em> built in Excel & VBA</h1>
-      <div class="hero-meta reveal">
-        <div class="hero-meta-item">
-          <div class="label">Role</div>
-          <div class="value">Garage Administrator</div>
-        </div>
-        <div class="hero-meta-item">
-          <div class="label">Built with</div>
-          <div class="value">Excel · VBA · Tripletex</div>
-        </div>
-        <div class="hero-meta-item">
-          <div class="label">Customer base</div>
-          <div class="value">568 corporate accounts</div>
-        </div>
-        <div class="hero-meta-item">
-          <div class="label">Time saved</div>
-          <div class="value">~50% per billing cycle</div>
-        </div>
-      </div>
-      <div class="hero-actions reveal">
-        <a href="#problem" class="btn-primary">
-          See the problem
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
-      </div>
+      <div class="hero-eyebrow reveal"><span data-en="Process Automation · CareCenter AS · Hotel Continental, Oslo" data-no="Prosessautomatisering · CareCenter AS · Hotel Continental, Oslo">Process Automation · CareCenter AS · Hotel Continental, Oslo</span></div>
+      <h1 class="reveal"><span data-en="An end-to-end <em>invoicing pipeline</em> built in Excel & VBA" data-no="En komplett <em>fakturapipeline</em> bygget i Excel & VBA">An end-to-end <em>invoicing pipeline</em> built in Excel & VBA</span></h1>
+      <p class="hero-sub reveal"><span data-en="A self-initiated automation project at CareCenter that replaced a manual end-of-month invoicing routine with a one-click pipeline from input form to Tripletex-ready export." data-no="Et egeninitiert automatiseringsprosjekt på CareCenter som erstattet en manuell faktureringsrutine på slutten av måneden med en ett-klikks pipeline fra registreringsskjema til Tripletex-klar eksport.">A self-initiated automation project at CareCenter that replaced a manual end-of-month invoicing routine with a one-click pipeline from input form to Tripletex-ready export.</span></p>
     </div>
   </section>
 
-  <div class="page-body">
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="s-label" data-en="Role" data-no="Rolle">Role</div>
+      <div class="s-value" data-en="Garage Administrator" data-no="Garasjeadministrator">Garage Administrator</div>
+      <div class="s-sub" data-en="Built alongside daily operations" data-no="Bygget ved siden av daglig drift">Built alongside daily operations</div>
+    </div>
+    <div class="stat-cell">
+      <div class="s-label" data-en="Built with" data-no="Bygget med">Built with</div>
+      <div class="s-value">Excel · VBA · Tripletex</div>
+      <div class="s-sub" data-en="Native, no external dependencies" data-no="Native, ingen eksterne avhengigheter">Native, no external dependencies</div>
+    </div>
+    <div class="stat-cell">
+      <div class="s-label" data-en="Customer base" data-no="Kundebase">Customer base</div>
+      <div class="s-value">568</div>
+      <div class="s-sub" data-en="corporate accounts handled" data-no="bedriftskunder håndtert">corporate accounts handled</div>
+    </div>
+    <div class="stat-cell">
+      <div class="s-label" data-en="Time saved" data-no="Tid spart">Time saved</div>
+      <div class="s-value">~50%</div>
+      <div class="s-sub" data-en="per billing cycle" data-no="per faktureringsperiode">per billing cycle</div>
+    </div>
+  </div>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">On this page</div>
-        <nav class="sidebar-nav">
-          <a href="#problem">The Problem</a>
-          <a href="#solution">The Solution</a>
-          <a href="#flow">Process Flow</a>
-          <a href="#technical">Technical Highlights</a>
-          <a href="#results">Results</a>
-        </nav>
+  <main>
+
+    <div class="content-block reveal" id="problem">
+      <div class="section-header">
+        <span class="section-num">01</span>
+        <span class="section-label-text" data-en="The Problem" data-no="Problemet">The Problem</span>
+        <span class="section-line"></span>
       </div>
+      <h2><span data-en="A spreadsheet that <em>quietly bled time</em>" data-no="Et regneark som <em>stjal tid i det stille</em>">A spreadsheet that <em>quietly bled time</em></span></h2>
+      <p><span data-en="CareCenter operates a service garage at Hotel Continental in Oslo. Mechanics log every job — the work performed, the customer, the price, and the payment method — into a shared Excel sheet as the day unfolds. That part worked fine." data-no="CareCenter driver et bilverksted ved Hotel Continental i Oslo. Mekanikerne logger hver jobb — arbeidet utført, kunde, pris og betalingsmåte — i et felles Excel-ark gjennom dagen. Den delen fungerte greit.">CareCenter operates a service garage at Hotel Continental in Oslo. Mechanics log every job — the work performed, the customer, the price, and the payment method — into a shared Excel sheet as the day unfolds. That part worked fine.</span></p>
 
-      <div class="sidebar-section">
-        <div class="sidebar-label">At a glance</div>
-        <div class="stat-block">
-          <div class="stat-label">Customer DB</div>
-          <div class="stat-value">568</div>
-          <div class="stat-sub">corporate accounts</div>
+      <div class="before-snapshot">
+        <div class="before-label">
+          <span class="before-tag" data-en="Before · January 2026" data-no="Før · Januar 2026">Before · January 2026</span>
+          <span class="before-caption" data-en="A typical month — manager scans the full list to find every entry for each customer." data-no="En typisk måned — sjefen skanner hele listen for å finne alle oppføringer for hver kunde.">A typical month — manager scans the full list to find every entry for each customer.</span>
         </div>
-        <div class="stat-block">
-          <div class="stat-label">Time saved</div>
-          <div class="stat-value">~50%</div>
-          <div class="stat-sub">per billing cycle</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Lost entries</div>
-          <div class="stat-value">0</div>
-          <div class="stat-sub">post-deployment</div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main-content">
-
-      <!-- PROBLEM -->
-      <div class="content-block reveal" id="problem">
-        <div class="section-header">
-          <span class="section-num">01</span>
-          <span class="section-label-text">The Problem</span>
-          <span class="section-line"></span>
-        </div>
-        <h2>A spreadsheet that <em>quietly bled time</em></h2>
-        <p>CareCenter operates a service garage at Hotel Continental in Oslo. Mechanics log every job — the work performed, the customer, the price, and the payment method — into a shared Excel sheet as the day unfolds. That part worked fine.</p>
-
-        <div class="before-snapshot">
-          <div class="before-label">
-            <span class="before-tag">Before</span>
-            <span class="before-caption">One chronological list — manager scans for each customer, row by row.</span>
+        <div class="before-sheet">
+          <div class="bs-row bs-head">
+            <div data-en="Date" data-no="Dato">Date</div>
+            <div data-en="Customer" data-no="Kunde">Customer</div>
+            <div data-en="Work" data-no="Arbeid">Work</div>
+            <div data-en="Payment" data-no="Betaling">Payment</div>
+            <div class="bs-amount" data-en="Sum" data-no="Sum">Sum</div>
           </div>
-          <div class="before-sheet">
-            <div class="bs-row bs-head">
-              <div>Date</div>
-              <div>Customer</div>
-              <div>Work</div>
-              <div>Payment</div>
-              <div class="bs-amount">Sum</div>
-            </div>
-            <div class="bs-row">
-              <div>01.01.26</div>
-              <div class="bs-customer">Alpha AS</div>
-              <div>Utv</div>
-              <div>Faktura</div>
-              <div class="bs-amount">1 000</div>
-            </div>
-            <div class="bs-row">
-              <div></div>
-              <div class="bs-customer">Alpha AS</div>
-              <div>Innv</div>
-              <div>Faktura</div>
-              <div class="bs-amount">500</div>
-            </div>
-            <div class="bs-row bs-highlight">
-              <div></div>
-              <div class="bs-customer">Bravo AS</div>
-              <div>Polering</div>
-              <div>Kort</div>
-              <div class="bs-amount">1 000</div>
-            </div>
-            <div class="bs-row">
-              <div>04.01.26</div>
-              <div class="bs-customer">Charlie AS</div>
-              <div>tp</div>
-              <div>Faktura</div>
-              <div class="bs-amount">100</div>
-            </div>
-            <div class="bs-row bs-highlight">
-              <div></div>
-              <div class="bs-customer">Bravo AS</div>
-              <div>tp</div>
-              <div>Faktura</div>
-              <div class="bs-amount">120</div>
-            </div>
+          <div class="bs-row">
+            <div>02.01.26</div><div class="bs-customer">Alpha AS</div><div>Utv</div><div>Faktura</div><div class="bs-amount">1 000</div>
           </div>
-          <div class="before-note">
-            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="8" cy="8" r="6.5"/>
-              <path d="M8 5v3.5M8 11h0.01"/>
-            </svg>
-            <span>Highlighted in green: the rows for one customer. Repeat for every other customer, every billing cycle. Miss one — that revenue disappears.</span>
+          <div class="bs-row">
+            <div></div><div class="bs-customer">Alpha AS</div><div>Innv</div><div>Faktura</div><div class="bs-amount">500</div>
+          </div>
+          <div class="bs-row bs-highlight">
+            <div>03.01.26</div><div class="bs-customer">Bravo AS</div><div>Polering</div><div>Faktura</div><div class="bs-amount">1 800</div>
+          </div>
+          <div class="bs-row">
+            <div>05.01.26</div><div class="bs-customer">Charlie AS</div><div>tp</div><div>Faktura</div><div class="bs-amount">700</div>
+          </div>
+          <div class="bs-row">
+            <div>06.01.26</div><div class="bs-customer">Delta Eiendom</div><div>Utv</div><div>Kort</div><div class="bs-amount">1 200</div>
+          </div>
+          <div class="bs-row bs-highlight">
+            <div>07.01.26</div><div class="bs-customer">Bravo AS</div><div>tp</div><div>Faktura</div><div class="bs-amount">450</div>
+          </div>
+          <div class="bs-row">
+            <div>08.01.26</div><div class="bs-customer">Echo Consulting</div><div>Innv</div><div>Faktura</div><div class="bs-amount">900</div>
+          </div>
+          <div class="bs-row">
+            <div></div><div class="bs-customer">Echo Consulting</div><div>Polering</div><div>Faktura</div><div class="bs-amount">1 600</div>
+          </div>
+          <div class="bs-row">
+            <div>10.01.26</div><div class="bs-customer">Foxtrot Bygg</div><div>tp</div><div>Vipps</div><div class="bs-amount">300</div>
+          </div>
+          <div class="bs-row bs-highlight">
+            <div>13.01.26</div><div class="bs-customer">Bravo AS</div><div>Utv</div><div>Faktura</div><div class="bs-amount">1 100</div>
+          </div>
+          <div class="bs-row">
+            <div>14.01.26</div><div class="bs-customer">Golf Holding</div><div>tp</div><div>Faktura</div><div class="bs-amount">600</div>
+          </div>
+          <div class="bs-row">
+            <div>15.01.26</div><div class="bs-customer">Alpha AS</div><div>Polering</div><div>Faktura</div><div class="bs-amount">2 200</div>
+          </div>
+          <div class="bs-row">
+            <div>16.01.26</div><div class="bs-customer">Hotel Indigo</div><div>Innv</div><div>Faktura</div><div class="bs-amount">800</div>
+          </div>
+          <div class="bs-row">
+            <div>17.01.26</div><div class="bs-customer">Charlie AS</div><div>Utv</div><div>Faktura</div><div class="bs-amount">1 500</div>
+          </div>
+          <div class="bs-row bs-highlight">
+            <div>20.01.26</div><div class="bs-customer">Bravo AS</div><div>Polering</div><div>Faktura</div><div class="bs-amount">2 400</div>
+          </div>
+          <div class="bs-row">
+            <div></div><div class="bs-customer">Juliet AS</div><div>tp</div><div>Kort</div><div class="bs-amount">350</div>
+          </div>
+          <div class="bs-row">
+            <div>22.01.26</div><div class="bs-customer">Kilo Eiendom</div><div>Innv</div><div>Faktura</div><div class="bs-amount">700</div>
+          </div>
+          <div class="bs-row">
+            <div>23.01.26</div><div class="bs-customer">Delta Eiendom</div><div>tp</div><div>Faktura</div><div class="bs-amount">550</div>
+          </div>
+          <div class="bs-row bs-highlight">
+            <div>26.01.26</div><div class="bs-customer">Bravo AS</div><div>tp</div><div>Faktura</div><div class="bs-amount">380</div>
+          </div>
+          <div class="bs-row">
+            <div>27.01.26</div><div class="bs-customer">Foxtrot Bygg</div><div>Utv</div><div>Faktura</div><div class="bs-amount">1 300</div>
+          </div>
+          <div class="bs-row">
+            <div>28.01.26</div><div class="bs-customer">Hotel Indigo</div><div>Polering</div><div>Faktura</div><div class="bs-amount">1 950</div>
+          </div>
+          <div class="bs-row bs-highlight">
+            <div>30.01.26</div><div class="bs-customer">Bravo AS</div><div>Innv</div><div>Faktura</div><div class="bs-amount">650</div>
+          </div>
+          <div class="bs-row">
+            <div>31.01.26</div><div class="bs-customer">Golf Holding</div><div>Utv</div><div>Faktura</div><div class="bs-amount">1 400</div>
           </div>
         </div>
-
-        <p>The problem started at the end of each billing cycle. To prepare invoices, the manager had to scan the entire chronological log, manually identify every row tied to a single corporate customer, highlight them as he went, and re-enter each one into Tripletex by hand. Then repeat for the next customer. And the next. And the next.</p>
-        <p>It was slow, but more importantly it was fragile: a single missed row meant an unbilled job — revenue lost without anyone noticing.</p>
-
-        <!-- LIVE DEMO -->
-        <div class="demo-stage" id="demoStage">
-          <div class="demo-grid">
-            <!-- INPUT FORM -->
-            <div class="demo-panel input-panel" id="inputPanel">
-              <div class="panel-header">
-                <span class="panel-num">SHEET 1</span>
-                <span class="panel-title">Front · Input form</span>
-              </div>
-              <div class="form-grid">
-                <div class="form-field">
-                  <label>Date</label>
-                  <div class="form-input" data-field="date"></div>
-                </div>
-                <div class="form-field">
-                  <label>Customer</label>
-                  <div class="form-input" data-field="customer"></div>
-                </div>
-                <div class="form-field">
-                  <label>Work performed</label>
-                  <div class="form-input" data-field="work"></div>
-                </div>
-                <div class="form-field">
-                  <label>Payment</label>
-                  <div class="form-input" data-field="payment"></div>
-                </div>
-                <div class="form-field full-width">
-                  <label>Sum (NOK)</label>
-                  <div class="form-input amount" data-field="sum"></div>
-                </div>
-              </div>
-              <button class="form-btn" id="formBtn">
-                <span>Lagre</span>
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-              </button>
-              <div class="form-status" id="formStatus"></div>
-            </div>
-
-            <!-- ROUTER 1 (form → master log) -->
-            <div class="demo-router">
-              <svg class="router-arrow" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M7 1v18M2 14l5 5 5-5"/>
-              </svg>
-              <span class="router-label">All jobs logged</span>
-            </div>
-
-            <!-- MASTER LOG -->
-            <div class="dest-sheet" id="destLog">
-              <div class="panel-header">
-                <span class="panel-num">SHEET 2</span>
-                <span class="panel-title">Tabell · Master log (all jobs)</span>
-              </div>
-              <div class="dest-rows">
-                <div class="dest-head">
-                  <div>Date</div>
-                  <div>Customer</div>
-                  <div>Work</div>
-                  <div>Pay</div>
-                  <div class="d-amount">Sum</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- ROUTER 2 (master log → invoice, only invoice rows) -->
-            <div class="demo-router">
-              <svg class="router-arrow" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M7 1v18M2 14l5 5 5-5"/>
-              </svg>
-              <span class="router-label">Only invoice rows continue</span>
-            </div>
-
-            <!-- INVOICE QUEUE -->
-            <div class="dest-sheet" id="destInvoice">
-              <div class="panel-header">
-                <span class="panel-num">SHEET 3</span>
-                <span class="panel-title">Fakturakunder · Invoice rows only</span>
-              </div>
-              <div class="dest-rows">
-                <div class="dest-head">
-                  <div>Order</div>
-                  <div>Customer</div>
-                  <div>Work</div>
-                  <div>Cust ID</div>
-                  <div class="d-amount">Sum</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Flying row (positioned absolutely over the stack) -->
-            <div class="flying-row" id="flyingRow">
-              <span class="fly-customer"></span>
-              <span class="fly-work"></span>
-              <span class="fly-pay"></span>
-              <span class="fly-sum"></span>
-            </div>
-          </div>
-
-          <div class="demo-caption">
-            Watch a job entry move from the input form to its destination — invoice rows are grouped under a generated order number; cash and card rows stop at the master log.
-          </div>
-        </div>
-      </div>
-
-      <!-- SOLUTION -->
-      <div class="content-block reveal" id="solution">
-        <div class="section-header">
-          <span class="section-num">02</span>
-          <span class="section-label-text">The Solution</span>
-          <span class="section-line"></span>
-        </div>
-        <h2>One macro that does <em>five things at once</em></h2>
-        <p>The system keeps the mechanics' workflow untouched — they still log every job into a simple form on a single sheet. The complexity sits behind a button labelled "Lagre".</p>
-        <p>When pressed, the macro validates the input, writes the raw entry to a master log, separates invoice customers into their own sheet, generates a unique order number per customer per month, looks up the customer's Tripletex ID from a database of 568 corporate accounts, and finally produces a Tripletex-ready import file with a single additional click.</p>
-        <p>Five things that used to be five different mental steps — collapsed into one.</p>
-
-        <div class="note">
-          <p>The biggest change is structural, not just technical: invoice customers now live grouped in their own sheet. The manager no longer hunts for "Pål" through fifty rows of mixed entries — every Pål-job is already gathered, ordered, and tagged with its customer ID.</p>
-        </div>
-      </div>
-
-      <!-- FLOW DIAGRAM -->
-      <div class="content-block reveal" id="flow">
-        <div class="section-header">
-          <span class="section-num">03</span>
-          <span class="section-label-text">Process Flow</span>
-          <span class="section-line"></span>
-        </div>
-        <h2>From entry to <em>Tripletex</em></h2>
-        <p>The data path moves through five sheets, each with a clear purpose. The mechanic only ever sees the first.</p>
-
-        <div class="flow-container">
-          <svg class="flow-svg" viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
-                <path d="M0,0 L0,6 L8,3 z" fill="#9e8a6a"/>
-              </marker>
-              <linearGradient id="cardGrad" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stop-color="#fff"/>
-                <stop offset="100%" stop-color="#f8f7f4"/>
-              </linearGradient>
-            </defs>
-
-            <!-- Stage 1: Front (input) -->
-            <g>
-              <rect x="20" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#2c3e50" stroke-width="1.5"/>
-              <text x="85" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 1</text>
-              <text x="85" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Front</text>
-              <text x="85" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Mechanic input</text>
-            </g>
-
-            <!-- Stage 2: Tabell (raw log) -->
-            <g>
-              <rect x="180" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
-              <text x="245" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 2</text>
-              <text x="245" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Tabell</text>
-              <text x="245" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Master log (all jobs)</text>
-            </g>
-
-            <!-- Stage 3: Filter -->
-            <g>
-              <rect x="340" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
-              <text x="405" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 3</text>
-              <text x="405" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Fakturakunder</text>
-              <text x="405" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Invoice rows only</text>
-            </g>
-
-            <!-- Stage 4: Faste Kunder lookup -->
-            <g>
-              <rect x="340" y="220" width="130" height="80" fill="url(#cardGrad)" stroke="#d4d0c8" stroke-width="1.5" stroke-dasharray="3,3"/>
-              <text x="405" y="245" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">REFERENCE</text>
-              <text x="405" y="265" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Faste Kunder</text>
-              <text x="405" y="283" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">568 customers</text>
-            </g>
-
-            <!-- Stage 5: Tripletex export sheet -->
-            <g>
-              <rect x="500" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
-              <text x="565" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 4</text>
-              <text x="565" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">order_import</text>
-              <text x="565" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Tripletex format</text>
-            </g>
-
-            <!-- Stage 6: Tripletex (external) -->
-            <g>
-              <rect x="640" y="60" width="100" height="80" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.5"/>
-              <text x="690" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">EXTERNAL</text>
-              <text x="690" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#fff" text-anchor="middle">Tripletex</text>
-              <text x="690" y="123" font-family="DM Sans" font-size="10" fill="#d4d0c8" text-anchor="middle">Accounting</text>
-            </g>
-
-            <!-- Arrows -->
-            <line x1="150" y1="100" x2="178" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-            <line x1="310" y1="100" x2="338" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-            <line x1="470" y1="100" x2="498" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-            <line x1="630" y1="100" x2="638" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
-
-            <!-- Lookup arrow (Faste Kunder → Fakturakunder) -->
-            <line x1="405" y1="220" x2="405" y2="142" stroke="#9e8a6a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
-            <text x="415" y="185" font-family="DM Sans" font-size="9" fill="#6b6b6b" font-style="italic">customer ID lookup</text>
-
-            <!-- Labels above arrows -->
-            <text x="164" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">log</text>
-            <text x="324" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">filter</text>
-            <text x="484" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">format</text>
-
-            <!-- Bottom annotations -->
-            <text x="85" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">Date · Customer · Work · Price</text>
-            <text x="245" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">All jobs, all payment types</text>
-            <text x="405" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">Grouped, order # assigned</text>
-            <text x="565" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">8-column export schema</text>
-
-            <!-- Bottom title -->
-            <text x="380" y="335" font-family="DM Sans" font-size="10" fill="#9e8a6a" text-anchor="middle" letter-spacing="2" font-weight="600">DATA FLOW · ONE BUTTON · END-TO-END</text>
+        <div class="before-note">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 5v3.5M8 11h0.01"/>
           </svg>
+          <span data-en="Highlighted in green: every job for one customer (Bravo AS), scattered across the month — six rows out of twenty-three. Repeat the same hunt for every other invoice customer. Miss one — that revenue disappears." data-no="Markert i grønt: alle jobber for én kunde (Bravo AS), spredt utover måneden — seks rader av tjuetre. Gjenta samme jakt for hver eneste fakturakunde. Glemmer du én — forsvinner den inntekten.">Highlighted in green: every job for one customer (Bravo AS), scattered across the month — six rows out of twenty-three. Repeat the same hunt for every other invoice customer. Miss one — that revenue disappears.</span>
         </div>
       </div>
 
-      <!-- TECHNICAL -->
-      <div class="content-block reveal" id="technical">
-        <div class="section-header">
-          <span class="section-num">04</span>
-          <span class="section-label-text">Technical Highlights</span>
-          <span class="section-line"></span>
-        </div>
-        <h2>Three problems worth <em>solving carefully</em></h2>
-        <p>Most of the macro is straightforward bookkeeping. Three pieces required actual design decisions.</p>
+      <p><span data-en="The problem started at the end of each billing cycle. To prepare invoices, the manager had to scan the entire chronological log, manually identify every row tied to a single corporate customer, highlight them as he went, and re-enter each one into Tripletex by hand. Then repeat for the next customer. And the next. And the next." data-no="Problemet begynte ved slutten av hver faktureringsperiode. For å klargjøre fakturaer måtte sjefen skanne hele loggen, manuelt identifisere hver rad knyttet til én bedriftskunde, markere dem underveis, og taste hver av dem inn i Tripletex for hånd. Deretter gjenta for neste kunde. Og neste. Og neste.">The problem started at the end of each billing cycle. To prepare invoices, the manager had to scan the entire chronological log, manually identify every row tied to a single corporate customer, highlight them as he went, and re-enter each one into Tripletex by hand. Then repeat for the next customer. And the next. And the next.</span></p>
+      <p><span data-en="It was slow, but more importantly it was fragile: a single missed row meant an unbilled job — revenue lost without anyone noticing." data-no="Det var tregt, men enda viktigere: det var skjørt. Én tapt rad betød en ufakturert jobb — inntekt som forsvant uten at noen merket det.">It was slow, but more importantly it was fragile: a single missed row meant an unbilled job — revenue lost without anyone noticing.</span></p>
+    </div>
 
-        <div class="highlight-grid">
-          <div class="highlight-card">
-            <div class="h-label">Order Number Logic</div>
-            <div class="h-name">Customer-Month Sequencing</div>
-            <p>Each customer should receive one invoice per month with multiple line items grouped together. The macro uses a Scripting.Dictionary keyed on <code>customer + month</code> to either fetch the existing order number or assign the next available one in that month — ensuring jobs for the same customer collapse into one Tripletex order.</p>
+    <div class="content-block reveal" id="solution">
+      <div class="section-header">
+        <span class="section-num">02</span>
+        <span class="section-label-text" data-en="The Solution" data-no="Løsningen">The Solution</span>
+        <span class="section-line"></span>
+      </div>
+      <h2><span data-en="One macro that does <em>five things at once</em>" data-no="Én makro som gjør <em>fem ting på én gang</em>">One macro that does <em>five things at once</em></span></h2>
+      <p><span data-en="The system keeps the mechanics' workflow untouched — they still log every job into a simple form on a single sheet. The complexity sits behind a button labelled &quot;Lagre&quot;." data-no="Systemet lar mekanikernes arbeidsflyt være urørt — de logger fortsatt hver jobb inn i et enkelt skjema på ett ark. All kompleksitet ligger bak en knapp merket &quot;Lagre&quot;.">The system keeps the mechanics' workflow untouched — they still log every job into a simple form on a single sheet. The complexity sits behind a button labelled "Lagre".</span></p>
+      <p><span data-en="When pressed, the macro validates the input, writes the raw entry to a master log, separates invoice customers into their own sheet, generates a unique order number per customer per month, looks up the customer's Tripletex ID from a database of 568 corporate accounts, and finally produces a Tripletex-ready import file with a single additional click." data-no="Når den trykkes, validerer makroen input, skriver rå-oppføringen til en hovedlogg, skiller fakturakunder ut til sitt eget ark, genererer et unikt ordrenummer per kunde per måned, slår opp kundens Tripletex-ID fra en database med 568 bedriftskunder, og produserer til slutt en Tripletex-klar importfil med ett ekstra klikk.">When pressed, the macro validates the input, writes the raw entry to a master log, separates invoice customers into their own sheet, generates a unique order number per customer per month, looks up the customer's Tripletex ID from a database of 568 corporate accounts, and finally produces a Tripletex-ready import file with a single additional click.</span></p>
+      <p><span data-en="Five things that used to be five different mental steps — collapsed into one." data-no="Fem ting som tidligere var fem forskjellige mentale steg — samlet i ett.">Five things that used to be five different mental steps — collapsed into one.</span></p>
+
+      <div class="note">
+        <p><span data-en="The biggest change is structural, not just technical: invoice customers now live grouped in their own sheet. The manager no longer hunts for &quot;Bravo AS&quot; through fifty rows of mixed entries — every Bravo-job is already gathered, ordered, and tagged with its customer ID." data-no="Den største endringen er strukturell, ikke bare teknisk: fakturakunder ligger nå samlet i sitt eget ark. Sjefen leter ikke lenger etter &quot;Bravo AS&quot; gjennom femti blandede rader — alle Bravo-jobber er allerede samlet, sortert, og merket med kunde-ID.">The biggest change is structural, not just technical: invoice customers now live grouped in their own sheet. The manager no longer hunts for "Bravo AS" through fifty rows of mixed entries — every Bravo-job is already gathered, ordered, and tagged with its customer ID.</span></p>
+      </div>
+
+      <h3 data-en="See it in motion" data-no="Se det i aksjon">See it in motion</h3>
+      <p><span data-en="The animation below shows what happens when a mechanic enters a job and clicks save. All jobs land in the master log; only invoice rows continue down to the invoice queue, automatically tagged with an order number and customer ID." data-no="Animasjonen under viser hva som skjer når en mekaniker registrerer en jobb og klikker lagre. Alle jobber havner i hovedloggen; kun fakturarader fortsetter ned til fakturakøen, automatisk merket med ordrenummer og kunde-ID.">The animation below shows what happens when a mechanic enters a job and clicks save. All jobs land in the master log; only invoice rows continue down to the invoice queue, automatically tagged with an order number and customer ID.</span></p>
+
+      <div class="demo-stage" id="demoStage">
+        <div class="demo-grid">
+          <div class="demo-panel" id="inputPanel">
+            <div class="panel-header">
+              <span class="panel-num">SHEET 1</span>
+              <span class="panel-title" data-en="Front · Input form" data-no="Front · Registreringsskjema">Front · Input form</span>
+            </div>
+            <div class="form-grid">
+              <div class="form-field"><label data-en="Date" data-no="Dato">Date</label><div class="form-input" data-field="date"></div></div>
+              <div class="form-field"><label data-en="Customer" data-no="Kunde">Customer</label><div class="form-input" data-field="customer"></div></div>
+              <div class="form-field"><label data-en="Work performed" data-no="Arbeid utført">Work performed</label><div class="form-input" data-field="work"></div></div>
+              <div class="form-field"><label data-en="Payment" data-no="Betaling">Payment</label><div class="form-input" data-field="payment"></div></div>
+              <div class="form-field full-width"><label data-en="Sum (NOK)" data-no="Sum (NOK)">Sum (NOK)</label><div class="form-input amount" data-field="sum"></div></div>
+            </div>
+            <button class="form-btn" id="formBtn">
+              <span>Lagre</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+            <div class="form-status" id="formStatus"></div>
           </div>
-          <div class="highlight-card">
-            <div class="h-label">Customer Lookup</div>
-            <div class="h-name">568-Row Reference Table</div>
-            <p>A separate sheet holds CareCenter's full corporate customer database — 568 entries with Tripletex IDs, addresses, and contact details. Every invoice row gets enriched with the correct customer ID via a name-based match before export. No manual ID entry required.</p>
+
+          <div class="demo-router">
+            <svg class="router-arrow" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M7 1v18M2 14l5 5 5-5"/>
+            </svg>
+            <span class="router-label" data-en="All jobs logged" data-no="Alle jobber loggføres">All jobs logged</span>
           </div>
-          <div class="highlight-card">
-            <div class="h-label">Tripletex Export</div>
-            <div class="h-name">Schema-compliant File Output</div>
-            <p>The export macro copies the formatted sheet into a new workbook, applies a timestamped filename (<code>Tripletex_Export_yyyymmdd_hhmmss.xlsx</code>), and saves it directly to the Desktop in <code>xlOpenXMLWorkbook</code> format. Tripletex accepts the file as-is — no manual reformatting.</p>
+
+          <div class="dest-sheet" id="destLog">
+            <div class="panel-header">
+              <span class="panel-num">SHEET 2</span>
+              <span class="panel-title" data-en="Tabell · Master log (all jobs)" data-no="Tabell · Hovedlogg (alle jobber)">Tabell · Master log (all jobs)</span>
+            </div>
+            <div class="dest-rows">
+              <div class="dest-head">
+                <div data-en="Date" data-no="Dato">Date</div>
+                <div data-en="Customer" data-no="Kunde">Customer</div>
+                <div data-en="Work" data-no="Arbeid">Work</div>
+                <div data-en="Pay" data-no="Bet.">Pay</div>
+                <div class="d-amount" data-en="Sum" data-no="Sum">Sum</div>
+              </div>
+            </div>
           </div>
-          <div class="highlight-card">
-            <div class="h-label">Validation & UX</div>
-            <div class="h-name">Required Fields, Quick Drafts</div>
-            <p>The form blocks submission unless all mandatory fields are filled, preventing the silent loss of jobs that plagued the old system. A separate row of "kladd"-shortcuts lets mechanics queue up several jobs and copy them into the form one at a time during quiet moments.</p>
+
+          <div class="demo-router">
+            <svg class="router-arrow" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M7 1v18M2 14l5 5 5-5"/>
+            </svg>
+            <span class="router-label" data-en="Only invoice rows continue" data-no="Kun fakturarader fortsetter">Only invoice rows continue</span>
+          </div>
+
+          <div class="dest-sheet" id="destInvoice">
+            <div class="panel-header">
+              <span class="panel-num">SHEET 3</span>
+              <span class="panel-title" data-en="Fakturakunder · Invoice rows only" data-no="Fakturakunder · Kun fakturarader">Fakturakunder · Invoice rows only</span>
+            </div>
+            <div class="dest-rows">
+              <div class="dest-head">
+                <div data-en="Order" data-no="Ordre">Order</div>
+                <div data-en="Customer" data-no="Kunde">Customer</div>
+                <div data-en="Work" data-no="Arbeid">Work</div>
+                <div data-en="Cust ID" data-no="Kunde-ID">Cust ID</div>
+                <div class="d-amount" data-en="Sum" data-no="Sum">Sum</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flying-row" id="flyingRow">
+            <span class="fly-customer"></span>
+            <span class="fly-work"></span>
+            <span class="fly-pay"></span>
+            <span class="fly-sum"></span>
           </div>
         </div>
+        <div class="demo-caption" data-en="Watch a job entry move from the input form to its destination — invoice rows are grouped under a generated order number; cash and card rows stop at the master log." data-no="Se en jobbregistrering bevege seg fra skjemaet til sitt endepunkt — fakturarader grupperes under et generert ordrenummer; kontant- og kortrader stopper i hovedloggen.">
+          Watch a job entry move from the input form to its destination — invoice rows are grouped under a generated order number; cash and card rows stop at the master log.
+        </div>
+      </div>
+    </div>
 
-        <h3>Order number generation — the core of the design</h3>
-        <p>The snippet below shows the simplified logic used to assign order numbers. Customer names and IDs are illustrative only.</p>
-        <div class="code-block"><span class="c-comment">' For each invoice row, check if this customer already has</span>
+    <div class="content-block reveal" id="flow">
+      <div class="section-header">
+        <span class="section-num">03</span>
+        <span class="section-label-text" data-en="Process Flow" data-no="Prosessflyt">Process Flow</span>
+        <span class="section-line"></span>
+      </div>
+      <h2><span data-en="From entry to <em>Tripletex</em>" data-no="Fra registrering til <em>Tripletex</em>">From entry to <em>Tripletex</em></span></h2>
+      <p><span data-en="The data path moves through five sheets, each with a clear purpose. The mechanic only ever sees the first." data-no="Dataene beveger seg gjennom fem ark, hver med et tydelig formål. Mekanikeren ser bare det første.">The data path moves through five sheets, each with a clear purpose. The mechanic only ever sees the first.</span></p>
+
+      <div class="flow-container">
+        <svg class="flow-svg" viewBox="0 0 760 360" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+              <path d="M0,0 L0,6 L8,3 z" fill="#9e8a6a"/>
+            </marker>
+            <linearGradient id="cardGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stop-color="#fff"/>
+              <stop offset="100%" stop-color="#f8f7f4"/>
+            </linearGradient>
+          </defs>
+
+          <g>
+            <rect x="20" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#2c3e50" stroke-width="1.5"/>
+            <text x="85" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 1</text>
+            <text x="85" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Front</text>
+            <text x="85" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Mechanic input</text>
+          </g>
+          <g>
+            <rect x="180" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
+            <text x="245" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 2</text>
+            <text x="245" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Tabell</text>
+            <text x="245" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Master log (all jobs)</text>
+          </g>
+          <g>
+            <rect x="340" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
+            <text x="405" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 3</text>
+            <text x="405" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Fakturakunder</text>
+            <text x="405" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Invoice rows only</text>
+          </g>
+          <g>
+            <rect x="340" y="220" width="130" height="80" fill="url(#cardGrad)" stroke="#d4d0c8" stroke-width="1.5" stroke-dasharray="3,3"/>
+            <text x="405" y="245" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">REFERENCE</text>
+            <text x="405" y="265" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">Faste Kunder</text>
+            <text x="405" y="283" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">568 customers</text>
+          </g>
+          <g>
+            <rect x="500" y="60" width="130" height="80" fill="url(#cardGrad)" stroke="#9e8a6a" stroke-width="1.5"/>
+            <text x="565" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">SHEET 4</text>
+            <text x="565" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#1a1a1a" text-anchor="middle">order_import</text>
+            <text x="565" y="123" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle">Tripletex format</text>
+          </g>
+          <g>
+            <rect x="640" y="60" width="100" height="80" fill="#2c3e50" stroke="#2c3e50" stroke-width="1.5"/>
+            <text x="690" y="85" font-family="DM Sans" font-size="9" font-weight="600" fill="#9e8a6a" text-anchor="middle" letter-spacing="1.5">EXTERNAL</text>
+            <text x="690" y="105" font-family="Cormorant Garamond" font-size="16" font-weight="500" fill="#fff" text-anchor="middle">Tripletex</text>
+            <text x="690" y="123" font-family="DM Sans" font-size="10" fill="#d4d0c8" text-anchor="middle">Accounting</text>
+          </g>
+
+          <line x1="150" y1="100" x2="178" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="310" y1="100" x2="338" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="470" y1="100" x2="498" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="630" y1="100" x2="638" y2="100" stroke="#9e8a6a" stroke-width="1.5" marker-end="url(#arrowhead)"/>
+          <line x1="405" y1="220" x2="405" y2="142" stroke="#9e8a6a" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowhead)"/>
+          <text x="415" y="185" font-family="DM Sans" font-size="9" fill="#6b6b6b" font-style="italic">customer ID lookup</text>
+
+          <text x="164" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">log</text>
+          <text x="324" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">filter</text>
+          <text x="484" y="92" font-family="DM Sans" font-size="9" fill="#9e8a6a" font-weight="500">format</text>
+
+          <text x="85" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">Date · Customer · Work · Price</text>
+          <text x="245" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">All jobs, all payment types</text>
+          <text x="405" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">Grouped, order # assigned</text>
+          <text x="565" y="170" font-family="DM Sans" font-size="10" fill="#6b6b6b" text-anchor="middle" font-style="italic">8-column export schema</text>
+
+          <text x="380" y="335" font-family="DM Sans" font-size="10" fill="#9e8a6a" text-anchor="middle" letter-spacing="2" font-weight="600">DATA FLOW · ONE BUTTON · END-TO-END</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="content-block reveal" id="technical">
+      <div class="section-header">
+        <span class="section-num">04</span>
+        <span class="section-label-text" data-en="Technical Highlights" data-no="Tekniske valg">Technical Highlights</span>
+        <span class="section-line"></span>
+      </div>
+      <h2><span data-en="Three problems worth <em>solving carefully</em>" data-no="Tre problemer verdt <em>å løse ordentlig</em>">Three problems worth <em>solving carefully</em></span></h2>
+      <p><span data-en="Most of the macro is straightforward bookkeeping. Three pieces required actual design decisions." data-no="Mesteparten av makroen er enkel bokføring. Tre deler krevde faktiske designvalg.">Most of the macro is straightforward bookkeeping. Three pieces required actual design decisions.</span></p>
+
+      <div class="highlight-grid">
+        <div class="highlight-card">
+          <div class="h-label" data-en="Order Number Logic" data-no="Ordrenummerlogikk">Order Number Logic</div>
+          <div class="h-name" data-en="Customer-Month Sequencing" data-no="Sekvensering per kunde og måned">Customer-Month Sequencing</div>
+          <p><span data-en="Each customer should receive one invoice per month with multiple line items grouped together. The macro uses a Scripting.Dictionary keyed on <code>customer + month</code> to either fetch the existing order number or assign the next available one in that month — ensuring jobs for the same customer collapse into one Tripletex order." data-no="Hver kunde skal få én faktura per måned med flere linjer samlet. Makroen bruker en Scripting.Dictionary med <code>kunde + måned</code> som nøkkel for enten å hente eksisterende ordrenummer eller tildele neste ledige i den måneden — slik at jobber for samme kunde samles i én Tripletex-ordre.">Each customer should receive one invoice per month with multiple line items grouped together. The macro uses a Scripting.Dictionary keyed on <code>customer + month</code> to either fetch the existing order number or assign the next available one in that month — ensuring jobs for the same customer collapse into one Tripletex order.</span></p>
+        </div>
+        <div class="highlight-card">
+          <div class="h-label" data-en="Customer Lookup" data-no="Kundeoppslag">Customer Lookup</div>
+          <div class="h-name" data-en="568-Row Reference Table" data-no="Referansetabell med 568 rader">568-Row Reference Table</div>
+          <p><span data-en="A separate sheet holds CareCenter's full corporate customer database — 568 entries with Tripletex IDs, addresses, and contact details. Every invoice row gets enriched with the correct customer ID via a name-based match before export. No manual ID entry required." data-no="Et eget ark inneholder CareCenters fullstendige bedriftskundedatabase — 568 oppføringer med Tripletex-ID-er, adresser og kontaktdetaljer. Hver fakturarad blir beriket med riktig kunde-ID via et navn-basert oppslag før eksport. Ingen manuell ID-inntasting nødvendig.">A separate sheet holds CareCenter's full corporate customer database — 568 entries with Tripletex IDs, addresses, and contact details. Every invoice row gets enriched with the correct customer ID via a name-based match before export. No manual ID entry required.</span></p>
+        </div>
+        <div class="highlight-card">
+          <div class="h-label" data-en="Tripletex Export" data-no="Tripletex-eksport">Tripletex Export</div>
+          <div class="h-name" data-en="Schema-compliant File Output" data-no="Skjemakompatibel fileksport">Schema-compliant File Output</div>
+          <p><span data-en="The export macro copies the formatted sheet into a new workbook, applies a timestamped filename (<code>Tripletex_Export_yyyymmdd_hhmmss.xlsx</code>), and saves it directly to the Desktop in <code>xlOpenXMLWorkbook</code> format. Tripletex accepts the file as-is — no manual reformatting." data-no="Eksportmakroen kopierer det formaterte arket til en ny arbeidsbok, legger til et tidsstempel i filnavnet (<code>Tripletex_Export_yyyymmdd_hhmmss.xlsx</code>), og lagrer den rett til skrivebordet i <code>xlOpenXMLWorkbook</code>-format. Tripletex aksepterer filen som den er — ingen manuell reformatering.">The export macro copies the formatted sheet into a new workbook, applies a timestamped filename (<code>Tripletex_Export_yyyymmdd_hhmmss.xlsx</code>), and saves it directly to the Desktop in <code>xlOpenXMLWorkbook</code> format. Tripletex accepts the file as-is — no manual reformatting.</span></p>
+        </div>
+        <div class="highlight-card">
+          <div class="h-label" data-en="Validation & UX" data-no="Validering & UX">Validation & UX</div>
+          <div class="h-name" data-en="Required Fields, Quick Drafts" data-no="Obligatoriske felt, hurtigkladd">Required Fields, Quick Drafts</div>
+          <p><span data-en="The form blocks submission unless all mandatory fields are filled, preventing the silent loss of jobs that plagued the old system. A separate row of &quot;kladd&quot;-shortcuts lets mechanics queue up several jobs and copy them into the form one at a time during quiet moments." data-no="Skjemaet blokkerer innsending med mindre alle obligatoriske felt er fylt ut, og forhindrer det stille tapet av jobber som plaget det gamle systemet. En egen rad med kladd-snarveier lar mekanikerne stille opp flere jobber og kopiere dem inn i skjemaet én om gangen i rolige perioder.">The form blocks submission unless all mandatory fields are filled, preventing the silent loss of jobs that plagued the old system. A separate row of "kladd"-shortcuts lets mechanics queue up several jobs and copy them into the form one at a time during quiet moments.</span></p>
+        </div>
+      </div>
+
+      <h3 data-en="Order number generation — the core of the design" data-no="Ordrenummergenerering — kjernen i designet">Order number generation — the core of the design</h3>
+      <p><span data-en="The snippet below shows the simplified logic used to assign order numbers. Customer names and IDs are illustrative only." data-no="Kodesnutten under viser den forenklede logikken for å tildele ordrenumre. Kundenavn og ID-er er kun illustrative.">The snippet below shows the simplified logic used to assign order numbers. Customer names and IDs are illustrative only.</span></p>
+      <div class="code-block"><span class="c-comment">' For each invoice row, check if this customer already has</span>
 <span class="c-comment">' an order number assigned for the current month.</span>
 <span class="c-comment">' If yes — reuse it. If no — assign the next available.</span>
 
@@ -1086,51 +943,67 @@
     <span class="c-comment">' Write order number back to the row</span>
     row.<span class="c-fn">Cells</span>(1, COL_ORDER_NUM).Value = currentOrderNum
 <span class="c-keyword">Next</span> row</div>
-        <div class="code-caption">Simplified excerpt. The full implementation also handles month rollover and re-runs idempotently.</div>
+      <div class="code-caption" data-en="Simplified excerpt. The full implementation also handles month rollover and re-runs idempotently." data-no="Forenklet utdrag. Den fullstendige implementeringen håndterer også månedsskifte og kan kjøres på nytt uten bivirkninger.">Simplified excerpt. The full implementation also handles month rollover and re-runs idempotently.</div>
+    </div>
+
+    <div class="content-block reveal" id="results">
+      <div class="section-header">
+        <span class="section-num">05</span>
+        <span class="section-label-text" data-en="Results" data-no="Resultater">Results</span>
+        <span class="section-line"></span>
+      </div>
+      <h2><span data-en="What <em>changed</em>" data-no="Hva som <em>endret seg</em>">What <em>changed</em></span></h2>
+      <p><span data-en="The improvement is measured in two dimensions — the time the manager spends on each billing cycle, and the number of jobs that quietly disappeared between the spreadsheet and Tripletex." data-no="Forbedringen måles i to dimensjoner — tiden sjefen bruker på hver faktureringsperiode, og antall jobber som stille forsvant mellom regnearket og Tripletex.">The improvement is measured in two dimensions — the time the manager spends on each billing cycle, and the number of jobs that quietly disappeared between the spreadsheet and Tripletex.</span></p>
+
+      <div class="result-grid">
+        <div class="result-card">
+          <div class="r-label" data-en="Time" data-no="Tid">Time</div>
+          <div class="r-value">~50%</div>
+          <div class="r-desc" data-en="reduction in manual processing time per billing cycle" data-no="reduksjon i manuell behandlingstid per faktureringsperiode">reduction in manual processing time per billing cycle</div>
+        </div>
+        <div class="result-card">
+          <div class="r-label" data-en="Coverage" data-no="Dekning">Coverage</div>
+          <div class="r-value">100%</div>
+          <div class="r-desc" data-en="of invoice-eligible jobs captured — no more missed entries" data-no="av fakturapliktige jobber fanget opp — ingen flere tapte oppføringer">of invoice-eligible jobs captured — no more missed entries</div>
+        </div>
+        <div class="result-card">
+          <div class="r-label" data-en="Scale" data-no="Skala">Scale</div>
+          <div class="r-value">568</div>
+          <div class="r-desc" data-en="corporate customers handled by automatic lookup" data-no="bedriftskunder håndtert via automatisk oppslag">corporate customers handled by automatic lookup</div>
+        </div>
       </div>
 
-      <!-- RESULTS -->
-      <div class="content-block reveal" id="results">
-        <div class="section-header">
-          <span class="section-num">05</span>
-          <span class="section-label-text">Results</span>
-          <span class="section-line"></span>
-        </div>
-        <h2>What <em>changed</em></h2>
-        <p>The improvement is measured in two dimensions — the time the manager spends on each billing cycle, and the number of jobs that quietly disappeared between the spreadsheet and Tripletex.</p>
+      <p><span data-en="The system has been in daily production use at CareCenter since 2024 and replaced an entirely manual workflow. The mechanics' input experience is unchanged — only the manager's end-of-month workflow was transformed." data-no="Systemet har vært i daglig produksjonsbruk på CareCenter siden 2024 og erstattet en helt manuell arbeidsflyt. Mekanikernes opplevelse er uendret — kun sjefens arbeidsflyt på slutten av måneden ble transformert.">The system has been in daily production use at CareCenter since 2024 and replaced an entirely manual workflow. The mechanics' input experience is unchanged — only the manager's end-of-month workflow was transformed.</span></p>
+    </div>
 
-        <div class="result-grid">
-          <div class="result-card">
-            <div class="r-label">Time</div>
-            <div class="r-value">~50%</div>
-            <div class="r-desc">reduction in manual processing time per billing cycle</div>
-          </div>
-          <div class="result-card">
-            <div class="r-label">Coverage</div>
-            <div class="r-value">100%</div>
-            <div class="r-desc">of invoice-eligible jobs captured — no more missed entries</div>
-          </div>
-          <div class="result-card">
-            <div class="r-label">Scale</div>
-            <div class="r-value">568</div>
-            <div class="r-desc">corporate customers handled by automatic lookup</div>
-          </div>
-        </div>
-
-        <p>The system has been in daily production use at CareCenter since 2024 and replaced an entirely manual workflow. The mechanics' input experience is unchanged — only the manager's end-of-month workflow was transformed.</p>
-      </div>
-
-    </main>
-  </div>
+  </main>
 
   <footer>
     <div class="container">
       <p>© 2026 Alexander Moe Halvorsrød</p>
-      <a href="index.html">← Back to main site</a>
+      <a href="index.html" data-en="← Back to main site" data-no="← Tilbake til hovedsiden">← Back to main site</a>
     </div>
   </footer>
 
   <script>
+    // ── LANGUAGE TOGGLE ──
+    let currentLang = 'en';
+    function switchLang(lang) {
+      if (lang === currentLang) return;
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+      document.documentElement.lang = lang === 'no' ? 'no' : 'en';
+      document.querySelectorAll('[data-en][data-no]').forEach(el => {
+        const text = el.getAttribute('data-' + lang);
+        if (text !== null) el.innerHTML = text;
+      });
+    }
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchLang(btn.dataset.lang));
+    });
+
     const progressBar = document.getElementById('scrollProgress');
     window.addEventListener('scroll', () => {
       const scrollTop = window.scrollY;
@@ -1139,27 +1012,15 @@
     });
 
     const nav = document.getElementById('navbar');
-    window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
 
     const revealObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
     }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
-    const sections = document.querySelectorAll('[id]');
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          sidebarLinks.forEach(a => {
-            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
-          });
-        }
-      });
-    }, { threshold: 0.4 });
-    sections.forEach(s => observer.observe(s));
-
-    // ── LIVE DEMO ANIMATION ──
     const demoStage = document.getElementById('demoStage');
     const formInputs = {
       date: document.querySelector('[data-field="date"]'),
@@ -1174,7 +1035,6 @@
     const destLog = document.querySelector('#destLog .dest-rows');
     const destInvoice = document.querySelector('#destInvoice .dest-rows');
 
-    // Job sequence — all go to master log; invoice payments additionally go to invoice sheet
     const jobs = [
       { date: '01.01.26', customer: 'Alpha AS',   work: 'Utv',      payment: 'Faktura', sum: '1 000', order: '2601001', custId: '10369', isInvoice: true  },
       { date: '01.01.26', customer: 'Alpha AS',   work: 'Innv',     payment: 'Faktura', sum: '500',   order: '2601001', custId: '10369', isInvoice: true  },
@@ -1185,8 +1045,7 @@
     const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
     async function typeInto(el, text, speed = 35) {
-      el.classList.add('typing');
-      el.textContent = '';
+      el.classList.add('typing'); el.textContent = '';
       for (let i = 0; i < text.length; i++) {
         el.textContent += text[i];
         await wait(speed + Math.random() * 25);
@@ -1196,15 +1055,12 @@
 
     function clearForm() {
       Object.values(formInputs).forEach(el => { el.textContent = ''; });
-      formStatus.textContent = '';
-      formStatus.classList.remove('success');
+      formStatus.textContent = ''; formStatus.classList.remove('success');
     }
 
     function trimDest(container, maxRows = 4) {
       const rows = container.querySelectorAll('.dest-row');
-      if (rows.length > maxRows) {
-        rows[0].remove();
-      }
+      if (rows.length > maxRows) rows[0].remove();
     }
 
     function addLogRow(job) {
@@ -1215,8 +1071,7 @@
         <div class="d-customer">${job.customer}</div>
         <div class="d-work">${job.work}</div>
         <div class="d-work">${job.payment}</div>
-        <div class="d-amount">${job.sum}</div>
-      `;
+        <div class="d-amount">${job.sum}</div>`;
       destLog.appendChild(row);
       setTimeout(() => row.classList.remove('fresh'), 1400);
       trimDest(destLog);
@@ -1230,8 +1085,7 @@
         <div class="d-customer">${job.customer}</div>
         <div class="d-work">${job.work}</div>
         <div class="d-work">${job.custId}</div>
-        <div class="d-amount">${job.sum}</div>
-      `;
+        <div class="d-amount">${job.sum}</div>`;
       destInvoice.appendChild(row);
       setTimeout(() => row.classList.remove('fresh'), 1400);
       trimDest(destInvoice);
@@ -1243,7 +1097,6 @@
       flyingRow.querySelector('.fly-pay').textContent = job.payment;
       flyingRow.querySelector('.fly-sum').textContent = job.sum + ' kr';
 
-      // Compute vertical positions relative to the demo-grid container
       const grid = document.querySelector('.demo-grid');
       const inputPanel = document.getElementById('inputPanel');
       const logSheet = document.getElementById('destLog');
@@ -1253,14 +1106,9 @@
         const inputRect = inputPanel.getBoundingClientRect();
         const logRect = logSheet.getBoundingClientRect();
         const invRect = invoiceSheet.getBoundingClientRect();
-
-        // Position just below the Lagre button (~bottom of input panel)
         const formBottomPct = ((inputRect.bottom - gridRect.top - 30) / gridRect.height) * 100;
-        // Land in the middle of master log sheet
         const logPct = ((logRect.top + logRect.height / 2 - gridRect.top) / gridRect.height) * 100;
-        // Land in the middle of invoice sheet
         const invPct = ((invRect.top + invRect.height / 2 - gridRect.top) / gridRect.height) * 100;
-
         flyingRow.style.setProperty('--form-bottom', formBottomPct + '%');
         flyingRow.style.setProperty('--log-pos', logPct + '%');
         flyingRow.style.setProperty('--invoice-pos', invPct + '%');
@@ -1272,40 +1120,35 @@
       flyingRow.classList.add(job.isInvoice ? 'travel-up' : 'travel-down');
 
       if (job.isInvoice) {
-        // Invoice path: lands at master log first (~45% of 1.8s = ~810ms)
         await wait(810);
         addLogRow(job);
-        // Then continues to invoice sheet
         await wait(990);
         addInvoiceRow(job);
       } else {
-        // Cash/card: only lands at master log
         await wait(900);
         addLogRow(job);
         await wait(150);
       }
-
       flyingRow.classList.remove('active', 'travel-up', 'travel-down');
     }
 
     async function runJob(job) {
       clearForm();
       await wait(300);
-      await typeInto(formInputs.date, job.date);
-      await wait(120);
-      await typeInto(formInputs.customer, job.customer);
-      await wait(120);
-      await typeInto(formInputs.work, job.work);
-      await wait(120);
-      await typeInto(formInputs.payment, job.payment);
-      await wait(120);
-      await typeInto(formInputs.sum, job.sum);
-      await wait(280);
+      await typeInto(formInputs.date, job.date); await wait(120);
+      await typeInto(formInputs.customer, job.customer); await wait(120);
+      await typeInto(formInputs.work, job.work); await wait(120);
+      await typeInto(formInputs.payment, job.payment); await wait(120);
+      await typeInto(formInputs.sum, job.sum); await wait(280);
 
       formBtn.classList.add('pressed');
-      formStatus.textContent = job.isInvoice
-        ? '→ logged to Tabell, queued for invoice'
+      const statusInvoice = currentLang === 'no'
+        ? '→ logget til Tabell, satt i fakturakø'
+        : '→ logged to Tabell, queued for invoice';
+      const statusCash = currentLang === 'no'
+        ? '→ logget til Tabell'
         : '→ logged to Tabell';
+      formStatus.textContent = job.isInvoice ? statusInvoice : statusCash;
       formStatus.classList.add('success');
       await wait(220);
       formBtn.classList.remove('pressed');
@@ -1330,17 +1173,14 @@
       }
     }
 
-    // Start demo when scrolled into view; pause when out of view to save resources
     const demoObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
-        if (entry.isIntersecting && !demoRunning) {
-          runDemoLoop();
-        } else if (!entry.isIntersecting) {
-          demoRunning = false;
-        }
+        if (entry.isIntersecting && !demoRunning) runDemoLoop();
+        else if (!entry.isIntersecting) demoRunning = false;
       });
     }, { threshold: 0.25 });
     if (demoStage) demoObserver.observe(demoStage);
   </script>
+
 </body>
 </html>
