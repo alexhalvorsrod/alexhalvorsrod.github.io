@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Research — Alexander Moe Halvorsrød</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --ink: #1a1a1a;
+      --paper: #f8f7f4;
+      --cream: #f0eee8;
+      --accent: #2c3e50;
+      --gold: #9e8a6a;
+      --gold-dim: rgba(158, 138, 106, 0.12);
+      --gold-glow: rgba(158, 138, 106, 0.06);
+      --muted: #6b6b6b;
+      --dim: #999;
+      --rule: #d4d0c8;
+      --rule-gold: rgba(158, 138, 106, 0.25);
+      --serif: 'Cormorant Garamond', 'Georgia', serif;
+      --sans: 'DM Sans', 'Helvetica Neue', sans-serif;
+      --mono: 'JetBrains Mono', 'Menlo', monospace;
+    }
+
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--sans); background: var(--paper); color: var(--ink);
+      line-height: 1.7; font-weight: 400;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0; z-index: 9999; pointer-events: none;
+      opacity: 0.018;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 128px 128px;
+    }
+    ::selection { background: var(--gold); color: #fff; }
+
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--accent));
+      z-index: 200; transition: width 0.05s linear;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid transparent; transition: border-color 0.4s, background 0.4s;
+    }
+    nav.scrolled {
+      border-bottom-color: var(--rule);
+      background: rgba(248, 247, 244, 0.96);
+      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    }
+    nav .nav-inner {
+      max-width: 1140px; margin: 0 auto; padding: 1.2rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    nav .logo {
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 500;
+      color: var(--ink); text-decoration: none; letter-spacing: 0.02em;
+    }
+    nav .nav-right { display: flex; align-items: center; gap: 2rem; }
+    nav .nav-links { display: flex; gap: 2.4rem; }
+    nav .nav-links a {
+      font-size: 0.72rem; font-weight: 500; text-decoration: none;
+      color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase;
+      transition: color 0.3s; position: relative;
+    }
+    nav .nav-links a::after {
+      content: ''; position: absolute; bottom: -3px; left: 0;
+      width: 0; height: 1px; background: var(--gold); transition: width 0.35s ease;
+    }
+    nav .nav-links a:hover { color: var(--ink); }
+    nav .nav-links a:hover::after { width: 100%; }
+    nav .nav-links a.active { color: var(--gold); }
+    nav .nav-links a.active::after { width: 100%; }
+
+    .lang-toggle {
+      display: flex; align-items: center;
+      border: 1px solid var(--rule); border-radius: 2px; overflow: hidden;
+    }
+    .lang-btn {
+      padding: 0.3rem 0.65rem; font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      border: none; background: transparent; color: var(--dim);
+      cursor: pointer; transition: all 0.3s; font-family: var(--sans);
+    }
+    .lang-btn.active { background: var(--accent); color: #fff; }
+    .lang-btn:not(.active):hover { background: var(--cream); color: var(--ink); }
+    .lang-divider { width: 1px; height: 16px; background: var(--rule); }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative; padding: 9rem 2.5rem 4rem;
+      border-bottom: 1px solid var(--rule-gold);
+    }
+    .hero::before {
+      content: ''; position: absolute; top: 10%; right: 5%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
+      border-radius: 50%; pointer-events: none;
+    }
+    .hero .container { max-width: 1140px; margin: 0 auto; width: 100%; }
+    .hero-eyebrow {
+      font-size: 0.68rem; font-weight: 500; letter-spacing: 0.25em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 1.2rem;
+    }
+    .hero-eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
+    .hero h1 {
+      font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 400; line-height: 1.1; letter-spacing: -0.01em;
+      margin-bottom: 1.8rem; max-width: 820px;
+    }
+    .hero h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
+    .hero-sub {
+      font-size: 1rem; color: var(--muted); max-width: 620px;
+      line-height: 1.8; font-weight: 300;
+    }
+
+    /* ── MAIN ── */
+    main {
+      max-width: 1140px; margin: 0 auto;
+      padding: 5rem 2.5rem;
+    }
+
+    /* ── CATEGORY ── */
+    .category-block {
+      margin-bottom: 5rem;
+    }
+    .category-block:last-child { margin-bottom: 0; }
+    .category-header {
+      display: flex; align-items: baseline; gap: 1.2rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .category-num {
+      font-family: var(--serif); font-size: 1.5rem; color: var(--gold); font-weight: 400;
+      flex-shrink: 0;
+    }
+    .category-info { flex: 1; min-width: 0; }
+    .category-info h2 {
+      font-family: var(--serif); font-size: 1.7rem; font-weight: 500;
+      color: var(--ink); margin-bottom: 0.2rem;
+    }
+    .category-info .cat-sub {
+      font-size: 0.82rem; color: var(--muted); font-weight: 300;
+    }
+    .category-count {
+      font-family: var(--mono); font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold);
+      padding: 0.3rem 0.7rem; border: 1px solid var(--rule-gold);
+      background: var(--gold-dim);
+      flex-shrink: 0;
+    }
+
+    /* ── ANALYSIS CARDS ── */
+    .analysis-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem;
+    }
+    .analysis-card {
+      border: 1px solid var(--rule); padding: 2rem 2.2rem;
+      text-decoration: none; color: inherit;
+      display: flex; flex-direction: column;
+      background: #fff; position: relative; overflow: hidden;
+      transition: border-color 0.4s, box-shadow 0.4s, transform 0.3s;
+      min-height: 220px;
+    }
+    .analysis-card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .analysis-card:hover {
+      border-color: var(--gold);
+      box-shadow: 0 6px 30px rgba(0,0,0,0.05), 0 0 40px var(--gold-glow);
+      transform: translateY(-3px);
+    }
+    .analysis-card:hover::before { opacity: 1; }
+
+    .analysis-card.placeholder {
+      background: var(--cream); border-style: dashed;
+      cursor: default;
+    }
+    .analysis-card.placeholder:hover {
+      transform: none; box-shadow: none; border-color: var(--rule);
+    }
+    .analysis-card.placeholder::before { display: none; }
+
+    .a-meta {
+      display: flex; align-items: center; gap: 0.7rem;
+      margin-bottom: 1.2rem; flex-wrap: wrap;
+    }
+    .a-tag {
+      font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em;
+      text-transform: uppercase; color: var(--gold);
+      padding: 0.25rem 0.6rem; border: 1px solid var(--rule-gold);
+      background: var(--gold-dim);
+    }
+    .a-tag.coming {
+      color: var(--dim); border-color: var(--rule); background: var(--paper);
+    }
+    .a-date {
+      font-family: var(--mono); font-size: 0.68rem; color: var(--dim);
+      letter-spacing: 0.04em;
+    }
+    .analysis-card h3 {
+      font-family: var(--serif); font-size: 1.3rem; font-weight: 500;
+      margin-bottom: 0.6rem; line-height: 1.3; color: var(--ink);
+    }
+    .analysis-card p {
+      color: var(--muted); font-size: 0.86rem; font-weight: 300;
+      line-height: 1.75; flex: 1;
+    }
+    .a-arrow {
+      display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem;
+      font-size: 0.66rem; font-weight: 500; color: var(--dim);
+      letter-spacing: 0.12em; text-transform: uppercase;
+      transition: color 0.3s;
+    }
+    .analysis-card:hover .a-arrow { color: var(--gold); }
+    .a-arrow svg { width: 14px; height: 14px; stroke: currentColor; transition: transform 0.3s; }
+    .analysis-card:hover .a-arrow svg { transform: translateX(4px); }
+
+    .analysis-card.placeholder .a-arrow {
+      color: var(--dim);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule); margin-top: 4rem;
+    }
+    footer .container {
+      max-width: 1140px; margin: 0 auto;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    footer p {
+      font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em;
+    }
+    footer a {
+      color: var(--gold); text-decoration: none;
+      font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    footer a:hover { color: var(--ink); }
+
+    /* ── REVEAL ── */
+    .reveal {
+      opacity: 0; transform: translateY(24px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 800px) {
+      main { padding: 3rem 1.8rem; }
+      .hero { padding: 7rem 1.8rem 3rem; }
+      .analysis-grid { grid-template-columns: 1fr; }
+      .category-header { flex-wrap: wrap; }
+    }
+    @media (max-width: 600px) {
+      nav .nav-links { display: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .reveal { opacity: 1 !important; transform: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="index.html" class="logo">AMH.</a>
+      <div class="nav-right">
+        <div class="nav-links">
+          <a href="index.html"><span data-en="Home" data-no="Hjem">Home</span></a>
+          <a href="index.html#about"><span data-en="About" data-no="Om meg">About</span></a>
+          <a href="index.html#experience"><span data-en="Experience" data-no="Erfaring">Experience</span></a>
+          <a href="research.html" class="active"><span data-en="Research" data-no="Analyser">Research</span></a>
+          <a href="index.html#contact"><span data-en="Contact" data-no="Kontakt">Contact</span></a>
+        </div>
+        <div class="lang-toggle">
+          <button class="lang-btn active" data-lang="en">EN</button>
+          <span class="lang-divider"></span>
+          <button class="lang-btn" data-lang="no">NO</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <div class="container">
+      <div class="hero-eyebrow reveal"><span data-en="Independent Research · Updated Regularly" data-no="Uavhengige analyser · Oppdateres jevnlig">Independent Research · Updated Regularly</span></div>
+      <h1 class="reveal"><span data-en="Equity <em>research</em>" data-no="Aksje<em>analyser</em>">Equity <em>research</em></span></h1>
+      <p class="hero-sub reveal"><span data-en="A working portfolio of independent analyses on Nordic financial institutions and broader market structure. Each piece is a self-directed deep-dive — written to test ideas, refine valuation frameworks, and document how I think about markets." data-no="En levende portefølje av uavhengige analyser på nordiske finansinstitusjoner og bredere markedsstruktur. Hver analyse er en egeninitiert fordypning — skrevet for å teste hypoteser, skjerpe verdivurderingsrammeverk, og dokumentere hvordan jeg tenker om markeder.">A working portfolio of independent analyses on Nordic financial institutions and broader market structure. Each piece is a self-directed deep-dive — written to test ideas, refine valuation frameworks, and document how I think about markets.</span></p>
+    </div>
+  </section>
+
+  <main>
+
+    <!-- EQUITY RESEARCH -->
+    <div class="category-block reveal">
+      <div class="category-header">
+        <span class="category-num">01</span>
+        <div class="category-info">
+          <h2 data-en="Equity Research" data-no="Aksjeanalyser">Equity Research</h2>
+          <div class="cat-sub" data-en="Nordic financial institutions — banks, insurers, asset managers" data-no="Nordiske finansinstitusjoner — banker, forsikringsselskaper, kapitalforvaltere">Nordic financial institutions — banks, insurers, asset managers</div>
+        </div>
+        <span class="category-count" data-en="0 published" data-no="0 publisert">0 published</span>
+      </div>
+
+      <div class="analysis-grid">
+        <div class="analysis-card placeholder">
+          <div class="a-meta">
+            <span class="a-tag coming" data-en="In Progress" data-no="Under arbeid">In Progress</span>
+          </div>
+          <h3 data-en="SpareBank 1 Gruppen" data-no="SpareBank 1 Gruppen">SpareBank 1 Gruppen</h3>
+          <p><span data-en="Forthcoming analysis covering the alliance structure, segment performance across non-life and life insurance, capital allocation, and valuation against Nordic peers." data-no="Kommende analyse av alliansestrukturen, segmentprestasjon på tvers av skade- og livsforsikring, kapitalallokering og verdsettelse mot nordiske peers.">Forthcoming analysis covering the alliance structure, segment performance across non-life and life insurance, capital allocation, and valuation against Nordic peers.</span></p>
+          <div class="a-arrow">
+            <span data-en="Coming soon" data-no="Kommer snart">Coming soon</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKET STRUCTURE -->
+    <div class="category-block reveal">
+      <div class="category-header">
+        <span class="category-num">02</span>
+        <div class="category-info">
+          <h2 data-en="Market Structure" data-no="Markedsstruktur">Market Structure</h2>
+          <div class="cat-sub" data-en="Passive flows, index effects, and broader market dynamics" data-no="Passive strømmer, indekseffekter og bredere markedsdynamikk">Passive flows, index effects, and broader market dynamics</div>
+        </div>
+        <span class="category-count" data-en="1 published" data-no="1 publisert">1 published</span>
+      </div>
+
+      <div class="analysis-grid">
+        <a href="thesis.html" class="analysis-card">
+          <div class="a-meta">
+            <span class="a-tag" data-en="Master's Thesis" data-no="Masteroppgave">Master's Thesis</span>
+            <span class="a-date">2024 — 2026</span>
+          </div>
+          <h3 data-en="Passive Dominance & Market Efficiency" data-no="Passiv dominans & markedseffisiens">Passive Dominance & Market Efficiency</h3>
+          <p><span data-en="Empirical evidence on how the rise of passive investing has affected pricing, valuation, and correlation structure across S&P 500 constituents from 1992 to 2024." data-no="Empiriske bevis på hvordan veksten i passiv forvaltning har påvirket prising, verdsettelse og korrelasjonsstruktur på tvers av S&P 500 fra 1992 til 2024.">Empirical evidence on how the rise of passive investing has affected pricing, valuation, and correlation structure across S&P 500 constituents from 1992 to 2024.</span></p>
+          <div class="a-arrow">
+            <span data-en="Read analysis" data-no="Les analyse">Read analysis</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </div>
+        </a>
+      </div>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>© 2026 Alexander Moe Halvorsrød</p>
+      <a href="index.html" data-en="← Back to main site" data-no="← Tilbake til hovedsiden">← Back to main site</a>
+    </div>
+  </footer>
+
+  <script>
+    let currentLang = 'en';
+    function switchLang(lang) {
+      if (lang === currentLang) return;
+      currentLang = lang;
+      document.querySelectorAll('.lang-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.lang === lang);
+      });
+      document.documentElement.lang = lang === 'no' ? 'no' : 'en';
+      document.querySelectorAll('[data-en][data-no]').forEach(el => {
+        const text = el.getAttribute('data-' + lang);
+        if (text !== null) el.innerHTML = text;
+      });
+    }
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchLang(btn.dataset.lang));
+    });
+
+    const progressBar = document.getElementById('scrollProgress');
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      progressBar.style.width = ((scrollTop / docHeight) * 100) + '%';
+    });
+
+    const nav = document.getElementById('navbar');
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    });
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  </script>
+
+</body>
+</html>
