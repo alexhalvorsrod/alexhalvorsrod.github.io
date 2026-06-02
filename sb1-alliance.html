@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SpareBank 1 Alliance — Equity Research · Alexander Moe Halvorsrød</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:wght@200;300;400;500;600&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --ink:#1a1a1a; --paper:#f8f7f4; --cream:#f0eee8; --accent:#2c3e50;
+      --gold:#9e8a6a; --gold-dim:rgba(158,138,106,0.12);
+      --gold-glow:rgba(158,138,106,0.06); --muted:#6b6b6b; --dim:#999;
+      --rule:#d4d0c8; --rule-gold:rgba(158,138,106,0.25);
+      --green:#1a7a4a; --red:#b4463c;
+      --serif:'Cormorant Garamond','Georgia',serif;
+      --sans:'DM Sans','Helvetica Neue',sans-serif;
+      --mono:'JetBrains Mono','Menlo',monospace;
+    }
+    html { scroll-behavior:smooth; font-size:16px; }
+    body { font-family:var(--sans); background:var(--paper); color:var(--ink);
+      line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+    body::before {
+      content:''; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.018;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:128px 128px; }
+    ::selection { background:var(--gold); color:#fff; }
+    .scroll-progress { position:fixed; top:0; left:0; height:2px; width:0%;
+      background:linear-gradient(90deg,var(--gold),var(--accent)); z-index:200; transition:width 0.05s linear; }
+    nav { position:fixed; top:0; width:100%; z-index:100; background:var(--paper);
+      border-bottom:1px solid transparent; transition:border-color 0.4s,background 0.4s; }
+    nav.scrolled { border-bottom-color:var(--rule); background:rgba(248,247,244,0.96); backdrop-filter:blur(16px); }
+    .nav-inner { max-width:1140px; margin:0 auto; padding:1.2rem 2.5rem;
+      display:flex; justify-content:space-between; align-items:center; }
+    .logo { font-family:var(--serif); font-size:1.5rem; font-weight:500; color:var(--ink); text-decoration:none; }
+    .nav-links { display:flex; gap:2.4rem; }
+    .nav-links a { font-size:0.72rem; font-weight:500; text-decoration:none; color:var(--muted);
+      letter-spacing:0.14em; text-transform:uppercase; transition:color 0.3s; position:relative; }
+    .nav-links a:hover { color:var(--ink); }
+    .nav-links a::after { content:''; position:absolute; bottom:-3px; left:0;
+      width:0; height:1px; background:var(--gold); transition:width 0.35s; }
+    .nav-links a:hover::after { width:100%; }
+    @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+    .hero { padding:9rem 2.5rem 4rem; max-width:1140px; margin:0 auto;
+      opacity:0; transform:translateY(18px); animation:fadeUp 0.8s 0.1s forwards ease-out; }
+    .eyebrow { font-size:0.68rem; font-weight:500; letter-spacing:0.18em;
+      text-transform:uppercase; color:var(--gold); margin-bottom:1rem;
+      display:flex; align-items:center; gap:0.8rem; }
+    .eyebrow::before { content:''; display:block; width:2rem; height:1px; background:var(--gold); }
+    .hero h1 { font-family:var(--serif); font-size:clamp(2.4rem,5vw,3.8rem);
+      font-weight:500; line-height:1.12; margin-bottom:1rem; }
+    .hero-sub { font-size:0.78rem; color:var(--muted); letter-spacing:0.06em;
+      display:flex; align-items:center; gap:1.2rem; flex-wrap:wrap; }
+    .dot { display:inline-block; width:3px; height:3px; border-radius:50%; background:var(--rule); }
+    .content { max-width:1140px; margin:0 auto; padding:0 2.5rem 6rem; }
+    .section-rule { display:flex; align-items:center; gap:1rem; margin-bottom:2rem; margin-top:3.5rem;
+      opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.4s forwards; }
+    .section-rule h2 { font-size:0.68rem; font-weight:500; letter-spacing:0.18em;
+      text-transform:uppercase; color:var(--muted); white-space:nowrap; }
+    .section-rule::after { content:''; flex:1; height:1px; background:var(--rule); }
+    .investment-summary { background:var(--accent); color:#fff; border-radius:2px;
+      padding:2.5rem 3rem; margin-bottom:3.5rem;
+      opacity:0; transform:translateY(14px); animation:fadeUp 0.7s 0.3s forwards; }
+    .is-label { font-size:0.65rem; font-weight:500; letter-spacing:0.2em;
+      text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:0.9rem; }
+    .investment-summary p { font-family:var(--serif); font-size:1.22rem; line-height:1.7; color:rgba(255,255,255,0.92); }
+    .investment-summary strong { color:#fff; font-weight:600; }
+    .val-table-wrap { overflow-x:auto; margin-bottom:1rem;
+      opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.5s forwards; }
+    table.val-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    table.val-table thead tr { border-bottom:2px solid var(--accent); }
+    table.val-table thead th { font-size:0.63rem; font-weight:500; letter-spacing:0.14em;
+      text-transform:uppercase; color:var(--muted); padding:0 1rem 0.85rem; text-align:right; }
+    table.val-table thead th:first-child { text-align:left; padding-left:0; }
+    table.val-table tbody tr { border-bottom:1px solid var(--rule); transition:background 0.2s; }
+    table.val-table tbody tr:hover { background:var(--gold-glow); }
+    table.val-table tbody td { padding:1rem; text-align:right; font-family:var(--mono); font-size:0.8rem; }
+    table.val-table tbody td:first-child { text-align:left; font-family:var(--sans); font-weight:500; font-size:0.83rem; padding-left:0; }
+    .ticker { font-size:0.65rem; color:var(--dim); font-family:var(--mono); margin-left:0.4rem; }
+    .upside { color:var(--green); font-weight:600; }
+    .target { font-weight:600; color:var(--accent); }
+    .preferred { color:var(--green); font-weight:700; }
+    table.val-table tfoot td { font-size:0.68rem; color:var(--dim); padding:0.8rem 1rem 0;
+      font-style:italic; text-align:left; padding-left:0; border-top:1px solid var(--rule); font-family:var(--sans); }
+    .metrics-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+      background:var(--rule); border:1px solid var(--rule); border-radius:2px; margin:2.5rem 0;
+      opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.55s forwards; }
+    .metric-cell { background:var(--paper); padding:1.4rem 1.6rem; }
+    .metric-label { font-size:0.63rem; font-weight:500; letter-spacing:0.14em;
+      text-transform:uppercase; color:var(--muted); margin-bottom:0.5rem; }
+    .metric-value { font-family:var(--serif); font-size:1.9rem; font-weight:500; color:var(--accent); line-height:1; }
+    .metric-sub { font-size:0.7rem; color:var(--dim); margin-top:0.3rem; }
+    .body-section { opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.6s forwards; }
+    .body-section p { font-size:0.9rem; line-height:1.85; margin-bottom:1.4rem; max-width:740px; }
+    .body-section strong { font-weight:600; color:var(--accent); }
+    .model-section { opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.65s forwards; }
+    .model-intro { font-size:0.88rem; color:var(--ink); line-height:1.8; max-width:720px; margin-bottom:2rem; }
+    .model-intro strong { color:var(--accent); font-weight:600; }
+    .model-grid { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-bottom:2.5rem; }
+    .model-card { background:var(--cream); border:1px solid var(--rule); border-radius:2px; padding:1.8rem; }
+    .model-card h3 { font-size:0.65rem; font-weight:600; letter-spacing:0.16em;
+      text-transform:uppercase; color:var(--gold); margin-bottom:1.2rem; }
+    .rate-path-table { width:100%; border-collapse:collapse; font-size:0.78rem; }
+    .rate-path-table th { font-size:0.6rem; font-weight:500; letter-spacing:0.1em;
+      text-transform:uppercase; color:var(--muted); padding:0 0.5rem 0.6rem; text-align:right; }
+    .rate-path-table th:first-child { text-align:left; padding-left:0; }
+    .rate-path-table td { padding:0.45rem 0.5rem; text-align:right;
+      font-family:var(--mono); font-size:0.74rem; border-bottom:1px solid var(--rule); }
+    .rate-path-table td:first-child { text-align:left; padding-left:0; color:var(--muted); }
+    .rate-path-table tr.implemented td { color:var(--muted); }
+    .rate-path-table tr.highlight td { color:var(--accent); font-weight:500; }
+    .rate-path-table tr.forecast td { color:var(--dim); font-style:italic; }
+    .pos { color:var(--green); } .neg { color:var(--red); }
+    .beta-display { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1.4rem; }
+    .beta-box { background:var(--paper); border:1px solid var(--rule); border-radius:2px; padding:1.2rem; text-align:center; }
+    .beta-box .beta-val { font-family:var(--serif); font-size:2.2rem; font-weight:500; color:var(--accent); line-height:1; margin-bottom:0.3rem; }
+    .beta-box .beta-label { font-size:0.63rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+    .beta-note { font-size:0.76rem; color:var(--muted); line-height:1.6; border-left:2px solid var(--gold); padding-left:0.9rem; }
+    .nim-flow { display:flex; align-items:center; gap:0; margin:1.2rem 0; flex-wrap:wrap; }
+    .flow-box { background:var(--paper); border:1px solid var(--rule); border-radius:2px; padding:0.7rem 0.9rem; text-align:center; }
+    .flow-box .val { font-family:var(--mono); font-size:0.9rem; font-weight:500; color:var(--accent); }
+    .flow-box .lbl { font-size:0.6rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:0.2rem; }
+    .flow-arrow { font-size:0.9rem; color:var(--rule); padding:0 0.4rem; }
+    .flow-equals { font-size:1.1rem; color:var(--gold); padding:0 0.4rem; font-weight:300; }
+    .flow-result { background:var(--gold-dim); border:1px solid var(--rule-gold); }
+    .flow-result .val { color:var(--green); }
+    .rim-card { background:var(--cream); border:1px solid var(--rule); border-radius:2px; padding:1.8rem; margin-bottom:2rem; }
+    .rim-card h3 { font-size:0.65rem; font-weight:600; letter-spacing:0.16em; text-transform:uppercase; color:var(--gold); margin-bottom:0.6rem; }
+    .rim-formula { background:var(--accent); color:#fff; border-radius:2px;
+      padding:1.2rem 1.6rem; font-family:var(--mono); font-size:0.82rem; line-height:1.8; margin:1.2rem 0; }
+    .rim-formula .comment { color:rgba(255,255,255,0.45); }
+    .rim-formula .kw { color:#a8d8a8; }
+    .rim-assumptions { display:grid; grid-template-columns:repeat(3,1fr); gap:1px;
+      background:var(--rule); border:1px solid var(--rule); border-radius:2px; margin:1.5rem 0; }
+    .rim-asm-cell { background:var(--paper); padding:1rem 1.2rem; }
+    .rim-asm-label { font-size:0.6rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:0.35rem; }
+    .rim-asm-val { font-family:var(--mono); font-size:0.88rem; font-weight:500; color:var(--accent); }
+    .rim-asm-note { font-size:0.65rem; color:var(--dim); margin-top:0.2rem; }
+    .roe-chart-label { font-size:0.63rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:0.8rem; }
+    .roe-legend { display:flex; gap:1rem; margin-top:0.8rem; flex-wrap:wrap; }
+    .roe-legend-item { display:flex; align-items:center; gap:0.4rem; font-size:0.63rem; color:var(--muted); }
+    .roe-legend-dot { width:8px; height:8px; border-radius:50%; }
+    .output-table { width:100%; border-collapse:collapse; font-size:0.8rem; margin-top:1rem; }
+    .output-table th { font-size:0.6rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase;
+      color:var(--muted); padding:0 0.8rem 0.7rem; text-align:right; border-bottom:1px solid var(--rule); }
+    .output-table th:first-child { text-align:left; padding-left:0; }
+    .output-table td { padding:0.7rem 0.8rem; text-align:right; font-family:var(--mono);
+      font-size:0.76rem; border-bottom:1px solid var(--rule); }
+    .output-table td:first-child { text-align:left; font-family:var(--sans); font-size:0.78rem; padding-left:0; }
+    .output-table .intrinsic { color:var(--green); font-weight:600; }
+    .output-table .up { color:var(--green); font-weight:600; }
+    .risks-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-top:1.5rem;
+      opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.7s forwards; }
+    .risk-card { background:var(--cream); border:1px solid var(--rule); border-radius:2px; padding:1.4rem 1.6rem; }
+    .risk-card h4 { font-size:0.7rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.6rem; }
+    .risk-card p { font-size:0.82rem; line-height:1.65; }
+    .methodology { border-left:2px solid var(--gold); padding-left:1.6rem; margin-top:3rem;
+      opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.8s forwards; }
+    .methodology p { font-size:0.78rem; color:var(--muted); line-height:1.75; margin-bottom:0.7rem; }
+    footer { border-top:1px solid var(--rule); padding:2.5rem; max-width:1140px; margin:0 auto;
+      display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; }
+    footer p { font-size:0.72rem; color:var(--dim); }
+    footer a { color:var(--gold); text-decoration:none; }
+
+    /* ── SPREADSHEET-STYLE RIM TABLES ── */
+    .xl-models { display:flex; flex-direction:column; gap:2rem; }
+    .xl-block { border:1px solid var(--rule); border-radius:2px; overflow:hidden; }
+    .xl-header { background:var(--accent); color:#fff; font-size:0.78rem; font-weight:600;
+      padding:0.7rem 1rem; letter-spacing:0.04em; }
+    .xl-header-nn { background:var(--green); }
+    .xl-inner { display:grid; grid-template-columns:160px 1fr; }
+    .xl-assumptions { background:var(--cream); border-right:1px solid var(--rule);
+      padding:0.6rem 0.8rem; font-size:0.72rem; }
+    .xl-asm-row { display:flex; justify-content:space-between; gap:0.5rem;
+      padding:0.18rem 0; border-bottom:1px solid rgba(212,208,200,0.4); }
+    .xl-asm-row span:first-child { color:var(--muted); }
+    .xl-asm-row span:last-child { font-family:var(--mono); font-weight:500; color:var(--ink); }
+    .xl-asm-sep { height:0.5rem; }
+    .xl-table-wrap { overflow-x:auto; }
+    table.xl-table { width:100%; border-collapse:collapse; font-size:0.72rem; }
+    table.xl-table thead tr { background:var(--accent); }
+    table.xl-table thead th { color:rgba(255,255,255,0.85); font-size:0.63rem; font-weight:500;
+      padding:0.45rem 0.6rem; text-align:right; white-space:nowrap; letter-spacing:0.04em; }
+    table.xl-table thead th:first-child { text-align:left; padding-left:0.8rem; }
+    table.xl-table tbody tr { border-bottom:1px solid rgba(212,208,200,0.5); }
+    table.xl-table tbody tr:hover { background:var(--gold-glow); }
+    table.xl-table tbody td { padding:0.3rem 0.6rem; text-align:right;
+      font-family:var(--mono); font-size:0.71rem; color:var(--ink); white-space:nowrap; }
+    table.xl-table tbody td:first-child { text-align:left; font-family:var(--sans);
+      font-size:0.72rem; padding-left:0.8rem; color:var(--muted); }
+    table.xl-table tr.xl-spacer td { padding:0.15rem; background:var(--cream); }
+    .term-col { background:rgba(158,138,106,0.08) !important; color:var(--ink) !important; }
+    .xl-output { border-top:2px solid var(--accent); padding:0.5rem 0.6rem 0.5rem 0.8rem;
+      background:var(--paper); }
+    .xl-out-row { display:flex; justify-content:space-between; padding:0.18rem 0;
+      font-size:0.72rem; border-bottom:1px solid rgba(212,208,200,0.3); }
+    .xl-out-row span:first-child { color:var(--muted); }
+    .xl-out-row span:last-child { font-family:var(--mono); font-weight:500; color:var(--ink); }
+    .xl-intrinsic { background:var(--gold-dim) !important; }
+    .xl-intrinsic span:last-child { font-weight:700 !important; color:var(--accent) !important; font-size:0.82rem !important; }
+    .xl-intrinsic-nn span:last-child { color:var(--green) !important; }
+    .xl-upside span:last-child { color:var(--green) !important; font-weight:600 !important; }
+    .xl-upside-nn span:last-child { color:var(--green) !important; font-weight:700 !important; }
+    .xl-output-nn .xl-intrinsic { background:rgba(26,122,74,0.08) !important; }
+    @media(max-width:900px) { .xl-inner { grid-template-columns:140px 1fr; } }
+    @media(max-width:640px) { .xl-inner { grid-template-columns:1fr; }
+      .xl-assumptions { border-right:none; border-bottom:1px solid var(--rule); } }
+
+    @media(max-width:900px) { .model-grid{grid-template-columns:1fr;} .metrics-strip{grid-template-columns:1fr 1fr;} .risks-grid{grid-template-columns:1fr;} .rim-assumptions{grid-template-columns:1fr 1fr;} }
+    @media(max-width:640px) { .hero{padding:8rem 1.5rem 3rem;} .content{padding:0 1.5rem 4rem;} .nav-inner{padding:1rem 1.5rem;} .beta-display{grid-template-columns:1fr;} .metrics-strip{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<div class="scroll-progress" id="sp"></div>
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="index.html" class="logo">A. Halvorsrød</a>
+    <div class="nav-links"><a href="index.html">Home</a><a href="research.html">Research</a></div>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Equity Research · SpareBank 1 Alliance</div>
+  <h1>Norwegian Regional Banks:<br>Rate Sensitivity &amp; Valuation</h1>
+  <div class="hero-sub">
+    <span>Alexander Moe Halvorsrød</span><span class="dot"></span>
+    <span>June 2026</span><span class="dot"></span>
+    <span>SB1NO · MING · SPOLS · NONG</span>
+  </div>
+</div>
+
+<div class="content">
+
+<div class="investment-summary">
+  <div class="is-label">Investment Summary</div>
+  <p>All four listed SpareBank 1 alliance banks screen as <strong>Buy</strong> on a two-stage Residual Income Model. The core question driving this analysis is how Norges Bank's rate cycle transmits to bank earnings and equity value — and how much shareholders actually capture after deposit repricing. With a deposit beta of 75% on hikes, only 12.5bps of the cumulative +50bps NIM effect reaches the bottom line. Real, but modest and temporary. <strong>SpareBank 1 Nord-Norge is the preferred exposure</strong>: highest ROE in the group (16.7% five-year average), structural NIM premium from limited regional competition, and the widest gap between current price and intrinsic value.</p>
+</div>
+
+<div class="section-rule"><h2>Valuation Summary</h2></div>
+
+<div class="val-table-wrap">
+  <table class="val-table">
+    <thead><tr><th>Bank</th><th>Current price</th><th>Target price</th><th>Upside</th><th>Implied P/B</th><th>Current P/B</th><th>Rating</th></tr></thead>
+    <tbody>
+      <tr><td>SpareBank 1 Sør-Norge<span class="ticker">SB1NO</span></td><td>NOK 198.40</td><td class="target">NOK 231</td><td class="upside">+16%</td><td>1.68x</td><td>1.34x</td><td>Buy</td></tr>
+      <tr><td>SpareBank 1 SMN<span class="ticker">MING</span></td><td>NOK 206.05</td><td class="target">NOK 228</td><td class="upside">+11%</td><td>1.71x</td><td>1.49x</td><td>Buy</td></tr>
+      <tr><td>SpareBank 1 Østlandet<span class="ticker">SPOLS</span></td><td>NOK 205.85</td><td class="target">NOK 226</td><td class="upside">+10%</td><td>1.63x</td><td>1.49x</td><td>Buy</td></tr>
+      <tr><td>SpareBank 1 Nord-Norge<span class="ticker">NONG</span></td><td>NOK 151.90</td><td class="target preferred">NOK 190</td><td class="upside preferred">+25%</td><td>2.12x</td><td>1.72x</td><td><strong class="preferred">Buy ★</strong></td></tr>
+    </tbody>
+    <tfoot><tr><td colspan="7">Two-stage RIM · g = 0 · CoE 8.23% (Rf 4.42% + β 0.9 × ERP 4.23%) · Prices as of May 2026</td></tr></tfoot>
+  </table>
+</div>
+
+<div class="metrics-strip">
+  <div class="metric-cell"><div class="metric-label">Alliance NII uplift — 2026</div><div class="metric-value">~NOK 670m</div><div class="metric-sub">Annual, +50bps hike, 75% deposit beta</div></div>
+  <div class="metric-cell"><div class="metric-label">Net NIM effect</div><div class="metric-value">12.5bps</div><div class="metric-sub">50bps × (1 − 0.75 deposit beta)</div></div>
+  <div class="metric-cell"><div class="metric-label">Nord-Norge 5Y avg ROE</div><div class="metric-value">16.7%</div><div class="metric-sub">vs. alliance average 13.8%</div></div>
+  <div class="metric-cell"><div class="metric-label">Rate path source</div><div class="metric-value">NB PPR</div><div class="metric-sub">Norges Bank PPR 1/2026, March 2026</div></div>
+</div>
+
+<div class="section-rule"><h2>The Model</h2></div>
+
+<div class="model-section">
+  <p class="model-intro">Rather than asserting a target price, the purpose here is to show the reasoning. The model has two components: a <strong>Rate-ROE engine</strong> that translates Norges Bank's official rate path into bank-level ROE estimates via deposit beta, and a <strong>two-stage Residual Income Model</strong> that converts those ROE estimates into intrinsic equity value. Each assumption is explicit.</p>
+
+  <div class="model-grid">
+    <div class="model-card">
+      <h3>Step 1 — Norges Bank Rate Path (PPR 1/2026)</h3>
+      <table class="rate-path-table">
+        <thead><tr><th>Period</th><th>Rate</th><th>Change</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr class="implemented"><td>Q1 2025</td><td>4.50%</td><td>—</td><td>Actual</td></tr>
+          <tr class="implemented"><td>Q4 2025</td><td>4.00%</td><td class="neg">−50bps</td><td>Actual</td></tr>
+          <tr class="implemented"><td>Q1 2026</td><td>4.00%</td><td>—</td><td>Actual</td></tr>
+          <tr class="highlight"><td>May 2026</td><td>4.25%</td><td class="pos">+25bps</td><td>Implemented</td></tr>
+          <tr class="highlight"><td>Jun 2026</td><td>4.50%</td><td class="pos">+25bps</td><td>PPR path</td></tr>
+          <tr class="forecast"><td>Q4 2026</td><td>4.35%</td><td class="neg">−15bps</td><td>Forecast</td></tr>
+          <tr class="forecast"><td>Q4 2027</td><td>3.98%</td><td class="neg">−37bps</td><td>Forecast</td></tr>
+          <tr class="forecast"><td>Q4 2028</td><td>3.54%</td><td class="neg">−44bps</td><td>Forecast</td></tr>
+          <tr class="forecast"><td>Q4 2029</td><td>3.40%</td><td class="neg">−14bps</td><td>Forecast</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:0.68rem;color:var(--dim);margin-top:0.8rem;">Source: Norges Bank Pengepolitisk rapport 1/2026</p>
+    </div>
+
+    <div class="model-card">
+      <h3>Step 2 — Deposit Beta &amp; NIM Transmission</h3>
+      <div class="beta-display">
+        <div class="beta-box"><div class="beta-val">75%</div><div class="beta-label">Deposit beta — hike</div></div>
+        <div class="beta-box"><div class="beta-val">90%</div><div class="beta-label">Deposit beta — cut</div></div>
+      </div>
+      <p class="beta-note">Empirically, Norwegian banks transmitted 88–95% of the 2022–23 hiking cycle to depositors. We use 75% for the current, milder cycle — acknowledging this involves judgment. Historical data provides the anchor; the adjustment reflects a less competitive deposit environment at current rate levels. The asymmetry (cuts at 90%) is a modest assumption that banks are marginally slower to pass hike benefits than to reduce rates on cuts.</p>
+      <div style="margin-top:1.4rem;">
+        <div style="font-size:0.63rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.7rem;">NIM uplift — +50bps cumulative hike</div>
+        <div class="nim-flow">
+          <div class="flow-box"><div class="val">+50bps</div><div class="lbl">Hike</div></div>
+          <div class="flow-arrow">×</div>
+          <div class="flow-box"><div class="val">(1−75%)</div><div class="lbl">Net pass-through</div></div>
+          <div class="flow-equals">=</div>
+          <div class="flow-box flow-result"><div class="val">+12.5bps</div><div class="lbl">Net NIM effect</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 REPLACE THIS SECTION IN sb1-alliance.html -->
+    <div class="rim-card">
+      <h3>Step 3 — Two-Stage Residual Income Model</h3>
+      <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:1.8rem;">Intrinsic equity value = current book value + PV of future residual income. Residual income = earnings above cost of equity. If ROE &gt; CoE, the bank creates value and should trade above book. Stage 1: explicit 2026–2030 ROE forecasts from the rate engine above. Stage 2: terminal perpetuity, g = 0.</p>
+
+      <div class="xl-models">
+        <!-- SR-Bank -->
+        <div class="xl-block">
+          <div class="xl-header">Sparebank 1 SR-Bank (SB1NO)</div>
+          <div class="xl-inner">
+            <div class="xl-assumptions">
+              <div class="xl-asm-row"><span>Payout ratio</span><span>67.32%</span></div>
+              <div class="xl-asm-row"><span>Beta</span><span>0.9</span></div>
+              <div class="xl-asm-row"><span>rf</span><span>4.42%</span></div>
+              <div class="xl-asm-row"><span>ERP</span><span>4.23%</span></div>
+              <div class="xl-asm-row"><span>Cost of equity</span><span>8.23%</span></div>
+              <div class="xl-asm-sep"></div>
+              <div class="xl-asm-row"><span>g</span><span>0%</span></div>
+              <div class="xl-asm-row"><span>CET1 req + 50b</span><span>17.22%</span></div>
+              <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
+            </div>
+            <div class="xl-table-wrap">
+              <table class="xl-table">
+                <thead>
+                  <tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Beginning common equity</td><td></td><td>51,496</td><td>53,672</td><td>55,924</td><td>58,276</td><td>60,741</td><td class="term-col">63,322</td></tr>
+                  <tr><td>Return on equity</td><td>12.80%</td><td>12.93%</td><td>12.84%</td><td>12.87%</td><td>12.95%</td><td>13.00%</td><td class="term-col">13.00%</td></tr>
+                  <tr><td>Net income to shareholders</td><td></td><td>6,659</td><td>6,892</td><td>7,200</td><td>7,544</td><td>7,896</td><td class="term-col">8,232</td></tr>
+                  <tr><td>Dividends</td><td></td><td>4,483</td><td>4,640</td><td>4,847</td><td>5,079</td><td>5,316</td><td class="term-col">5,542</td></tr>
+                  <tr><td>Ending common equity</td><td>51,496</td><td>53,672</td><td>55,924</td><td>58,276</td><td>60,741</td><td>63,322</td><td class="term-col">66,012</td></tr>
+                  <tr class="xl-spacer"><td colspan="8"></td></tr>
+                  <tr><td>Equity charge</td><td></td><td>4,237</td><td>4,416</td><td>4,601</td><td>4,794</td><td>4,997</td><td class="term-col">5,209</td></tr>
+                  <tr><td>Residual income</td><td></td><td>2,422</td><td>2,477</td><td>2,599</td><td>2,750</td><td>2,899</td><td class="term-col">3,022</td></tr>
+                  <tr><td>Terminal value</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="term-col">36,737</td></tr>
+                  <tr><td>Discount factor</td><td></td><td>0.92</td><td>0.85</td><td>0.79</td><td>0.73</td><td>0.67</td><td class="term-col">0.67</td></tr>
+                  <tr><td>PV residual income</td><td></td><td>2,238</td><td>2,114</td><td>2,050</td><td>2,004</td><td>1,953</td><td class="term-col">24,741</td></tr>
+                </tbody>
+              </table>
+              <div class="xl-output">
+                <div class="xl-out-row"><span>FY2025 Common equity</span><span>51,496</span></div>
+                <div class="xl-out-row"><span>PV of residual income</span><span>35,100</span></div>
+                <div class="xl-out-row"><span>Intrinsic equity value</span><span>86,596</span></div>
+                <div class="xl-out-row xl-intrinsic"><span>Intrinsic value per share</span><span>230.62</span></div>
+                <div class="xl-out-row"><span>Current share price</span><span>198.40</span></div>
+                <div class="xl-out-row xl-upside"><span>Upside / (downside)</span><span>+16.24%</span></div>
+                <div class="xl-out-row"><span>Implied PB</span><span>1.68x</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMN -->
+        <div class="xl-block">
+          <div class="xl-header">Sparebank 1 SMN (MING)</div>
+          <div class="xl-inner">
+            <div class="xl-assumptions">
+              <div class="xl-asm-row"><span>Payout ratio</span><span>70.75%</span></div>
+              <div class="xl-asm-row"><span>Beta</span><span>0.9</span></div>
+              <div class="xl-asm-row"><span>rf</span><span>4.42%</span></div>
+              <div class="xl-asm-row"><span>ERP</span><span>4.23%</span></div>
+              <div class="xl-asm-row"><span>Cost of equity</span><span>8.23%</span></div>
+              <div class="xl-asm-sep"></div>
+              <div class="xl-asm-row"><span>g</span><span>0%</span></div>
+              <div class="xl-asm-row"><span>Ownership</span><span>66.8%</span></div>
+              <div class="xl-asm-row"><span>CET1 req + 50b</span><span>16.00%</span></div>
+              <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
+            </div>
+            <div class="xl-table-wrap">
+              <table class="xl-table">
+                <thead>
+                  <tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Beginning common equity</td><td></td><td>28,713</td><td>29,934</td><td>31,163</td><td>32,409</td><td>33,674</td><td class="term-col">34,954</td></tr>
+                  <tr><td>Return on equity</td><td>14.80%</td><td>14.54%</td><td>14.04%</td><td>13.67%</td><td>13.35%</td><td>13.00%</td><td class="term-col">13.00%</td></tr>
+                  <tr><td>Net income to shareholders</td><td></td><td>4,175</td><td>4,203</td><td>4,261</td><td>4,325</td><td>4,378</td><td class="term-col">4,544</td></tr>
+                  <tr><td>Dividends</td><td></td><td>2,954</td><td>2,974</td><td>3,015</td><td>3,060</td><td>3,097</td><td class="term-col">3,215</td></tr>
+                  <tr><td>Ending common equity</td><td>28,713</td><td>29,934</td><td>31,163</td><td>32,409</td><td>33,674</td><td>34,954</td><td class="term-col">36,283</td></tr>
+                  <tr class="xl-spacer"><td colspan="8"></td></tr>
+                  <tr><td>Equity charge</td><td></td><td>2,362</td><td>2,463</td><td>2,564</td><td>2,666</td><td>2,770</td><td class="term-col">2,876</td></tr>
+                  <tr><td>Residual income</td><td></td><td>1,812</td><td>1,740</td><td>1,697</td><td>1,659</td><td>1,607</td><td class="term-col">1,668</td></tr>
+                  <tr><td>Terminal value</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="term-col">20,279</td></tr>
+                  <tr><td>Discount factor</td><td></td><td>0.92</td><td>0.85</td><td>0.79</td><td>0.73</td><td>0.67</td><td class="term-col">0.67</td></tr>
+                  <tr><td>PV residual income</td><td></td><td>1,675</td><td>1,485</td><td>1,339</td><td>1,209</td><td>1,082</td><td class="term-col">13,658</td></tr>
+                </tbody>
+              </table>
+              <div class="xl-output">
+                <div class="xl-out-row"><span>FY2025 Common equity</span><span>28,713</span></div>
+                <div class="xl-out-row"><span>PV of residual income</span><span>20,448</span></div>
+                <div class="xl-out-row"><span>Intrinsic equity value</span><span>49,161</span></div>
+                <div class="xl-out-row xl-intrinsic"><span>Intrinsic value per share</span><span>227.75</span></div>
+                <div class="xl-out-row"><span>Current share price</span><span>206.05</span></div>
+                <div class="xl-out-row xl-upside"><span>Upside / (downside)</span><span>+10.53%</span></div>
+                <div class="xl-out-row"><span>Implied PB</span><span>1.71x</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Østlandet -->
+        <div class="xl-block">
+          <div class="xl-header">Sparebank 1 Østlandet (SPOL)</div>
+          <div class="xl-inner">
+            <div class="xl-assumptions">
+              <div class="xl-asm-row"><span>Payout ratio</span><span>69.82%</span></div>
+              <div class="xl-asm-row"><span>Beta</span><span>0.9</span></div>
+              <div class="xl-asm-row"><span>rf</span><span>4.42%</span></div>
+              <div class="xl-asm-row"><span>ERP</span><span>4.23%</span></div>
+              <div class="xl-asm-row"><span>Cost of equity</span><span>8.23%</span></div>
+              <div class="xl-asm-sep"></div>
+              <div class="xl-asm-row"><span>g</span><span>0%</span></div>
+              <div class="xl-asm-row"><span>Ownership</span><span>73.2%</span></div>
+              <div class="xl-asm-row"><span>CET1 req + 50b</span><span>15.40%</span></div>
+              <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
+            </div>
+            <div class="xl-table-wrap">
+              <table class="xl-table">
+                <thead>
+                  <tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Beginning common equity</td><td></td><td>25,672</td><td>26,735</td><td>27,808</td><td>28,900</td><td>30,013</td><td class="term-col">31,146</td></tr>
+                  <tr><td>Return on equity</td><td>13.90%</td><td>13.72%</td><td>13.30%</td><td>13.01%</td><td>12.76%</td><td>12.50%</td><td class="term-col">12.50%</td></tr>
+                  <tr><td>Net income to shareholders</td><td></td><td>3,523</td><td>3,555</td><td>3,618</td><td>3,689</td><td>3,752</td><td class="term-col">3,893</td></tr>
+                  <tr><td>Dividends</td><td></td><td>2,460</td><td>2,482</td><td>2,526</td><td>2,575</td><td>2,619</td><td class="term-col">2,718</td></tr>
+                  <tr><td>Ending common equity</td><td>25,672</td><td>26,735</td><td>27,808</td><td>28,900</td><td>30,013</td><td>31,146</td><td class="term-col">32,321</td></tr>
+                  <tr class="xl-spacer"><td colspan="8"></td></tr>
+                  <tr><td>Equity charge</td><td></td><td>2,112</td><td>2,200</td><td>2,288</td><td>2,378</td><td>2,469</td><td class="term-col">2,562</td></tr>
+                  <tr><td>Residual income</td><td></td><td>1,411</td><td>1,355</td><td>1,330</td><td>1,311</td><td>1,282</td><td class="term-col">1,331</td></tr>
+                  <tr><td>Terminal value</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="term-col">16,177</td></tr>
+                  <tr><td>Discount factor</td><td></td><td>0.92</td><td>0.85</td><td>0.79</td><td>0.73</td><td>0.67</td><td class="term-col">0.67</td></tr>
+                  <tr><td>PV residual income</td><td></td><td>1,304</td><td>1,157</td><td>1,049</td><td>956</td><td>864</td><td class="term-col">10,895</td></tr>
+                </tbody>
+              </table>
+              <div class="xl-output">
+                <div class="xl-out-row"><span>FY2025 Common equity</span><span>25,672</span></div>
+                <div class="xl-out-row"><span>PV of residual income</span><span>16,224</span></div>
+                <div class="xl-out-row"><span>Intrinsic equity value</span><span>41,896</span></div>
+                <div class="xl-out-row xl-intrinsic"><span>Intrinsic value per share</span><span>225.73</span></div>
+                <div class="xl-out-row"><span>Current share price</span><span>205.85</span></div>
+                <div class="xl-out-row xl-upside"><span>Upside / (downside)</span><span>+9.66%</span></div>
+                <div class="xl-out-row"><span>Implied PB</span><span>1.63x</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nord-Norge -->
+        <div class="xl-block">
+          <div class="xl-header xl-header-nn">Sparebank 1 Nord-Norge (NONG) ★</div>
+          <div class="xl-inner">
+            <div class="xl-assumptions">
+              <div class="xl-asm-row"><span>Payout ratio</span><span>55.59%</span></div>
+              <div class="xl-asm-row"><span>Beta</span><span>0.8</span></div>
+              <div class="xl-asm-row"><span>rf</span><span>4.42%</span></div>
+              <div class="xl-asm-row"><span>ERP</span><span>4.23%</span></div>
+              <div class="xl-asm-row"><span>Cost of equity</span><span>7.80%</span></div>
+              <div class="xl-asm-sep"></div>
+              <div class="xl-asm-row"><span>g</span><span>0%</span></div>
+              <div class="xl-asm-row"><span>Ownership</span><span>46.4%</span></div>
+              <div class="xl-asm-row"><span>CET1 req + 50b</span><span>16.10%</span></div>
+              <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
+            </div>
+            <div class="xl-table-wrap">
+              <table class="xl-table">
+                <thead>
+                  <tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>Beginning common equity</td><td></td><td>19,359</td><td>20,853</td><td>22,373</td><td>23,922</td><td>25,495</td><td class="term-col">27,080</td></tr>
+                  <tr><td>Return on equity</td><td>18.10%</td><td>17.38%</td><td>16.42%</td><td>15.59%</td><td>14.80%</td><td>14.00%</td><td class="term-col">14.00%</td></tr>
+                  <tr><td>Net income to shareholders</td><td></td><td>3,365</td><td>3,423</td><td>3,488</td><td>3,541</td><td>3,569</td><td class="term-col">3,791</td></tr>
+                  <tr><td>Dividends</td><td></td><td>1,870</td><td>1,903</td><td>1,939</td><td>1,969</td><td>1,984</td><td class="term-col">2,108</td></tr>
+                  <tr><td>Ending common equity</td><td>19,359</td><td>20,853</td><td>22,373</td><td>23,922</td><td>25,495</td><td>27,080</td><td class="term-col">28,763</td></tr>
+                  <tr class="xl-spacer"><td colspan="8"></td></tr>
+                  <tr><td>Equity charge</td><td></td><td>1,511</td><td>1,627</td><td>1,746</td><td>1,867</td><td>1,990</td><td class="term-col">2,113</td></tr>
+                  <tr><td>Residual income</td><td></td><td>1,854</td><td>1,796</td><td>1,741</td><td>1,674</td><td>1,580</td><td class="term-col">1,678</td></tr>
+                  <tr><td>Terminal value</td><td></td><td></td><td></td><td></td><td></td><td></td><td class="term-col">21,500</td></tr>
+                  <tr><td>Discount factor</td><td></td><td>0.93</td><td>0.86</td><td>0.80</td><td>0.74</td><td>0.69</td><td class="term-col">0.69</td></tr>
+                  <tr><td>PV residual income</td><td></td><td>1,720</td><td>1,545</td><td>1,390</td><td>1,240</td><td>1,085</td><td class="term-col">14,766</td></tr>
+                </tbody>
+              </table>
+              <div class="xl-output xl-output-nn">
+                <div class="xl-out-row"><span>FY2025 Common equity</span><span>19,359</span></div>
+                <div class="xl-out-row"><span>PV of residual income</span><span>21,746</span></div>
+                <div class="xl-out-row"><span>Intrinsic equity value</span><span>41,105</span></div>
+                <div class="xl-out-row xl-intrinsic xl-intrinsic-nn"><span>Intrinsic value per share</span><span>189.81</span></div>
+                <div class="xl-out-row"><span>Current share price</span><span>151.90</span></div>
+                <div class="xl-out-row xl-upside xl-upside-nn"><span>Upside / (downside)</span><span>+24.95%</span></div>
+                <div class="xl-out-row"><span>Implied PB</span><span>2.12x</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+<div class="section-rule"><h2>The Nord-Norge Case</h2></div>
+
+<div class="body-section">
+  <p>SpareBank 1 Nord-Norge's five-year average ROE of 16.7% — more than 300bps above the group — is not a cyclical accident. It reflects a structural advantage: the bank operates in a geography with limited competition from national players. Fewer alternatives for borrowers and depositors allows Nord-Norge to sustain a NIM roughly 70bps above peers. We set terminal ROE at 14.0% — above peers but conservatively below the five-year average — acknowledging that some premium compression is likely over a decade. Even at 14.0%, the bank creates significant residual income against an 8.23% cost of equity.</p>
+  <p>The discount at which NONG trades (1.72x P/B vs. implied 2.12x) suggests the market is not fully pricing this structural edge. A key risk is regulatory scrutiny: Finanstilsynet has flagged differential pricing in less competitive regional markets. The current market price appears to overprice this risk relative to the bank's demonstrated earnings quality.</p>
+</div>
+
+<div class="section-rule"><h2>Key Risks</h2></div>
+
+<div class="risks-grid">
+  <div class="risk-card"><h4>Deposit beta uncertainty</h4><p>The 75% hike beta involves judgment. Historical beta was 88–95% in 2022–23. If deposit competition proves fiercer, the 12.5bps NIM uplift would shrink further and Stage 1 ROE estimates would fall across all four banks.</p></div>
+  <div class="risk-card"><h4>Credit cycle normalisation</h4><p>NPL ratios remain benign but have risen at Østlandet. A slowdown in the Norwegian housing market or corporate sector could drive provision charges above the normalised levels embedded in ROE assumptions.</p></div>
+  <div class="risk-card"><h4>Regulatory pricing scrutiny</h4><p>Finanstilsynet has flagged differential pricing in less competitive markets. Any cap on retail lending spreads would disproportionately affect Nord-Norge's structural NIM premium and its 14.0% terminal ROE assumption.</p></div>
+  <div class="risk-card"><h4>Capital requirements</h4><p>CET1 constraint is modelled but does not bind under 3% RWA growth. Accelerating credit growth, higher regulatory buffers, or Basel IV implementation could reduce distributable earnings and effective payout ratios.</p></div>
+</div>
+
+<div class="methodology">
+  <p><strong style="color:var(--ink);font-weight:600">Methodology.</strong> Two-stage Residual Income Model. Stage 1 (2026–2030): explicit ROE forecasts driven by a quarterly rate-ROE engine linked to Norges Bank PPR 1/2026, with asymmetric deposit beta (75% hike, 90% cut). Baseline ROE converges linearly from 2025 actual toward terminal ROE. Stage 2: perpetuity terminal value with g = 0. Common equity excludes hybrid capital and minority interests. EKB banks adjusted for eierbrøk (ownership fraction). CoE = Rf 4.42% (Norway 10Y, April 2026, Trading Economics) + β 0.9 × ERP 4.23% (Damodaran, Norway implied, January 2026) = 8.23%. CET1 constraint modelled as MIN(payout × NI, NI − ΔCET1); does not bind under base case. Payout ratios from 2025 annual reports.</p>
+  <p>This analysis is produced independently for research purposes. It does not constitute investment advice.</p>
+</div>
+
+</div>
+
+<footer>
+  <p>© 2026 Alexander Moe Halvorsrød · <a href="research.html">Research</a> · <a href="index.html">Home</a></p>
+  <p>MSc Finance, BI Norwegian Business School</p>
+</footer>
+
+<script>
+  const sp = document.getElementById('sp');
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
+    sp.style.width = pct + '%';
+    nav.classList.toggle('scrolled', window.scrollY > 30);
+  }, { passive: true });
+
+  const roeData = {
+    years: ['2026','2027','2028','2029','2030'],
+    banks: [
+      { color:'#2c3e50', values:[13.1,12.9,12.9,13.0,13.0] },
+      { color:'#9e8a6a', values:[14.7,14.1,13.7,13.4,13.0] },
+      { color:'#6b8f71', values:[13.9,13.5,13.3,13.2,13.0] },
+      { color:'#c0853c', values:[17.3,16.0,15.0,14.0,13.0] },
+    ]
+  };
+  const maxROE = 18;
+  const chart = document.getElementById('roeChart');
+  roeData.years.forEach((yr, yi) => {
+    const group = document.createElement('div');
+    group.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;';
+    const bars = document.createElement('div');
+    bars.style.cssText = 'display:flex;gap:2px;align-items:flex-end;height:72px;width:100%;';
+    roeData.banks.forEach(b => {
+      const bar = document.createElement('div');
+      const h = Math.max(4, (b.values[yi] / maxROE) * 72);
+      bar.style.cssText = `height:${h}px;flex:1;border-radius:1px 1px 0 0;background:${b.color};opacity:0.85;transition:opacity 0.2s;cursor:default;`;
+      bar.title = `${b.values[yi].toFixed(1)}%`;
+      bar.addEventListener('mouseenter', () => bar.style.opacity = '1');
+      bar.addEventListener('mouseleave', () => bar.style.opacity = '0.85');
+      bars.appendChild(bar);
+    });
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:0.58rem;color:#999;font-family:"DM Sans",sans-serif;';
+    lbl.textContent = yr;
+    group.appendChild(bars); group.appendChild(lbl);
+    chart.appendChild(group);
+  });
+</script>
+</body>
+</html>
