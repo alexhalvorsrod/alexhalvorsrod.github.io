@@ -165,6 +165,40 @@
     footer p { font-size:0.72rem; color:var(--dim); }
     footer a { color:var(--gold); text-decoration:none; }
 
+
+    /* ── ROE TRANSMISSION ── */
+    .roe-transmission { opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.6s forwards; }
+    .roe-intro { font-size:0.88rem; color:var(--ink); line-height:1.8; max-width:720px; margin-bottom:2rem; }
+    .roe-intro strong { color:var(--accent); font-weight:600; }
+    .roe-grid { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin-bottom:1.2rem; }
+    .roe-bank-card { border:1px solid var(--rule); border-radius:2px; overflow:hidden; }
+    .roe-bank-preferred { border-color:rgba(26,122,74,0.4); }
+    .roe-bank-header { background:var(--accent); color:#fff; font-size:0.75rem; font-weight:600;
+      padding:0.6rem 1rem; display:flex; align-items:center; justify-content:space-between; }
+    .roe-header-nn { background:var(--green); }
+    .roe-ticker { font-family:var(--mono); font-size:0.62rem; opacity:0.7; font-weight:400; }
+    .roe-chart-area { padding:0.8rem 1rem 0.4rem; background:var(--paper); }
+    .roe-table { overflow-x:auto; }
+    .roe-table table { width:100%; border-collapse:collapse; font-size:0.71rem; }
+    .roe-table thead tr { background:var(--cream); }
+    .roe-table thead th { padding:0.35rem 0.5rem; text-align:right; font-size:0.6rem;
+      font-weight:500; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+    .roe-table thead th:first-child { text-align:left; }
+    .roe-table tbody td { padding:0.3rem 0.5rem; text-align:right; font-family:var(--mono);
+      font-size:0.7rem; border-bottom:1px solid rgba(212,208,200,0.4); }
+    .roe-table tbody td:first-child { text-align:left; font-family:var(--sans); color:var(--muted); }
+    .row-baseline td { background:rgba(44,62,80,0.03); }
+    .row-uplift td { background:rgba(158,138,106,0.06); font-size:0.68rem; }
+    .row-final td { font-weight:600; color:var(--accent); }
+    .pos-uplift { color:var(--green) !important; font-weight:600 !important; }
+    .neg-uplift { color:var(--muted) !important; }
+    .roe-legend-bar { display:flex; gap:1.5rem; margin-top:0.8rem; flex-wrap:wrap; }
+    .roe-leg-item { display:flex; align-items:center; gap:0.5rem; font-size:0.72rem; color:var(--muted); }
+    .roe-leg-swatch { width:12px; height:12px; border-radius:2px; }
+    .roe-swatch-base { background:var(--accent); opacity:0.5; }
+    .roe-swatch-uplift { background:var(--green); }
+    @media(max-width:760px) { .roe-grid { grid-template-columns:1fr; } }
+
     /* ── SPREADSHEET-STYLE RIM TABLES ── */
     .xl-models { display:flex; flex-direction:column; gap:2rem; }
     .xl-block { border:1px solid var(--rule); border-radius:2px; overflow:hidden; }
@@ -306,7 +340,73 @@
     </div>
   </div>
 
-  <!-- STEP 3 REPLACE THIS SECTION IN sb1-alliance.html -->
+  <!-- ROE TRANSMISSION -->
+  <div class="roe-transmission" style="margin-top:2rem;">
+    <p class="roe-intro">The rate-ROE engine translates Norges Bank's quarterly rate path into bank-level ROE via deposit beta. Each year's ROE is the sum of two components: a <strong>structural baseline</strong> converging from 2025 actual toward terminal ROE, and a <strong>rate effect</strong> driven by NIM deviation against the prior quarter. Result: the +50bps hike adds only +0.09–0.10pp in 2026. The ROE story is overwhelmingly structural.</p>
+
+    <div class="roe-grid">
+
+      <div class="roe-bank-card">
+        <div class="roe-bank-header">SR-Bank <span class="roe-ticker">SB1NO</span></div>
+        <div class="roe-chart-area" id="chart-sr"></div>
+        <div class="roe-table"><table>
+          <thead><tr><th></th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th></tr></thead>
+          <tbody>
+            <tr class="row-baseline"><td>Baseline ROE</td><td>12.80%</td><td>12.84%</td><td>12.88%</td><td>12.92%</td><td>12.96%</td><td>13.00%</td></tr>
+            <tr class="row-uplift"><td>Rate effect</td><td>—</td><td class="pos-uplift">+0.09%</td><td class="neg-uplift">−0.04%</td><td class="neg-uplift">−0.05%</td><td class="neg-uplift">−0.02%</td><td>0.00%</td></tr>
+            <tr class="row-final"><td>Final ROE</td><td>12.80%</td><td>12.93%</td><td>12.84%</td><td>12.87%</td><td>12.95%</td><td>13.00%</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="roe-bank-card">
+        <div class="roe-bank-header">SMN <span class="roe-ticker">MING</span></div>
+        <div class="roe-chart-area" id="chart-smn"></div>
+        <div class="roe-table"><table>
+          <thead><tr><th></th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th></tr></thead>
+          <tbody>
+            <tr class="row-baseline"><td>Baseline ROE</td><td>14.80%</td><td>14.44%</td><td>14.08%</td><td>13.72%</td><td>13.36%</td><td>13.00%</td></tr>
+            <tr class="row-uplift"><td>Rate effect</td><td>—</td><td class="pos-uplift">+0.10%</td><td class="neg-uplift">−0.04%</td><td class="neg-uplift">−0.05%</td><td class="neg-uplift">−0.01%</td><td>0.00%</td></tr>
+            <tr class="row-final"><td>Final ROE</td><td>14.80%</td><td>14.54%</td><td>14.04%</td><td>13.67%</td><td>13.35%</td><td>13.00%</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="roe-bank-card">
+        <div class="roe-bank-header">Østlandet <span class="roe-ticker">SPOLS</span></div>
+        <div class="roe-chart-area" id="chart-ost"></div>
+        <div class="roe-table"><table>
+          <thead><tr><th></th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th></tr></thead>
+          <tbody>
+            <tr class="row-baseline"><td>Baseline ROE</td><td>13.90%</td><td>13.62%</td><td>13.34%</td><td>13.06%</td><td>12.78%</td><td>12.50%</td></tr>
+            <tr class="row-uplift"><td>Rate effect</td><td>—</td><td class="pos-uplift">+0.10%</td><td class="neg-uplift">−0.04%</td><td class="neg-uplift">−0.05%</td><td class="neg-uplift">−0.02%</td><td>0.00%</td></tr>
+            <tr class="row-final"><td>Final ROE</td><td>13.90%</td><td>13.72%</td><td>13.30%</td><td>13.01%</td><td>12.76%</td><td>12.50%</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="roe-bank-card roe-bank-preferred">
+        <div class="roe-bank-header roe-header-nn">Nord-Norge ★ <span class="roe-ticker">NONG</span></div>
+        <div class="roe-chart-area" id="chart-nn"></div>
+        <div class="roe-table"><table>
+          <thead><tr><th></th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th></tr></thead>
+          <tbody>
+            <tr class="row-baseline"><td>Baseline ROE</td><td>18.10%</td><td>17.28%</td><td>16.46%</td><td>15.64%</td><td>14.82%</td><td>14.00%</td></tr>
+            <tr class="row-uplift"><td>Rate effect</td><td>—</td><td class="pos-uplift">+0.10%</td><td class="neg-uplift">−0.04%</td><td class="neg-uplift">−0.05%</td><td class="neg-uplift">−0.02%</td><td>0.00%</td></tr>
+            <tr class="row-final"><td>Final ROE</td><td>18.10%</td><td>17.38%</td><td>16.42%</td><td>15.59%</td><td>14.80%</td><td>14.00%</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+    </div>
+
+    <div class="roe-legend-bar">
+      <div class="roe-leg-item"><div class="roe-leg-swatch roe-swatch-base"></div>Baseline ROE (structural)</div>
+      <div class="roe-leg-item"><div class="roe-leg-swatch roe-swatch-uplift"></div>Rate effect (+/−)</div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
     <div class="rim-card">
       <h3>Step 3 — Two-Stage Residual Income Model</h3>
       <p style="font-size:0.82rem;color:var(--muted);line-height:1.65;margin-bottom:1.8rem;">Intrinsic equity value = current book value + PV of future residual income. Residual income = earnings above cost of equity. If ROE &gt; CoE, the bank creates value and should trade above book. Stage 1: explicit 2026–2030 ROE forecasts from the rate engine above. Stage 2: terminal perpetuity, g = 0.</p>
@@ -574,6 +674,57 @@
     group.appendChild(bars); group.appendChild(lbl);
     chart.appendChild(group);
   });
+
+  // ROE stacked bar charts
+  const roeCharts = [
+    { id:'chart-sr',  base:[12.80,12.84,12.88,12.92,12.96,13.00], uplift:[0,0.090,-0.038,-0.046,-0.015,0.000] },
+    { id:'chart-smn', base:[14.80,14.44,14.08,13.72,13.36,13.00], uplift:[0,0.099,-0.040,-0.047,-0.014,0.000] },
+    { id:'chart-ost', base:[13.90,13.62,13.34,13.06,12.78,12.50], uplift:[0,0.103,-0.043,-0.051,-0.016,0.000] },
+    { id:'chart-nn',  base:[18.10,17.28,16.46,15.64,14.82,14.00], uplift:[0,0.100,-0.043,-0.052,-0.017,0.000] },
+  ];
+  const yrs = ['2025','2026','2027','2028','2029','2030'];
+
+  roeCharts.forEach(({id, base, uplift}) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isNN = id === 'chart-nn';
+    const maxV = Math.max(...base) + 0.5;
+    const minV = Math.min(...base) - 1.0;
+    const range = maxV - minV;
+    const H = 60;
+
+    el.style.cssText = 'display:flex;gap:4px;align-items:flex-end;height:'+H+'px;';
+
+    base.forEach((b, i) => {
+      const u = uplift[i];
+      const group = document.createElement('div');
+      group.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:1px;flex:1;position:relative;';
+
+      // Base bar
+      const bH = Math.max(4, ((b - minV) / range) * (H - 8));
+      const bBar = document.createElement('div');
+      bBar.style.cssText = `width:100%;height:${bH}px;border-radius:1px 1px 0 0;
+        background:${isNN ? '#1a7a4a' : '#2c3e50'};opacity:${i===0?'0.4':'0.65'};
+        position:absolute;bottom:0;`;
+      bBar.title = `${yrs[i]}: Baseline ${b.toFixed(2)}%`;
+
+      // Uplift sliver (only visible for non-zero)
+      if (Math.abs(u) > 0.005) {
+        const uH = Math.max(2, Math.abs(u) / range * (H - 8));
+        const uBar = document.createElement('div');
+        const color = u > 0 ? '#1a7a4a' : '#9e8a6a';
+        uBar.style.cssText = `width:100%;height:${uH}px;border-radius:1px 1px 0 0;
+          background:${color};opacity:0.85;position:absolute;
+          bottom:${bH}px;`;
+        uBar.title = `Rate effect: ${u > 0 ? '+' : ''}${u.toFixed(3)}%`;
+        group.appendChild(uBar);
+      }
+
+      group.appendChild(bBar);
+      el.appendChild(group);
+    });
+  });
+
 </script>
 </body>
 </html>
