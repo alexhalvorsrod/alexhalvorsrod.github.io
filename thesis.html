@@ -587,16 +587,20 @@
     // Active subnav link highlight on scroll
     const subnavLinks = document.querySelectorAll('.subnav-link');
     const sections = document.querySelectorAll('.content-block[id]');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          subnavLinks.forEach(a => {
-            a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
-          });
-        }
+
+    function setActive() {
+      let current = '';
+      sections.forEach(section => {
+        const top = section.getBoundingClientRect().top;
+        if (top <= 130) current = section.id;
       });
-    }, { threshold: 0.3, rootMargin: '-80px 0px -55% 0px' });
-    sections.forEach(s => observer.observe(s));
+      subnavLinks.forEach(a => {
+        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+      });
+    }
+
+    window.addEventListener('scroll', setActive, { passive: true });
+    setActive();
   </script>
 </body>
 </html>
