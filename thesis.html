@@ -307,9 +307,9 @@
         <h2>Evidence from <em>US Equities</em></h2>
         <p>Passive investing now accounts for more than 60% of total US fund assets. As index-tracking vehicles mechanically allocate capital based on index membership rather than fundamental value, a growing body of literature questions whether this structural shift impairs the price discovery process that underpins market efficiency.</p>
         <p>This thesis investigates two related but distinct channels through which passive dominance may distort equity markets: valuation inflation among index constituents, and the deterioration of return independence as correlation structures become increasingly driven by mechanical rebalancing rather than firm-specific information.</p>
-        <p>The empirical framework draws on over three decades of CRSP daily data, Compustat valuation ratios, and Morningstar fund flow data — covering 1,257 S&P 500 constituent firms across 8,311 trading days. All estimation is performed in Python using a reproducible, point-in-time pipeline with no look-ahead bias.</p>
+        <p>The empirical framework draws on over three decades of CRSP daily data, Compustat valuation ratios, and Morningstar fund flow data, covering 1,257 S&P 500 constituent firms across 8,311 trading days. All estimation is performed in Python using a reproducible, point-in-time pipeline with no look-ahead bias.</p>
         <div class="note">
-          <p>Theoretical anchors: Grossman & Stiglitz (1980) — the information acquisition paradox — and Asness (2024) — the Less-Efficient Market Hypothesis (LEMH).</p>
+          <p>Theoretical anchors: Grossman & Stiglitz (1980), the information acquisition paradox, and Asness (2024), the Less-Efficient Market Hypothesis (LEMH).</p>
         </div>
       </div>
 
@@ -330,7 +330,7 @@
           <div class="hypothesis-card">
             <div class="hypothesis-tag">H2 — Systematic Fragility</div>
             <h4>Passive investing increases correlation and concentration risk</h4>
-            <p>Mechanical rebalancing increases return co-movement, price synchronicity, and correlation asymmetry — particularly during market downturns. This increases systemic risk across the index and reduces the portfolio diversification benefit for investors.</p>
+            <p>Mechanical rebalancing increases return co-movement, price synchronicity, and correlation asymmetry, particularly during market downturns. This increases systemic risk across the index and reduces the portfolio diversification benefit for investors.</p>
           </div>
         </div>
       </div>
@@ -376,10 +376,10 @@
             <h4>Cointegration and long-run equilibrium</h4>
             <ul>
               <li>Passive share cointegrated with <span class="h-stat">P/B median (p=0.028)</span>, P/E median (p=0.007), and P/E EW (p=0.005)</li>
-              <li>ECM confirms genuine mean reversion — not a spurious trend correlation</li>
+              <li>ECM confirms genuine mean reversion, not a spurious trend correlation</li>
               <li>P/E median reverts at <span class="h-stat">17.9% per month</span>; P/B median at 5.9% per month</li>
               <li>Speed of adjustment has increased substantially post-2010 as passive dominance has grown</li>
-              <li>Granger causality: passive share does not predict valuations at short lags — consistent with the premium shifting from event-driven spikes into chronic structural overpricing</li>
+              <li>Granger causality: passive share does not predict valuations at short lags, consistent with the premium shifting from event-driven spikes into chronic structural overpricing</li>
             </ul>
           </div>
           <div class="h-card supported">
@@ -519,12 +519,12 @@
         <h2>Macroeconomic <em>Controls</em></h2>
         <p>To isolate the effect of passive flows from broader macroeconomic conditions, six external control series are merged into the analysis panel. The key passive flow variable is orthogonalised against interest rates and active flows to address multi-collinearity.</p>
         <div class="controls-grid">
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">10-Year Treasury Yield</div><div class="c-desc">GS10 — monthly, risk-free rate proxy</div></div>
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Fed Funds Rate</div><div class="c-desc">FEDFUNDS — monetary policy stance</div></div>
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">CPI Inflation</div><div class="c-desc">CPIAUCSL — YoY % change, monthly</div></div>
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Real GDP Growth</div><div class="c-desc">A191RL1Q225SBEA — quarterly, interpolated</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">10-Year Treasury Yield</div><div class="c-desc">GS10, monthly, risk-free rate proxy</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Fed Funds Rate</div><div class="c-desc">FEDFUNDS, monetary policy stance</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">CPI Inflation</div><div class="c-desc">CPIAUCSL, YoY % change, monthly</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Real GDP Growth</div><div class="c-desc">A191RL1Q225SBEA, quarterly, interpolated</div></div>
           <div class="control-item"><div class="c-source">CBOE</div><div class="c-name">VIX</div><div class="c-desc">Daily volatility index, collapsed to monthly</div></div>
-          <div class="control-item"><div class="c-source">Ken French</div><div class="c-name">Fama-French 5 Factors</div><div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA — monthly</div></div>
+          <div class="control-item"><div class="c-source">Ken French</div><div class="c-name">Fama-French 5 Factors</div><div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA, monthly</div></div>
         </div>
         <div class="note">
           <p>The passive share variable is double-orthogonalised against the 10-year Treasury yield and active flow rate before entry into panel regressions, producing <code>passive_share_orth</code>. This removes the mechanical correlation between passive growth and the broader rate environment.</p>
