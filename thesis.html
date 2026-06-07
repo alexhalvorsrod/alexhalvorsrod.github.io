@@ -318,10 +318,7 @@
     footer a { color: var(--gold); text-decoration: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
     footer a:hover { color: var(--ink); }
 
-    .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    .rd1 { transition-delay: 0.08s; } .rd2 { transition-delay: 0.16s; }
-    .rd3 { transition-delay: 0.24s; } .rd4 { transition-delay: 0.32s; }
+    /* animations removed */
 
     @media (max-width: 900px) {
       .hypothesis-grid, .dataset-grid, .h-grid { grid-template-columns: 1fr; }
@@ -357,8 +354,8 @@
 
   <section class="hero">
     <div class="container">
-      <div class="hero-eyebrow reveal">Master's Thesis · BI Norwegian Business School · 2026</div>
-      <h1 class="reveal rd1">Passive Dominance and<br/><em>Market Efficiency</em></h1>
+      <div class="hero-eyebrow">Master's Thesis · BI Norwegian Business School · 2026</div>
+      <h1 class="">Passive Dominance and<br/><em>Market Efficiency</em></h1>
       <div class="hero-meta reveal rd2">
         <div class="hero-meta-item">
           <div class="label">Authors</div>
@@ -403,7 +400,7 @@
     <main class="main-content">
 
       <!-- OVERVIEW -->
-      <div class="content-block reveal" id="overview">
+      <div class="content-block" id="overview">
         <div class="section-header">
           <span class="section-num">01</span>
           <span class="section-label-text">Overview</span>
@@ -420,7 +417,7 @@
       </div>
 
       <!-- HYPOTHESES -->
-      <div class="content-block reveal" id="hypotheses">
+      <div class="content-block" id="hypotheses">
         <div class="section-header">
           <span class="section-num">02</span>
           <span class="section-label-text">Hypotheses</span>
@@ -443,7 +440,7 @@
       </div>
 
       <!-- KEY FINDINGS -->
-      <div class="content-block reveal" id="findings">
+      <div class="content-block" id="findings">
         <div class="section-header">
           <span class="section-num">03</span>
           <span class="section-label-text">Key Findings</span>
@@ -558,7 +555,7 @@
       </div>
 
       <!-- DATA SOURCES -->
-      <div class="content-block reveal" id="data">
+      <div class="content-block" id="data">
         <div class="section-header">
           <span class="section-num">04</span>
           <span class="section-label-text">Data Sources</span>
@@ -678,7 +675,7 @@
       </div>
 
       <!-- CONTROLS -->
-      <div class="content-block reveal" id="controls">
+      <div class="content-block" id="controls">
         <div class="section-header">
           <span class="section-num">05</span>
           <span class="section-label-text">Controls</span>
@@ -726,7 +723,7 @@
       </div>
 
       <!-- METHODOLOGY -->
-      <div class="content-block reveal" id="method">
+      <div class="content-block" id="method">
         <div class="section-header">
           <span class="section-num">06</span>
           <span class="section-label-text">Methodology</span>
@@ -805,11 +802,7 @@
     }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
     sections.forEach(s => sectionObserver.observe(s));
 
-    // Reveal animations
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    // reveal animations removed
   </script>
 </body>
 </html>
