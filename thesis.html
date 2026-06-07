@@ -36,208 +36,137 @@
       background: var(--paper);
       color: var(--ink);
       line-height: 1.7;
-      font-weight: 400;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      z-index: 1;
-      pointer-events: none;
-      opacity: 0.018;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      background-size: 128px 128px;
+    /* ── MAIN NAV ── */
+    nav {
+      position: fixed; top: 0; width: 100%; z-index: 100;
+      background: var(--paper);
+      border-bottom: 1px solid transparent; transition: border-color 0.4s;
     }
+    nav.scrolled { border-bottom-color: var(--rule); background: rgba(248,247,244,0.95); backdrop-filter: blur(12px); }
+    .nav-inner {
+      max-width: 1140px; margin: 0 auto; padding: 1.2rem 2.5rem;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .logo { font-family: var(--serif); font-size: 1.5rem; font-weight: 500; color: var(--ink); text-decoration: none; }
+    .nav-links { display: flex; gap: 2.4rem; }
+    .nav-links a {
+      font-size: 0.72rem; font-weight: 500; text-decoration: none;
+      color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase;
+      transition: color 0.3s; position: relative;
+    }
+    .nav-links a::after { content: ''; position: absolute; bottom: -3px; left: 0; width: 0; height: 1px; background: var(--gold); transition: width 0.35s; }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+    .nav-links a.active { color: var(--gold); }
 
-    ::selection { background: var(--gold); color: #fff; }
+    /* ── SECTION SUBNAV ── */
+    /* Sits right after the hero in normal document flow, then sticks */
+    .subnav-wrap {
+      position: sticky;
+      top: 56px; /* height of main nav */
+      z-index: 50;
+      background: var(--paper);
+      border-bottom: 1px solid var(--rule);
+    }
+    .subnav-inner {
+      max-width: 1140px; margin: 0 auto; padding: 0 2.5rem;
+      display: flex; align-items: center; overflow-x: auto;
+    }
+    .subnav-inner a {
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); text-decoration: none;
+      padding: 0.9rem 1.1rem; border-bottom: 2px solid transparent;
+      white-space: nowrap; transition: color 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .subnav-inner a:hover { color: var(--ink); }
+    .subnav-inner a.active { color: var(--gold); border-bottom-color: var(--gold); }
 
+    /* ── SCROLL PROGRESS ── */
     .scroll-progress {
       position: fixed; top: 0; left: 0; height: 2px; width: 0%;
       background: linear-gradient(90deg, var(--gold), var(--accent));
       z-index: 200; transition: width 0.05s linear;
     }
 
-    nav {
-      position: fixed; top: 2px; width: 100%; z-index: 200;
-      background: rgba(248, 247, 244, 0.92);
-      backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-      border-bottom: 1px solid transparent; transition: border-color 0.4s;
-    }
-    nav.scrolled { border-bottom-color: var(--rule); }
-    nav .nav-inner {
-      max-width: 1140px; margin: 0 auto; padding: 1.2rem 2.5rem;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    nav .logo {
-      font-family: var(--serif); font-size: 1.5rem; font-weight: 500;
-      color: var(--ink); text-decoration: none; letter-spacing: 0.02em;
-    }
-    nav .nav-links { display: flex; gap: 2.4rem; }
-    nav .nav-links a {
-      font-size: 0.72rem; font-weight: 500; text-decoration: none;
-      color: var(--muted); letter-spacing: 0.14em; text-transform: uppercase;
-      transition: color 0.3s; position: relative;
-    }
-    nav .nav-links a::after {
-      content: ''; position: absolute; bottom: -3px; left: 0;
-      width: 0; height: 1px; background: var(--gold); transition: width 0.35s ease;
-    }
-    nav .nav-links a:hover { color: var(--ink); }
-    nav .nav-links a:hover::after { width: 100%; }
-    nav .nav-links a.active { color: var(--gold); }
-    nav .nav-links a.active::after { width: 100%; }
-
+    /* ── HERO ── */
     .hero {
       min-height: 60vh; display: flex; align-items: flex-end;
-      position: relative; padding: 10rem 2.5rem 5rem;
-      border-bottom: 1px solid var(--rule-gold);
-    }
-    .hero::before {
-      content: ''; position: absolute; top: 10%; right: 5%;
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, var(--gold-glow) 0%, transparent 70%);
-      border-radius: 50%; pointer-events: none;
+      padding: 10rem 2.5rem 5rem; border-bottom: 1px solid var(--rule-gold);
     }
     .hero .container { max-width: 1140px; margin: 0 auto; width: 100%; }
-
     .hero-eyebrow {
       font-size: 0.68rem; font-weight: 500; letter-spacing: 0.25em;
       text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem;
       display: flex; align-items: center; gap: 1.2rem;
     }
     .hero-eyebrow::before { content: ''; width: 36px; height: 1px; background: var(--gold); }
-
     .hero h1 {
       font-family: var(--serif); font-size: clamp(2.4rem, 5vw, 4rem);
-      font-weight: 400; line-height: 1.1; letter-spacing: -0.01em;
-      margin-bottom: 1.8rem; max-width: 820px;
+      font-weight: 400; line-height: 1.1; margin-bottom: 1.8rem; max-width: 820px;
     }
     .hero h1 em { font-style: italic; font-weight: 300; color: var(--accent); }
-
     .hero-meta { display: flex; gap: 3rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
-    .hero-meta-item .label {
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em;
-      text-transform: uppercase; color: var(--dim); margin-bottom: 0.2rem;
-    }
-    .hero-meta-item .value {
-      font-family: var(--serif); font-size: 1rem; font-weight: 500; color: var(--ink);
-    }
-
+    .hero-meta-item .label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); margin-bottom: 0.2rem; }
+    .hero-meta-item .value { font-family: var(--serif); font-size: 1rem; font-weight: 500; }
     .hero-actions { display: flex; gap: 1.8rem; align-items: center; flex-wrap: wrap; }
     .btn-primary {
       display: inline-flex; align-items: center; gap: 0.8rem;
       padding: 0.9rem 2rem; background: var(--accent); color: #fff;
       text-decoration: none; font-size: 0.72rem; font-weight: 500;
-      letter-spacing: 0.14em; text-transform: uppercase;
-      transition: background 0.3s, transform 0.2s;
+      letter-spacing: 0.14em; text-transform: uppercase; transition: background 0.3s;
     }
-    .btn-primary:hover { background: #1a2a38; transform: translateY(-1px); }
-    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; transition: transform 0.25s; }
-    .btn-primary:hover svg { transform: translateX(3px); }
+    .btn-primary:hover { background: #1a2a38; }
+    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; }
     .btn-ghost {
       font-size: 0.76rem; font-weight: 500; letter-spacing: 0.08em;
       text-transform: uppercase; text-decoration: none; color: var(--ink);
-      padding-bottom: 2px; border-bottom: 1.5px solid var(--gold);
-      transition: color 0.3s;
+      padding-bottom: 2px; border-bottom: 1.5px solid var(--gold); transition: color 0.3s;
     }
     .btn-ghost:hover { color: var(--gold); }
 
-    .page-body {
-      max-width: 1140px; margin: 0 auto; padding: 4rem 2.5rem;
-    }
-
-    /* Sticky section subnav */
-    .subnav {
-      position: sticky; top: 56px; width: 100%; z-index: 98;
-      background: rgba(248, 247, 244, 0.98);
-      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--rule);
-    }
-    .subnav.hidden { display: none; }
-    .subnav-inner {
-      max-width: 1140px; margin: 0 auto; padding: 0 2.5rem;
-      display: flex; gap: 0; align-items: center;
-    }
-    .subnav-inner a {
-      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.14em;
-      text-transform: uppercase; color: var(--muted); text-decoration: none;
-      padding: 0.85rem 1.2rem; border-bottom: 2px solid transparent;
-      transition: color 0.25s, border-color 0.25s; white-space: nowrap;
-    }
-    .subnav-inner a:hover { color: var(--ink); }
-    .subnav-inner a.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-    .main-content { min-width: 0; max-width: 780px; }
+    /* ── PAGE BODY ── */
+    .page-body { max-width: 1140px; margin: 0 auto; padding: 4rem 2.5rem; }
+    .main-content { max-width: 780px; }
 
     .section-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem; }
     .section-num { font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400; }
     .section-label-text { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent); }
 
-    .content-block {
-      padding-bottom: 4rem; margin-bottom: 4rem;
-      border-bottom: 1px solid var(--rule-gold);
-    }
+    .content-block { padding-bottom: 4rem; margin-bottom: 4rem; border-bottom: 1px solid var(--rule-gold); }
     .content-block:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
-
-    .content-block h2 {
-      font-family: var(--serif); font-size: 1.9rem; font-weight: 400;
-      line-height: 1.25; margin-bottom: 1.4rem;
-    }
+    .content-block h2 { font-family: var(--serif); font-size: 1.9rem; font-weight: 400; line-height: 1.25; margin-bottom: 1.4rem; }
     .content-block h2 em { font-style: italic; font-weight: 300; color: var(--gold); }
-    .content-block h3 {
-      font-family: var(--serif); font-size: 1.3rem; font-weight: 500;
-      margin-bottom: 0.8rem; margin-top: 2rem; color: var(--ink);
-    }
-    .content-block p {
-      color: var(--muted); font-size: 0.93rem; font-weight: 300;
-      line-height: 1.85; margin-bottom: 1rem; max-width: 680px;
-    }
+    .content-block h3 { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin-bottom: 0.8rem; margin-top: 2rem; }
+    .content-block p { color: var(--muted); font-size: 0.93rem; font-weight: 300; line-height: 1.85; margin-bottom: 1rem; max-width: 680px; }
 
     .hypothesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 2rem 0; }
-    .hypothesis-card {
-      border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden;
-      transition: border-color 0.4s, box-shadow 0.4s;
-    }
-    .hypothesis-card::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    }
+    .hypothesis-card { border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden; transition: border-color 0.4s, box-shadow 0.4s; }
+    .hypothesis-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
     .hypothesis-card:hover { border-color: var(--gold); box-shadow: 0 4px 24px var(--gold-dim); }
     .hypothesis-tag { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem; }
     .hypothesis-card h4 { font-family: var(--serif); font-size: 1.15rem; font-weight: 500; margin-bottom: 0.6rem; line-height: 1.3; }
     .hypothesis-card p { font-size: 0.83rem; color: var(--muted); font-weight: 300; max-width: 100%; }
 
     .data-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
-    .data-table thead th {
-      font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--dim);
-      padding: 0.7rem 1rem; text-align: left;
-      border-bottom: 2px solid var(--rule); background: var(--cream);
-    }
+    .data-table thead th { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); padding: 0.7rem 1rem; text-align: left; border-bottom: 2px solid var(--rule); background: var(--cream); }
     .data-table tbody tr { border-bottom: 1px solid var(--rule); transition: background 0.2s; }
     .data-table tbody tr:hover { background: var(--cream); }
-    .data-table tbody td { padding: 1rem 1rem; font-size: 0.85rem; color: var(--ink); font-weight: 300; vertical-align: top; }
+    .data-table tbody td { padding: 1rem; font-size: 0.85rem; color: var(--ink); font-weight: 300; vertical-align: top; }
     .data-table tbody td:first-child { font-weight: 500; font-family: var(--serif); font-size: 0.95rem; }
-    .data-table .tag {
-      display: inline-block; font-size: 0.6rem; font-weight: 600;
-      letter-spacing: 0.1em; text-transform: uppercase;
-      padding: 0.2rem 0.6rem; border: 1px solid var(--rule-gold);
-      color: var(--gold); background: var(--gold-dim);
-    }
+    .data-table .tag { display: inline-block; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.6rem; border: 1px solid var(--rule-gold); color: var(--gold); background: var(--gold-dim); }
 
     .dataset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
-    .dataset-card {
-      border: 1px solid var(--rule); padding: 1.6rem; background: var(--paper);
-      transition: border-color 0.3s, background 0.3s;
-    }
+    .dataset-card { border: 1px solid var(--rule); padding: 1.6rem; background: var(--paper); transition: border-color 0.3s, background 0.3s; }
     .dataset-card:hover { border-color: var(--gold); background: var(--cream); }
     .dataset-card .ds-label { font-size: 0.58rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
     .dataset-card .ds-name { font-family: var(--serif); font-size: 1.05rem; font-weight: 500; margin-bottom: 0.3rem; }
-    .dataset-card .ds-filename { font-size: 0.72rem; color: var(--dim); font-family: monospace; margin-bottom: 0.6rem; letter-spacing: 0.02em; }
+    .dataset-card .ds-filename { font-size: 0.72rem; color: var(--dim); font-family: monospace; margin-bottom: 0.6rem; }
     .dataset-card .ds-stats { display: flex; gap: 1rem; margin-bottom: 0.5rem; flex-wrap: wrap; }
     .dataset-card .ds-stat { font-size: 0.72rem; color: var(--muted); }
     .dataset-card .ds-stat span { font-weight: 600; color: var(--ink); }
@@ -251,25 +180,13 @@
     .control-item .c-desc { font-size: 0.75rem; color: var(--muted); font-weight: 300; }
 
     .method-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
-    .method-tag {
-      font-size: 0.78rem; font-weight: 400; color: var(--ink);
-      padding: 0.4rem 1rem; border: 1px solid var(--rule);
-      background: var(--paper); transition: border-color 0.3s, box-shadow 0.3s;
-    }
-    .method-tag:hover { border-color: var(--gold); box-shadow: 0 2px 8px var(--gold-dim); }
+    .method-tag { font-size: 0.78rem; font-weight: 400; color: var(--ink); padding: 0.4rem 1rem; border: 1px solid var(--rule); background: var(--paper); transition: border-color 0.3s; }
+    .method-tag:hover { border-color: var(--gold); }
 
-    .note {
-      padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold);
-      background: var(--gold-dim); margin: 1.5rem 0;
-    }
+    .note { padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold); background: var(--gold-dim); margin: 1.5rem 0; }
     .note p { font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 100%; font-style: italic; }
 
-    /* Key findings metrics strip */
-    .findings-strip {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
-      background: var(--rule); border: 1px solid var(--rule); border-radius: 2px;
-      margin: 2rem 0;
-    }
+    .findings-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 2px; margin: 2rem 0; }
     .finding-cell { background: var(--paper); padding: 1.4rem 1.6rem; }
     .finding-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
     .finding-value { font-family: var(--serif); font-size: 1.7rem; font-weight: 500; color: var(--accent); line-height: 1; }
@@ -277,15 +194,9 @@
     .finding-value.negative { color: var(--red); }
     .finding-sub { font-size: 0.68rem; color: var(--dim); margin-top: 0.3rem; line-height: 1.4; }
 
-    /* H result cards */
     .h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0; }
-    .h-card {
-      border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden;
-      transition: border-color 0.4s, box-shadow 0.4s;
-    }
-    .h-card::before {
-      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
-    }
+    .h-card { border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden; transition: border-color 0.4s, box-shadow 0.4s; }
+    .h-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
     .h-card.supported::before { background: var(--green); }
     .h-card.mixed::before { background: var(--gold); }
     .h-card:hover { border-color: var(--gold); box-shadow: 0 4px 24px var(--gold-dim); }
@@ -294,39 +205,29 @@
     .h-card-tag.mixed { color: var(--gold); }
     .h-card h4 { font-family: var(--serif); font-size: 1.15rem; font-weight: 500; margin-bottom: 0.8rem; line-height: 1.3; }
     .h-card ul { list-style: none; padding: 0; }
-    .h-card ul li {
-      font-size: 0.82rem; color: var(--muted); font-weight: 300;
-      padding: 0.4rem 0; border-bottom: 1px solid var(--rule);
-      display: flex; gap: 0.6rem; align-items: flex-start;
-    }
+    .h-card ul li { font-size: 0.82rem; color: var(--muted); font-weight: 300; padding: 0.4rem 0; border-bottom: 1px solid var(--rule); display: flex; gap: 0.6rem; align-items: flex-start; }
     .h-card ul li:last-child { border-bottom: none; }
     .h-card ul li::before { content: '—'; color: var(--gold); flex-shrink: 0; font-size: 0.75rem; margin-top: 0.05rem; }
     .h-card .h-stat { font-weight: 600; color: var(--ink); }
 
-    .preliminary-note {
-      padding: 1.4rem 1.8rem; border: 1px solid var(--rule-gold);
-      background: var(--gold-dim); margin: 2rem 0; display: flex; gap: 1rem; align-items: flex-start;
-    }
+    .preliminary-note { padding: 1.4rem 1.8rem; border: 1px solid var(--rule-gold); background: var(--gold-dim); margin: 2rem 0; display: flex; gap: 1rem; align-items: flex-start; }
     .preliminary-note .pn-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
     .preliminary-note p { font-size: 0.84rem; color: var(--muted); margin: 0; max-width: 100%; font-style: italic; line-height: 1.7; }
 
     footer { padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule); margin-top: 4rem; }
     footer .container { max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-    footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; letter-spacing: 0.04em; }
+    footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; }
     footer a { color: var(--gold); text-decoration: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
     footer a:hover { color: var(--ink); }
-
-    /* animations removed */
 
     @media (max-width: 900px) {
       .hypothesis-grid, .dataset-grid, .h-grid { grid-template-columns: 1fr; }
       .controls-grid { grid-template-columns: 1fr 1fr; }
       .findings-strip { grid-template-columns: 1fr 1fr; }
-      .subnav-inner { overflow-x: auto; }
     }
     @media (max-width: 600px) {
       .hero { padding: 7rem 1.5rem 4rem; }
-      nav .nav-links { display: none; }
+      .nav-links { display: none; }
       .controls-grid { grid-template-columns: 1fr; }
       .hero-meta { gap: 1.5rem; }
       .findings-strip { grid-template-columns: 1fr; }
@@ -353,7 +254,7 @@
   <section class="hero">
     <div class="container">
       <div class="hero-eyebrow">Master's Thesis · BI Norwegian Business School · 2026</div>
-      <h1 class="content-block">Passive Dominance and<br/><em>Market Efficiency</em></h1>
+      <h1>Passive Dominance and<br/><em>Market Efficiency</em></h1>
       <div class="hero-meta">
         <div class="hero-meta-item">
           <div class="label">Authors</div>
@@ -382,22 +283,21 @@
     </div>
   </section>
 
-  <!-- Sticky section subnav — appears after hero -->
-  <div class="subnav" id="subnav">
+  <!-- Section subnav — sticky in document flow, never touches main nav -->
+  <div class="subnav-wrap">
     <div class="subnav-inner">
-      <a href="#overview">Overview</a>
-      <a href="#hypotheses">Hypotheses</a>
-      <a href="#findings">Key Findings</a>
-      <a href="#data">Data Sources</a>
-      <a href="#controls">Controls</a>
-      <a href="#method">Methodology</a>
+      <a href="#overview" class="subnav-link">Overview</a>
+      <a href="#hypotheses" class="subnav-link">Hypotheses</a>
+      <a href="#findings" class="subnav-link">Key Findings</a>
+      <a href="#data" class="subnav-link">Data Sources</a>
+      <a href="#controls" class="subnav-link">Controls</a>
+      <a href="#method" class="subnav-link">Methodology</a>
     </div>
   </div>
 
   <div class="page-body">
     <main class="main-content">
 
-      <!-- OVERVIEW -->
       <div class="content-block" id="overview">
         <div class="section-header">
           <span class="section-num">01</span>
@@ -408,13 +308,11 @@
         <p>Passive investing now accounts for more than 60% of total US fund assets. As index-tracking vehicles mechanically allocate capital based on index membership rather than fundamental value, a growing body of literature questions whether this structural shift impairs the price discovery process that underpins market efficiency.</p>
         <p>This thesis investigates two related but distinct channels through which passive dominance may distort equity markets: valuation inflation among index constituents, and the deterioration of return independence as correlation structures become increasingly driven by mechanical rebalancing rather than firm-specific information.</p>
         <p>The empirical framework draws on over three decades of CRSP daily data, Compustat valuation ratios, and Morningstar fund flow data — covering 1,257 S&P 500 constituent firms across 8,311 trading days. All estimation is performed in Python using a reproducible, point-in-time pipeline with no look-ahead bias.</p>
-
         <div class="note">
           <p>Theoretical anchors: Grossman & Stiglitz (1980) — the information acquisition paradox — and Asness (2024) — the Less-Efficient Market Hypothesis (LEMH).</p>
         </div>
       </div>
 
-      <!-- HYPOTHESES -->
       <div class="content-block" id="hypotheses">
         <div class="section-header">
           <span class="section-num">02</span>
@@ -437,7 +335,6 @@
         </div>
       </div>
 
-      <!-- KEY FINDINGS -->
       <div class="content-block" id="findings">
         <div class="section-header">
           <span class="section-num">03</span>
@@ -445,15 +342,12 @@
           <span class="section-line"></span>
         </div>
         <h2>Preliminary <em>Results</em></h2>
-
         <div class="preliminary-note">
           <div class="pn-icon">◎</div>
           <p>These findings are preliminary and reflect the current state of the analysis ahead of submission in July 2026. All results are subject to revision following final review.</p>
         </div>
-
         <h3>H1 — Price Distortion</h3>
         <p>The evidence supports H1 across four complementary identification strategies.</p>
-
         <div class="findings-strip">
           <div class="finding-cell">
             <div class="finding-label">Passive share growth</div>
@@ -473,10 +367,9 @@
           <div class="finding-cell">
             <div class="finding-label">Russell RD — P/B premium</div>
             <div class="finding-value positive">+24.5pp</div>
-            <div class="finding-sub">Post-2007. Insignificant pre-2007 (0.021), confirming the passive era mechanism.</div>
+            <div class="finding-sub">Post-2007. Insignificant pre-2007, confirming the passive era mechanism.</div>
           </div>
         </div>
-
         <div class="h-grid">
           <div class="h-card supported">
             <div class="h-card-tag supported">H1 — Supported</div>
@@ -501,10 +394,8 @@
             </ul>
           </div>
         </div>
-
         <h3>H2 — Systematic Fragility</h3>
         <p>The evidence is mixed but directionally consistent with H2.</p>
-
         <div class="findings-strip">
           <div class="finding-cell">
             <div class="finding-label">Price synchronicity</div>
@@ -514,7 +405,7 @@
           <div class="finding-cell">
             <div class="finding-label">MCR concentration</div>
             <div class="finding-value">20.5% → 53.1%</div>
-            <div class="finding-sub">Top-10 risk share, 1993 to 2024. Over half of S&P 500 risk concentrated in 10 stocks.</div>
+            <div class="finding-sub">Top-10 risk share, 1993 to 2024. Over half of S&P 500 risk in 10 stocks.</div>
           </div>
           <div class="finding-cell">
             <div class="finding-label">Correlation asymmetry</div>
@@ -524,10 +415,9 @@
           <div class="finding-cell">
             <div class="finding-label">Crisis asymmetry peak</div>
             <div class="finding-value negative">+0.110</div>
-            <div class="finding-sub">European debt crisis (2011). COVID crash (2020) at +0.103. Both at passive share above 29%.</div>
+            <div class="finding-sub">European debt crisis (2011). COVID crash (2020) at +0.103.</div>
           </div>
         </div>
-
         <div class="h-grid">
           <div class="h-card supported">
             <div class="h-card-tag supported">H2 — Supported</div>
@@ -544,7 +434,7 @@
             <h4>Risk concentration (MCR)</h4>
             <ul>
               <li>Descriptive trend from <span class="h-stat">20.5% to 53.1%</span> is economically striking and temporally consistent with passive growth</li>
-              <li>First-difference tests: monthly changes in passive share do not independently predict MCR changes once mega-cap weight is controlled for</li>
+              <li>First-difference tests: monthly changes in passive share do not independently predict MCR once mega-cap weight is controlled for</li>
               <li>Passive share coefficient is <span class="h-stat">six times larger post-2017</span>, but insignificant in both sub-periods due to sample length</li>
               <li>Full causal identification requires a longer post-2017 sample or an exogenous instrument for passive ownership</li>
             </ul>
@@ -552,7 +442,6 @@
         </div>
       </div>
 
-      <!-- DATA SOURCES -->
       <div class="content-block" id="data">
         <div class="section-header">
           <span class="section-num">04</span>
@@ -560,119 +449,67 @@
           <span class="section-line"></span>
         </div>
         <h2>Five <em>Primary Sources</em></h2>
-        <p>The empirical analysis draws on five distinct data sources, spanning January 1992 to December 2024. All data assembly is performed in Python with point-in-time integrity enforced throughout — no data item is used before its public availability date.</p>
-
+        <p>The empirical analysis draws on five distinct data sources, spanning January 1992 to December 2024. All data assembly is performed in Python with point-in-time integrity enforced throughout.</p>
         <table class="data-table">
           <thead>
-            <tr>
-              <th>Source</th>
-              <th>Provider</th>
-              <th>Content</th>
-              <th>Coverage</th>
-            </tr>
+            <tr><th>Source</th><th>Provider</th><th>Content</th><th>Coverage</th></tr>
           </thead>
           <tbody>
-            <tr>
-              <td>CRSP Daily Stock File</td>
-              <td><span class="tag">WRDS</span></td>
-              <td>Daily returns, prices, volume, market cap for S&P 500 constituents and large-cap comparison universe</td>
-              <td>1992–2024</td>
-            </tr>
-            <tr>
-              <td>Compustat Fundamentals</td>
-              <td><span class="tag">WRDS</span></td>
-              <td>Quarterly P/E and P/B ratios at the firm level via WRDS firm_ratio; winsorised at 1st/99th percentile</td>
-              <td>1992–2024</td>
-            </tr>
-            <tr>
-              <td>S&P 500 Constituent History</td>
-              <td><span class="tag">WRDS + GitHub</span></td>
-              <td>Annual snapshots 1992–2022 from WRDS; 2023–2024 extended via fja05680/sp500 change log with backward merge_asof join</td>
-              <td>1992–2024</td>
-            </tr>
-            <tr>
-              <td>Morningstar Direct</td>
-              <td><span class="tag">Morningstar</span></td>
-              <td>Monthly active vs. passive net flows, total net assets, and organic growth rates at fund and category level</td>
-              <td>1993–2024</td>
-            </tr>
-            <tr>
-              <td>CRSP / Russell Membership</td>
-              <td><span class="tag">WRDS</span></td>
-              <td>Annual Russell 1000/2000 membership reconstructed from CRSP end-of-May market cap ranks; used for regression discontinuity identification</td>
-              <td>1992–2024</td>
-            </tr>
+            <tr><td>CRSP Daily Stock File</td><td><span class="tag">WRDS</span></td><td>Daily returns, prices, volume, market cap for S&P 500 constituents and large-cap comparison universe</td><td>1992–2024</td></tr>
+            <tr><td>Compustat Fundamentals</td><td><span class="tag">WRDS</span></td><td>Quarterly P/E and P/B ratios via WRDS firm_ratio; winsorised at 1st/99th percentile</td><td>1992–2024</td></tr>
+            <tr><td>S&P 500 Constituent History</td><td><span class="tag">WRDS + GitHub</span></td><td>Annual snapshots 1992–2022 from WRDS; 2023–2024 extended via fja05680/sp500 change log</td><td>1992–2024</td></tr>
+            <tr><td>Morningstar Direct</td><td><span class="tag">Morningstar</span></td><td>Monthly active vs. passive net flows, total net assets, and organic growth rates</td><td>1993–2024</td></tr>
+            <tr><td>CRSP / Russell Membership</td><td><span class="tag">WRDS</span></td><td>Annual Russell 1000/2000 membership reconstructed from CRSP end-of-May market cap ranks</td><td>1992–2024</td></tr>
           </tbody>
         </table>
-
         <h3>Constructed Datasets</h3>
-        <p>Raw source data is assembled into five analysis-ready files:</p>
-
+        <p>Raw source data is assembled into six analysis-ready files:</p>
         <div class="dataset-grid">
           <div class="dataset-card">
             <div class="ds-label">Primary Panel</div>
             <div class="ds-name">S&P 500 Constituent Panel</div>
             <div class="ds-filename">daily_panel.csv</div>
-            <div class="ds-stats">
-              <div class="ds-stat">Rows: <span>6,495,873</span></div>
-              <div class="ds-stat">Cols: <span>13</span></div>
-            </div>
-            <p>Daily constituent-level panel. Includes closing price, return, shares outstanding, volume, market cap, and winsorised P/E and P/B. Covers all trading days 1992–2024 across 1,257 unique PERMNOs (498–507 constituents per day).</p>
+            <div class="ds-stats"><div class="ds-stat">Rows: <span>6,495,873</span></div><div class="ds-stat">Cols: <span>13</span></div></div>
+            <p>Daily constituent-level panel with price, return, volume, market cap, and winsorised P/E and P/B. 1,257 unique PERMNOs across 8,311 trading days.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Comparison Universe</div>
             <div class="ds-name">Non-Index Large-Cap Panel</div>
             <div class="ds-filename">crsp_nonindex.csv</div>
-            <div class="ds-stats">
-              <div class="ds-stat">Rows: <span>447,659</span></div>
-              <div class="ds-stat">Cols: <span>12</span></div>
-            </div>
-            <p>Monthly panel of large-cap stocks outside the S&P 500. Used as the control group for difference-in-differences and cross-sectional tests, allowing isolation of index membership effects.</p>
+            <div class="ds-stats"><div class="ds-stat">Rows: <span>447,659</span></div><div class="ds-stat">Cols: <span>12</span></div></div>
+            <p>Monthly panel of large-cap stocks outside the S&P 500. Control group for panel fixed-effects specifications.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Membership History</div>
             <div class="ds-name">Constituent Membership Log</div>
             <div class="ds-filename">sp500_membership.csv</div>
-            <div class="ds-stats">
-              <div class="ds-stat">Rows: <span>4,165,848</span></div>
-              <div class="ds-stat">Cols: <span>4</span></div>
-            </div>
-            <p>Point-in-time panel recording daily index membership for each PERMNO. Built from 33 annual WRDS snapshots and supplemented with GitHub change-log data for 2023–2024. Zero orphaned in-index observations.</p>
+            <div class="ds-stats"><div class="ds-stat">Rows: <span>4,165,848</span></div><div class="ds-stat">Cols: <span>4</span></div></div>
+            <p>Point-in-time daily index membership for each PERMNO. Built from 33 annual WRDS snapshots supplemented with GitHub change-log data for 2023–2024.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Fund Flows</div>
             <div class="ds-name">Morningstar Flow Panel</div>
             <div class="ds-filename">morningstar.csv</div>
-            <div class="ds-stats">
-              <div class="ds-stat">Rows: <span>383</span></div>
-              <div class="ds-stat">Cols: <span>11</span></div>
-            </div>
-            <p>Monthly active vs. passive net flows and total net assets from Morningstar Direct. Key regression variable is organic growth rate (flow / lagged AUM), not total AUM, to avoid scale distortion. Covers 1993–2024.</p>
+            <div class="ds-stats"><div class="ds-stat">Rows: <span>383</span></div><div class="ds-stat">Cols: <span>11</span></div></div>
+            <p>Monthly active vs. passive net flows and total net assets. Key variable is organic growth rate (flow / lagged AUM). Covers 1993–2024.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Causal Identification</div>
             <div class="ds-name">Russell RD Panel</div>
             <div class="ds-filename">russell_rd.csv</div>
-            <div class="ds-stats">
-              <div class="ds-stat">Rows: <span>61,491</span></div>
-              <div class="ds-stat">Cols: <span>—</span></div>
-            </div>
-            <p>Annual firm-year panel built from CRSP end-of-May market cap ranks. Replicates FTSE Russell's mechanical assignment rule. Used for regression discontinuity design at the Russell 1000/2000 boundary. Covers 1992–2024 (22,281 R1000 / 39,210 R2000 observations).</p>
+            <div class="ds-stats"><div class="ds-stat">Rows: <span>61,491</span></div></div>
+            <p>Annual firm-year panel from CRSP end-of-May market cap ranks. Used for regression discontinuity at the Russell 1000/2000 boundary (22,281 R1000 / 39,210 R2000 obs).</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Combined Panel</div>
             <div class="ds-name">Panel Fixed-Effects Dataset</div>
             <div class="ds-filename">panel_fe.csv</div>
-            <div class="ds-stats">
-              <div class="ds-stat">Rows: <span>~1.23M</span></div>
-              <div class="ds-stat">Cols: <span>—</span></div>
-            </div>
-            <p>Stacked monthly panel combining S&P 500 constituents and non-index large-cap firms. Unbalanced panel indexed by PERMNO and date. Used for all panel fixed-effects specifications in H1.</p>
+            <div class="ds-stats"><div class="ds-stat">Rows: <span>~1.23M</span></div></div>
+            <p>Stacked monthly panel of index and non-index firms. Unbalanced, indexed by PERMNO and date. Used for all H1 panel fixed-effects specifications.</p>
           </div>
         </div>
       </div>
 
-      <!-- CONTROLS -->
       <div class="content-block" id="controls">
         <div class="section-header">
           <span class="section-num">05</span>
@@ -681,46 +518,19 @@
         </div>
         <h2>Macroeconomic <em>Controls</em></h2>
         <p>To isolate the effect of passive flows from broader macroeconomic conditions, six external control series are merged into the analysis panel. The key passive flow variable is orthogonalised against interest rates and active flows to address multi-collinearity.</p>
-
         <div class="controls-grid">
-          <div class="control-item">
-            <div class="c-source">FRED</div>
-            <div class="c-name">10-Year Treasury Yield</div>
-            <div class="c-desc">GS10 — monthly, risk-free rate proxy</div>
-          </div>
-          <div class="control-item">
-            <div class="c-source">FRED</div>
-            <div class="c-name">Fed Funds Rate</div>
-            <div class="c-desc">FEDFUNDS — monetary policy stance</div>
-          </div>
-          <div class="control-item">
-            <div class="c-source">FRED</div>
-            <div class="c-name">CPI Inflation</div>
-            <div class="c-desc">CPIAUCSL — YoY % change, monthly</div>
-          </div>
-          <div class="control-item">
-            <div class="c-source">FRED</div>
-            <div class="c-name">Real GDP Growth</div>
-            <div class="c-desc">A191RL1Q225SBEA — quarterly, interpolated</div>
-          </div>
-          <div class="control-item">
-            <div class="c-source">CBOE</div>
-            <div class="c-name">VIX</div>
-            <div class="c-desc">Daily volatility index, collapsed to monthly</div>
-          </div>
-          <div class="control-item">
-            <div class="c-source">Ken French</div>
-            <div class="c-name">Fama-French 5 Factors</div>
-            <div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA — monthly</div>
-          </div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">10-Year Treasury Yield</div><div class="c-desc">GS10 — monthly, risk-free rate proxy</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Fed Funds Rate</div><div class="c-desc">FEDFUNDS — monetary policy stance</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">CPI Inflation</div><div class="c-desc">CPIAUCSL — YoY % change, monthly</div></div>
+          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Real GDP Growth</div><div class="c-desc">A191RL1Q225SBEA — quarterly, interpolated</div></div>
+          <div class="control-item"><div class="c-source">CBOE</div><div class="c-name">VIX</div><div class="c-desc">Daily volatility index, collapsed to monthly</div></div>
+          <div class="control-item"><div class="c-source">Ken French</div><div class="c-name">Fama-French 5 Factors</div><div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA — monthly</div></div>
         </div>
-
         <div class="note">
           <p>The passive share variable is double-orthogonalised against the 10-year Treasury yield and active flow rate before entry into panel regressions, producing <code>passive_share_orth</code>. This removes the mechanical correlation between passive growth and the broader rate environment.</p>
         </div>
       </div>
 
-      <!-- METHODOLOGY -->
       <div class="content-block" id="method">
         <div class="section-header">
           <span class="section-num">06</span>
@@ -729,7 +539,6 @@
         </div>
         <h2>Econometric <em>Framework</em></h2>
         <p>The analysis employs a suite of time-series and panel econometric methods, selected to address both the cointegration properties of passive share and valuation multiples, and the panel structure of firm-level data.</p>
-
         <h3>Time-Series Methods</h3>
         <div class="method-tags">
           <span class="method-tag">OLS-HAC (Newey-West, 12 lags)</span>
@@ -739,7 +548,6 @@
           <span class="method-tag">ADF / KPSS Unit Root Tests</span>
           <span class="method-tag">Zivot-Andrews Structural Break</span>
         </div>
-
         <h3>Panel & Cross-Sectional Methods</h3>
         <div class="method-tags">
           <span class="method-tag">Panel Fixed Effects (firm + time FE)</span>
@@ -750,7 +558,6 @@
           <span class="method-tag">Marginal Contribution to Risk (MCR)</span>
           <span class="method-tag">Welch t-test (Correlation Asymmetry)</span>
         </div>
-
         <h3>Implementation</h3>
         <p>All estimation is conducted in Python using <code>statsmodels</code>, <code>linearmodels</code>, and <code>scipy</code>. CRSP data is accessed via WRDS using SQLAlchemy with <code>sqlalchemy.text()</code> after resolving a psycopg2 incompatibility. Point-in-time merges use <code>pd.merge_asof</code> throughout to prevent look-ahead bias.</p>
       </div>
@@ -768,20 +575,19 @@
   <script>
     const progressBar = document.getElementById('scrollProgress');
     window.addEventListener('scroll', () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      progressBar.style.width = ((scrollTop / docHeight) * 100) + '%';
-    });
+      const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
+      progressBar.style.width = pct + '%';
+    }, { passive: true });
 
     const nav = document.getElementById('navbar');
-    window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
+    window.addEventListener('scroll', () => {
+      nav.classList.toggle('scrolled', window.scrollY > 50);
+    }, { passive: true });
 
-    // Subnav is sticky - no show/hide needed
-
-    // Active subnav link on scroll
-    const subnavLinks = document.querySelectorAll('.subnav-inner a');
+    // Active subnav link highlight on scroll
+    const subnavLinks = document.querySelectorAll('.subnav-link');
     const sections = document.querySelectorAll('.content-block[id]');
-    const sectionObserver = new IntersectionObserver((entries) => {
+    const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           subnavLinks.forEach(a => {
@@ -789,10 +595,8 @@
           });
         }
       });
-    }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
-    sections.forEach(s => sectionObserver.observe(s));
-
-    // animations removed
+    }, { threshold: 0.3, rootMargin: '-80px 0px -55% 0px' });
+    sections.forEach(s => observer.observe(s));
   </script>
 </body>
 </html>
