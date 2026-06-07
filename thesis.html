@@ -146,40 +146,33 @@
     .btn-ghost:hover { color: var(--gold); }
 
     .page-body {
-      max-width: 1140px; margin: 0 auto; padding: 5rem 2.5rem;
-      display: grid; grid-template-columns: 260px 1fr; gap: 5rem; align-items: start;
+      max-width: 1140px; margin: 0 auto; padding: 4rem 2.5rem;
     }
 
-    .sidebar { position: sticky; top: 7rem; max-height: calc(100vh - 8rem); overflow-y: auto; }
-    .sidebar-section { margin-bottom: 2.5rem; }
-    .sidebar-label {
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.2em;
-      text-transform: uppercase; color: var(--dim); margin-bottom: 1rem;
-      padding-bottom: 0.6rem; border-bottom: 1px solid var(--rule);
+    /* Sticky section subnav */
+    .subnav {
+      position: fixed; top: 52px; left: 0; width: 100%; z-index: 90;
+      background: rgba(248, 247, 244, 0.96);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--rule);
+      transform: translateY(-100%); transition: transform 0.35s ease;
+      pointer-events: none;
     }
-    .sidebar-nav { display: flex; flex-direction: column; gap: 0.1rem; }
-    .sidebar-nav a {
-      font-size: 0.82rem; font-weight: 400; color: var(--muted);
-      text-decoration: none; padding: 0.45rem 0;
-      border-left: 2px solid transparent; padding-left: 0.8rem;
-      transition: color 0.3s, border-color 0.3s;
+    .subnav.visible { transform: translateY(0); pointer-events: all; }
+    .subnav-inner {
+      max-width: 1140px; margin: 0 auto; padding: 0 2.5rem;
+      display: flex; gap: 0; align-items: center;
     }
-    .sidebar-nav a:hover, .sidebar-nav a.active { color: var(--gold); border-left-color: var(--gold); }
+    .subnav-inner a {
+      font-size: 0.65rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted); text-decoration: none;
+      padding: 0.85rem 1.2rem; border-bottom: 2px solid transparent;
+      transition: color 0.25s, border-color 0.25s; white-space: nowrap;
+    }
+    .subnav-inner a:hover { color: var(--ink); }
+    .subnav-inner a.active { color: var(--gold); border-bottom-color: var(--gold); }
 
-    .stat-block {
-      padding: 1.2rem 1.4rem; border: 1px solid var(--rule);
-      background: var(--cream); margin-bottom: 0.6rem;
-    }
-    .stat-block .stat-label {
-      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em;
-      text-transform: uppercase; color: var(--dim); margin-bottom: 0.3rem;
-    }
-    .stat-block .stat-value {
-      font-family: var(--serif); font-size: 1.35rem; font-weight: 500; color: var(--ink);
-    }
-    .stat-block .stat-sub { font-size: 0.75rem; color: var(--muted); font-weight: 300; margin-top: 0.1rem; }
-
-    .main-content { min-width: 0; }
+    .main-content { min-width: 0; max-width: 780px; }
 
     .section-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem; }
     .section-num { font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400; }
@@ -331,11 +324,10 @@
     .rd3 { transition-delay: 0.24s; } .rd4 { transition-delay: 0.32s; }
 
     @media (max-width: 900px) {
-      .page-body { grid-template-columns: 1fr; gap: 2.5rem; padding: 3rem 1.8rem; }
-      .sidebar { position: static; }
       .hypothesis-grid, .dataset-grid, .h-grid { grid-template-columns: 1fr; }
       .controls-grid { grid-template-columns: 1fr 1fr; }
       .findings-strip { grid-template-columns: 1fr 1fr; }
+      .subnav-inner { overflow-x: auto; }
     }
     @media (max-width: 600px) {
       .hero { padding: 7rem 1.5rem 4rem; }
@@ -343,6 +335,7 @@
       .controls-grid { grid-template-columns: 1fr; }
       .hero-meta { gap: 1.5rem; }
       .findings-strip { grid-template-columns: 1fr; }
+      .page-body { padding: 3rem 1.5rem; }
     }
   </style>
 </head>
@@ -394,56 +387,19 @@
     </div>
   </section>
 
+  <!-- Sticky section subnav — appears after hero -->
+  <div class="subnav" id="subnav">
+    <div class="subnav-inner">
+      <a href="#overview">Overview</a>
+      <a href="#hypotheses">Hypotheses</a>
+      <a href="#findings">Key Findings</a>
+      <a href="#data">Data Sources</a>
+      <a href="#controls">Controls</a>
+      <a href="#method">Methodology</a>
+    </div>
+  </div>
+
   <div class="page-body">
-
-    <aside class="sidebar">
-      <div class="sidebar-section">
-        <div class="sidebar-label">On this page</div>
-        <nav class="sidebar-nav">
-          <a href="#overview">Overview</a>
-          <a href="#hypotheses">Hypotheses</a>
-          <a href="#findings">Key Findings</a>
-          <a href="#data">Data Sources</a>
-          <a href="#controls">Controls</a>
-          <a href="#method">Methodology</a>
-        </nav>
-      </div>
-
-      <div class="sidebar-section">
-        <div class="sidebar-label">Dataset at a glance</div>
-        <div class="stat-block">
-          <div class="stat-label">S&P 500 Panel</div>
-          <div class="stat-value">6.5M</div>
-          <div class="stat-sub">constituent-day observations</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Unique firms</div>
-          <div class="stat-value">1,257</div>
-          <div class="stat-sub">PERMNOs, 1992–2024</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Panel FE observations</div>
-          <div class="stat-value">1.23M</div>
-          <div class="stat-sub">firm-month obs., index + non-index</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Morningstar flows</div>
-          <div class="stat-value">383</div>
-          <div class="stat-sub">monthly obs., 1993–2024</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Russell RD panel</div>
-          <div class="stat-value">61,491</div>
-          <div class="stat-sub">firm-year obs., 1992–2024</div>
-        </div>
-        <div class="stat-block">
-          <div class="stat-label">Non-index universe</div>
-          <div class="stat-value">447K</div>
-          <div class="stat-sub">comparison firm-months</div>
-        </div>
-      </div>
-    </aside>
-
     <main class="main-content">
 
       <!-- OVERVIEW -->
@@ -825,23 +781,35 @@
     const nav = document.getElementById('navbar');
     window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
 
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+    // Show subnav after hero
+    const subnav = document.getElementById('subnav');
+    const hero = document.querySelector('.hero');
+    const heroObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        subnav.classList.toggle('visible', !entry.isIntersecting);
+      });
+    }, { threshold: 0 });
+    heroObserver.observe(hero);
 
-    const sections = document.querySelectorAll('[id]');
-    const sidebarLinks = document.querySelectorAll('.sidebar-nav a');
-    const observer = new IntersectionObserver((entries) => {
+    // Active subnav link on scroll
+    const subnavLinks = document.querySelectorAll('.subnav-inner a');
+    const sections = document.querySelectorAll('.content-block[id]');
+    const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
-          sidebarLinks.forEach(a => {
+          subnavLinks.forEach(a => {
             a.classList.toggle('active', a.getAttribute('href') === '#' + entry.target.id);
           });
         }
       });
-    }, { threshold: 0.4 });
-    sections.forEach(s => observer.observe(s));
+    }, { threshold: 0.3, rootMargin: '-80px 0px -60% 0px' });
+    sections.forEach(s => sectionObserver.observe(s));
+
+    // Reveal animations
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   </script>
 </body>
 </html>
