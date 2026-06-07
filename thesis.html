@@ -151,14 +151,12 @@
 
     /* Sticky section subnav */
     .subnav {
-      position: fixed; top: 56px; left: 0; width: 100%; z-index: 99;
+      position: sticky; top: 56px; width: 100%; z-index: 98;
       background: rgba(248, 247, 244, 0.98);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--rule);
-      transform: translateY(-110%); transition: transform 0.35s ease;
-      pointer-events: none;
     }
-    .subnav.visible { transform: translateY(0); pointer-events: all; }
+    .subnav.hidden { display: none; }
     .subnav-inner {
       max-width: 1140px; margin: 0 auto; padding: 0 2.5rem;
       display: flex; gap: 0; align-items: center;
@@ -778,15 +776,7 @@
     const nav = document.getElementById('navbar');
     window.addEventListener('scroll', () => { nav.classList.toggle('scrolled', window.scrollY > 50); });
 
-    // Show subnav only after hero is fully scrolled past
-    const subnav = document.getElementById('subnav');
-    const hero = document.querySelector('.hero');
-    const heroObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        subnav.classList.toggle('visible', !entry.isIntersecting);
-      });
-    }, { threshold: 0, rootMargin: '0px 0px 0px 0px' });
-    heroObserver.observe(hero);
+    // Subnav is sticky - no show/hide needed
 
     // Active subnav link on scroll
     const subnavLinks = document.querySelectorAll('.subnav-inner a');
