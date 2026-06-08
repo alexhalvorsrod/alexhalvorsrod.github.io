@@ -595,7 +595,15 @@
         if (top <= 130) current = section.id;
       });
       subnavLinks.forEach(a => {
-        a.classList.toggle('active', a.getAttribute('href') === '#' + current);
+        const isActive = a.getAttribute('href') === '#' + current;
+        a.classList.toggle('active', isActive);
+        if (isActive) {
+          const subnav = document.querySelector('.subnav-inner');
+          const linkLeft = a.offsetLeft;
+          const linkWidth = a.offsetWidth;
+          const navWidth = subnav.offsetWidth;
+          subnav.scrollTo({ left: linkLeft - (navWidth / 2) + (linkWidth / 2), behavior: 'smooth' });
+        }
       });
     }
 
