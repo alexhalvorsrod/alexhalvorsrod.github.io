@@ -185,6 +185,8 @@
     .xl-asm-row span:first-child { color:var(--muted); }
     .xl-asm-row span:last-child { font-family:var(--mono); font-weight:500; color:var(--ink); }
     .xl-asm-sep { height:0.5rem; }
+    .scroll-hint { display:none; font-size:0.72rem; color:var(--dim); text-align:center; padding:0.4rem 0 0.6rem; letter-spacing:0.04em; }
+    @media(max-width:640px) { .scroll-hint { display:block; } }
     .xl-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; display:block; width:100%; }
     table.xl-table { width:100%; border-collapse:collapse; font-size:0.72rem; min-width:600px; }
     table.xl-table thead tr { background:var(--accent); }
@@ -266,6 +268,7 @@
 
 <div class="section-rule"><h2>Valuation Summary</h2></div>
 
+<p class="scroll-hint">← Scroll to see full table →</p>
 <div class="val-table-wrap">
   <table class="val-table">
     <thead><tr><th>Bank</th><th>Current price</th><th>Target price</th><th>Upside</th><th>Implied P/B</th><th>Current P/B</th><th>Rating</th></tr></thead>
@@ -413,6 +416,7 @@
             <div class="xl-asm-row"><span>CET1 req + 50b</span><span>17.22%</span></div>
             <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
           </div>
+          <p class="scroll-hint">← Scroll to see full model →</p>
           <div class="xl-table-wrap">
             <table class="xl-table">
               <thead><tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr></thead>
@@ -458,6 +462,7 @@
             <div class="xl-asm-row"><span>CET1 req + 50b</span><span>16.00%</span></div>
             <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
           </div>
+          <p class="scroll-hint">← Scroll to see full model →</p>
           <div class="xl-table-wrap">
             <table class="xl-table">
               <thead><tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr></thead>
@@ -503,6 +508,7 @@
             <div class="xl-asm-row"><span>CET1 req + 50b</span><span>15.40%</span></div>
             <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
           </div>
+          <p class="scroll-hint">← Scroll to see full model →</p>
           <div class="xl-table-wrap">
             <table class="xl-table">
               <thead><tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr></thead>
@@ -548,6 +554,7 @@
             <div class="xl-asm-row"><span>CET1 req + 50b</span><span>16.10%</span></div>
             <div class="xl-asm-row"><span>RWA growth p</span><span>3%</span></div>
           </div>
+          <p class="scroll-hint">← Scroll to see full model →</p>
           <div class="xl-table-wrap">
             <table class="xl-table">
               <thead><tr><th>NOK unless stated</th><th>2025</th><th>2026</th><th>2027</th><th>2028</th><th>2029</th><th>2030</th><th class="term-col">Terminal</th></tr></thead>
