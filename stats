@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stats</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --ink: #1a1a1a; --paper: #f8f7f4; --cream: #f0eee8;
+      --accent: #2c3e50; --gold: #9e8a6a; --rule: #d4d0c8;
+      --muted: #6b6b6b; --dim: #999;
+      --serif: 'Georgia', serif;
+      --sans: 'Helvetica Neue', sans-serif;
+    }
+    body { font-family: var(--sans); background: var(--paper); color: var(--ink); }
+
+    /* Login screen */
+    #login {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      min-height: 100vh; gap: 1.2rem;
+    }
+    #login h1 { font-family: var(--serif); font-size: 1.8rem; font-weight: 400; color: var(--ink); }
+    #login input {
+      padding: 0.8rem 1.2rem; border: 1px solid var(--rule); background: var(--cream);
+      font-size: 0.9rem; font-family: var(--sans); outline: none; width: 260px;
+      transition: border-color 0.3s;
+    }
+    #login input:focus { border-color: var(--gold); }
+    #login button {
+      padding: 0.8rem 2rem; background: var(--accent); color: #fff;
+      border: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.14em;
+      text-transform: uppercase; cursor: pointer; transition: background 0.3s;
+    }
+    #login button:hover { background: #1a2a38; }
+    #login .error { font-size: 0.78rem; color: #b4463c; display: none; }
+
+    /* Dashboard */
+    #dashboard { display: none; }
+
+    .dash-nav {
+      padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--rule);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .dash-nav .logo { font-family: var(--serif); font-size: 1.3rem; font-weight: 400; color: var(--ink); }
+    .dash-nav a { font-size: 0.7rem; color: var(--muted); text-decoration: none; letter-spacing: 0.1em; text-transform: uppercase; }
+    .dash-nav a:hover { color: var(--gold); }
+
+    .dash-body { max-width: 1100px; margin: 0 auto; padding: 3rem 2.5rem; }
+
+    .dash-header { margin-bottom: 2.5rem; }
+    .dash-header h2 { font-family: var(--serif); font-size: 1.6rem; font-weight: 400; margin-bottom: 0.3rem; }
+    .dash-header p { font-size: 0.82rem; color: var(--muted); }
+
+    .links-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 3rem; }
+    .link-card {
+      border: 1px solid var(--rule); padding: 1.6rem; text-decoration: none; color: inherit;
+      transition: border-color 0.3s, background 0.3s; display: block;
+    }
+    .link-card:hover { border-color: var(--gold); background: var(--cream); }
+    .link-card .lc-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; }
+    .link-card .lc-title { font-family: var(--serif); font-size: 1.1rem; font-weight: 500; margin-bottom: 0.3rem; }
+    .link-card .lc-desc { font-size: 0.78rem; color: var(--muted); font-weight: 300; }
+
+    .section-label {
+      font-size: 0.65rem; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 1rem; padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--rule); display: flex; align-items: center; gap: 1rem;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent); }
+
+    .embed-wrap {
+      border: 1px solid var(--rule); border-radius: 2px; overflow: hidden;
+      margin-bottom: 3rem; background: var(--cream);
+    }
+    .embed-wrap iframe {
+      width: 100%; height: 800px; border: none; display: block;
+    }
+
+    .tip-box {
+      background: var(--cream); border: 1px solid var(--rule);
+      border-left: 2px solid var(--gold); padding: 1.2rem 1.5rem; margin-bottom: 2rem;
+    }
+    .tip-box p { font-size: 0.82rem; color: var(--muted); line-height: 1.7; }
+    .tip-box strong { color: var(--ink); font-weight: 600; }
+
+    @media (max-width: 700px) {
+      .links-grid { grid-template-columns: 1fr; }
+      .dash-body { padding: 2rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login -->
+  <div id="login">
+    <h1>AMH. Stats</h1>
+    <input type="password" id="pwInput" placeholder="Passord" onkeydown="if(event.key==='Enter') checkPw()" />
+    <button onclick="checkPw()">Logg inn</button>
+    <p class="error" id="errMsg">Feil passord</p>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboard">
+    <div class="dash-nav">
+      <span class="logo">AMH. Stats</span>
+      <a href="index.html">← Tilbake til siden</a>
+    </div>
+
+    <div class="dash-body">
+      <div class="dash-header">
+        <h2>Nettstedsoversikt</h2>
+        <p>Trafikk og statistikk for alexhalvorsrod.no</p>
+      </div>
+
+      <div class="section-label">Sider</div>
+      <div class="links-grid">
+        <a class="link-card" href="index.html" target="_blank">
+          <div class="lc-label">Forside</div>
+          <div class="lc-title">index.html</div>
+          <div class="lc-desc">alexhalvorsrod.no</div>
+        </a>
+        <a class="link-card" href="thesis.html" target="_blank">
+          <div class="lc-label">Master's Thesis</div>
+          <div class="lc-title">thesis.html</div>
+          <div class="lc-desc">Passive Dominance & Market Efficiency</div>
+        </a>
+        <a class="link-card" href="sb1-alliance.html" target="_blank">
+          <div class="lc-label">Equity Research</div>
+          <div class="lc-title">sb1-alliance.html</div>
+          <div class="lc-desc">SpareBank 1 Alliance RIM-analyse</div>
+        </a>
+        <a class="link-card" href="research.html" target="_blank">
+          <div class="lc-label">Research Hub</div>
+          <div class="lc-title">research.html</div>
+          <div class="lc-desc">Alle analyser</div>
+        </a>
+        <a class="link-card" href="carecenter.html" target="_blank">
+          <div class="lc-label">Prosjekt</div>
+          <div class="lc-title">carecenter.html</div>
+          <div class="lc-desc">Excel/VBA automatisering</div>
+        </a>
+      </div>
+
+      <div class="section-label">Google Analytics</div>
+
+      <div class="tip-box">
+        <p>
+          <strong>Slik leser du trafikken:</strong> Under "Sanntid" ser du hvem som er inne akkurat nå.
+          Under "Rapporter → Engasjement → Sider" ser du hvilke sider som er mest besøkt.
+          Du kan filtrere bort din egen trafikk ved å gå til <strong>Admin → Datafiltre → Ekskluder interne treff</strong>
+          og legge inn din IP-adresse.
+        </p>
+      </div>
+
+      <div class="embed-wrap">
+        <iframe
+          src="https://analytics.google.com/analytics/web/#/p$(GA_PROPERTY_ID)/reports/reportinghub"
+          title="Google Analytics"
+        ></iframe>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function checkPw() {
+      const input = document.getElementById('pwInput').value;
+      const err = document.getElementById('errMsg');
+      if (input === 'passord') {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        err.style.display = 'none';
+      } else {
+        err.style.display = 'block';
+        document.getElementById('pwInput').value = '';
+      }
+    }
+  </script>
+
+</body>
+</html>
