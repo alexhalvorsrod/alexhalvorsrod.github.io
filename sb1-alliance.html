@@ -185,8 +185,8 @@
     .xl-asm-row span:first-child { color:var(--muted); }
     .xl-asm-row span:last-child { font-family:var(--mono); font-weight:500; color:var(--ink); }
     .xl-asm-sep { height:0.5rem; }
-    .xl-table-wrap { overflow-x:auto; }
-    table.xl-table { width:100%; border-collapse:collapse; font-size:0.72rem; }
+    .xl-table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; display:block; width:100%; }
+    table.xl-table { width:100%; border-collapse:collapse; font-size:0.72rem; min-width:600px; }
     table.xl-table thead tr { background:var(--accent); }
     table.xl-table thead th { color:rgba(255,255,255,0.85); font-size:0.63rem; font-weight:500;
       padding:0.45rem 0.6rem; text-align:right; white-space:nowrap; letter-spacing:0.04em; }
