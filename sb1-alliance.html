@@ -22,7 +22,7 @@
     }
     html { scroll-behavior:smooth; font-size:16px; }
     body { font-family:var(--sans); background:var(--paper); color:var(--ink);
-      line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+      line-height:1.7; -webkit-font-smoothing:antialiased; overflow-x:clip; }
     body::before {
       content:''; position:fixed; inset:0; z-index:9999; pointer-events:none; opacity:0.018;
       background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
@@ -68,7 +68,7 @@
       text-transform:uppercase; color:rgba(255,255,255,0.5); margin-bottom:0.9rem; }
     .investment-summary p { font-family:var(--serif); font-size:1.22rem; line-height:1.7; color:rgba(255,255,255,0.92); }
     .investment-summary strong { color:#fff; font-weight:600; }
-    .val-table-wrap { overflow-x:auto; margin-bottom:1rem;
+    .val-table-wrap { overflow-x:auto; margin-bottom:1rem; -webkit-overflow-scrolling:touch;
       opacity:0; transform:translateY(10px); animation:fadeUp 0.6s 0.5s forwards; }
     table.val-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
     table.val-table thead tr { border-bottom:2px solid var(--accent); }
@@ -214,7 +214,28 @@
     @media(max-width:640px) { .xl-inner { grid-template-columns:1fr; }
       .xl-assumptions { border-right:none; border-bottom:1px solid var(--rule); } }
     @media(max-width:900px) { .model-grid{grid-template-columns:1fr;} .metrics-strip{grid-template-columns:1fr 1fr;} .risks-grid{grid-template-columns:1fr;} }
-    @media(max-width:640px) { .hero{padding:8rem 1.5rem 3rem;} .content{padding:0 1.5rem 4rem;} .nav-inner{padding:1rem 1.5rem;} .beta-display{grid-template-columns:1fr;} .metrics-strip{grid-template-columns:1fr;} }
+
+    @media(max-width:640px) {
+      .val-table-wrap, .xl-table-wrap, .roe-table { overflow-x:auto; -webkit-overflow-scrolling:touch; display:block; }
+      table.val-table, table.xl-table { min-width:560px; }
+      .roe-table table { min-width:420px; }
+      .rate-path-table { min-width:280px; }
+      .nim-flow { gap:0.3rem; }
+      .flow-box { padding:0.5rem 0.6rem; }
+      .flow-box .val { font-size:0.78rem; }
+      .xl-inner { grid-template-columns:1fr; }
+      .xl-assumptions { border-right:none; border-bottom:1px solid var(--rule); }
+      .investment-summary { padding:1.8rem; }
+      .investment-summary p { font-size:1rem; }
+      .roe-grid { grid-template-columns:1fr; }
+      .model-grid { grid-template-columns:1fr; }
+      .beta-display { grid-template-columns:1fr 1fr; }
+      .metrics-strip { grid-template-columns:1fr; }
+      .risks-grid { grid-template-columns:1fr; }
+      .hero { padding:8rem 1.5rem 3rem; }
+      .content { padding:0 1.5rem 4rem; }
+      .nav-inner { padding:1rem 1.5rem; }
+    }
   </style>
 </head>
 <body>
