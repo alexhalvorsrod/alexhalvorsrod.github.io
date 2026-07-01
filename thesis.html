@@ -2,15 +2,14 @@
 <html lang="en">
 <head>
   <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HX8YCJX75Q"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-HX8YCJX75Q"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-HX8YCJX75Q');
+  </script>
 
-  gtag('config', 'G-HX8YCJX75Q');
-</script>
-  
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Master's Thesis — Alexander Moe Halvorsrød</title>
@@ -50,6 +49,13 @@
       overflow-x: hidden;
     }
 
+    /* ── SCROLL PROGRESS ── */
+    .scroll-progress {
+      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
+      background: linear-gradient(90deg, var(--gold), var(--accent));
+      z-index: 200; transition: width 0.05s linear;
+    }
+
     /* ── MAIN NAV ── */
     nav {
       position: fixed; top: 0; width: 100%; z-index: 100;
@@ -74,7 +80,6 @@
     .nav-links a.active { color: var(--gold); }
 
     /* ── SECTION SUBNAV ── */
-    /* Sits right after the hero in normal document flow, then sticks */
     .subnav-wrap {
       position: sticky;
       top: 64px;
@@ -85,7 +90,9 @@
     .subnav-inner {
       max-width: 1140px; margin: 0 auto; padding: 0 2.5rem;
       display: flex; align-items: flex-end; overflow-x: auto;
+      scrollbar-width: none;
     }
+    .subnav-inner::-webkit-scrollbar { display: none; }
     .subnav-inner a {
       font-size: 0.65rem; font-weight: 500; letter-spacing: 0.14em;
       text-transform: uppercase; color: var(--muted); text-decoration: none;
@@ -95,13 +102,6 @@
     }
     .subnav-inner a:hover { color: var(--ink); }
     .subnav-inner a.active { color: var(--gold); border-bottom-color: var(--gold); }
-
-    /* ── SCROLL PROGRESS ── */
-    .scroll-progress {
-      position: fixed; top: 0; left: 0; height: 2px; width: 0%;
-      background: linear-gradient(90deg, var(--gold), var(--accent));
-      z-index: 200; transition: width 0.05s linear;
-    }
 
     /* ── HERO ── */
     .hero {
@@ -124,6 +124,7 @@
     .hero-meta-item .label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); margin-bottom: 0.2rem; }
     .hero-meta-item .value { font-family: var(--serif); font-size: 1rem; font-weight: 500; }
     .hero-actions { display: flex; gap: 1.8rem; align-items: center; flex-wrap: wrap; }
+
     .btn-primary {
       display: inline-flex; align-items: center; gap: 0.8rem;
       padding: 0.9rem 2rem; background: var(--accent); color: #fff;
@@ -131,20 +132,23 @@
       letter-spacing: 0.14em; text-transform: uppercase; transition: background 0.3s;
     }
     .btn-primary:hover { background: #1a2a38; }
-    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; }
-    .btn-ghost {
-      font-size: 0.76rem; font-weight: 500; letter-spacing: 0.08em;
-      text-transform: uppercase; text-decoration: none; color: var(--ink);
-      padding-bottom: 2px; border-bottom: 1.5px solid var(--gold); transition: color 0.3s;
+    .btn-primary svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+    .btn-download {
+      display: inline-flex; align-items: center; gap: 0.7rem;
+      padding: 0.9rem 2rem; background: transparent; color: var(--ink);
+      text-decoration: none; font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      border: 1px solid var(--rule); transition: border-color 0.3s, color 0.3s;
     }
-    .btn-ghost:hover { color: var(--gold); }
+    .btn-download:hover { border-color: var(--gold); color: var(--gold); }
+    .btn-download svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; }
 
     /* ── PAGE BODY ── */
     .page-body { max-width: 1140px; margin: 0 auto; padding: 4rem 2.5rem; }
     .main-content { max-width: 780px; }
 
     .section-header { display: flex; align-items: center; gap: 1.2rem; margin-bottom: 2.5rem; }
-    .section-num { font-family: var(--serif); font-size: 1rem; color: var(--gold); font-weight: 400; }
     .section-label-text { font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); }
     .section-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--rule), transparent); }
 
@@ -155,14 +159,34 @@
     .content-block h3 { font-family: var(--serif); font-size: 1.3rem; font-weight: 500; margin-bottom: 0.8rem; margin-top: 2rem; }
     .content-block p { color: var(--muted); font-size: 0.93rem; font-weight: 300; line-height: 1.85; margin-bottom: 1rem; max-width: 680px; }
 
+    /* ── ABSTRACT BLOCK ── */
+    .abstract-pull {
+      border-left: 2px solid var(--gold);
+      padding: 1.8rem 2rem;
+      background: var(--gold-glow);
+      margin: 2rem 0;
+    }
+    .abstract-pull p {
+      font-family: var(--serif);
+      font-size: 1.05rem;
+      font-weight: 400;
+      line-height: 1.8;
+      color: var(--ink);
+      font-style: italic;
+      max-width: 100%;
+      margin: 0;
+    }
+
+    /* ── HYPOTHESIS CARDS ── */
     .hypothesis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin: 2rem 0; }
     .hypothesis-card { border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden; transition: border-color 0.4s, box-shadow 0.4s; }
     .hypothesis-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 2px; background: linear-gradient(90deg, transparent, var(--gold), transparent); }
     .hypothesis-card:hover { border-color: var(--gold); box-shadow: 0 4px 24px var(--gold-dim); }
     .hypothesis-tag { font-size: 0.6rem; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.8rem; }
     .hypothesis-card h4 { font-family: var(--serif); font-size: 1.15rem; font-weight: 500; margin-bottom: 0.6rem; line-height: 1.3; }
-    .hypothesis-card p { font-size: 0.83rem; color: var(--muted); font-weight: 300; max-width: 100%; }
+    .hypothesis-card p { font-size: 0.83rem; color: var(--muted); font-weight: 300; max-width: 100%; margin: 0; }
 
+    /* ── DATA TABLE ── */
     .data-table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; }
     .data-table thead th { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); padding: 0.7rem 1rem; text-align: left; border-bottom: 2px solid var(--rule); background: var(--cream); }
     .data-table tbody tr { border-bottom: 1px solid var(--rule); transition: background 0.2s; }
@@ -171,6 +195,7 @@
     .data-table tbody td:first-child { font-weight: 500; font-family: var(--serif); font-size: 0.95rem; }
     .data-table .tag { display: inline-block; font-size: 0.6rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.6rem; border: 1px solid var(--rule-gold); color: var(--gold); background: var(--gold-dim); }
 
+    /* ── DATASET GRID ── */
     .dataset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin: 1.5rem 0; }
     .dataset-card { border: 1px solid var(--rule); padding: 1.6rem; background: var(--paper); transition: border-color 0.3s, background 0.3s; }
     .dataset-card:hover { border-color: var(--gold); background: var(--cream); }
@@ -182,6 +207,7 @@
     .dataset-card .ds-stat span { font-weight: 600; color: var(--ink); }
     .dataset-card p { font-size: 0.8rem; color: var(--muted); font-weight: 300; line-height: 1.7; max-width: 100%; margin: 0; }
 
+    /* ── CONTROLS GRID ── */
     .controls-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1.5rem 0; }
     .control-item { padding: 1.1rem 1.3rem; border: 1px solid var(--rule); transition: border-color 0.3s; }
     .control-item:hover { border-color: var(--gold); }
@@ -189,14 +215,17 @@
     .control-item .c-name { font-size: 0.88rem; font-weight: 500; margin-bottom: 0.15rem; }
     .control-item .c-desc { font-size: 0.75rem; color: var(--muted); font-weight: 300; }
 
+    /* ── METHOD TAGS ── */
     .method-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
     .method-tag { font-size: 0.78rem; font-weight: 400; color: var(--ink); padding: 0.4rem 1rem; border: 1px solid var(--rule); background: var(--paper); transition: border-color 0.3s; }
     .method-tag:hover { border-color: var(--gold); }
 
+    /* ── NOTE ── */
     .note { padding: 1.2rem 1.5rem; border-left: 2px solid var(--gold); background: var(--gold-dim); margin: 1.5rem 0; }
     .note p { font-size: 0.85rem; color: var(--muted); margin: 0; max-width: 100%; font-style: italic; }
 
-    .findings-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); border-radius: 2px; margin: 2rem 0; }
+    /* ── FINDINGS STRIP ── */
+    .findings-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin: 2rem 0; }
     .finding-cell { background: var(--paper); padding: 1.4rem 1.6rem; }
     .finding-label { font-size: 0.6rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
     .finding-value { font-family: var(--serif); font-size: 1.7rem; font-weight: 500; color: var(--accent); line-height: 1; }
@@ -204,6 +233,7 @@
     .finding-value.negative { color: var(--red); }
     .finding-sub { font-size: 0.68rem; color: var(--dim); margin-top: 0.3rem; line-height: 1.4; }
 
+    /* ── HYPOTHESIS RESULT CARDS ── */
     .h-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2rem 0; }
     .h-card { border: 1px solid var(--rule); padding: 2rem; position: relative; overflow: hidden; transition: border-color 0.4s, box-shadow 0.4s; }
     .h-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; }
@@ -220,18 +250,24 @@
     .h-card ul li::before { content: '—'; color: var(--gold); flex-shrink: 0; font-size: 0.75rem; margin-top: 0.05rem; }
     .h-card .h-stat { font-weight: 600; color: var(--ink); }
 
-    .preliminary-note { padding: 1.4rem 1.8rem; border: 1px solid var(--rule-gold); background: var(--gold-dim); margin: 2rem 0; display: flex; gap: 1rem; align-items: flex-start; }
-    .preliminary-note .pn-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem; }
-    .preliminary-note p { font-size: 0.84rem; color: var(--muted); margin: 0; max-width: 100%; font-style: italic; line-height: 1.7; }
+    /* ── LITERATURE NOTE ── */
+    .lit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.5rem 0; }
+    .lit-item { border: 1px solid var(--rule); padding: 1.4rem; transition: border-color 0.3s; }
+    .lit-item:hover { border-color: var(--gold); }
+    .lit-item .lit-author { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.4rem; }
+    .lit-item .lit-title { font-family: var(--serif); font-size: 0.95rem; font-weight: 500; margin-bottom: 0.4rem; line-height: 1.3; }
+    .lit-item p { font-size: 0.78rem; color: var(--muted); font-weight: 300; line-height: 1.6; max-width: 100%; margin: 0; }
 
+    /* ── FOOTER ── */
     footer { padding: 3.5rem 2.5rem; border-top: 1px solid var(--rule); margin-top: 4rem; }
-    footer .container { max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    footer .container { max-width: 1140px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
     footer p { font-size: 0.72rem; color: var(--dim); font-weight: 300; }
     footer a { color: var(--gold); text-decoration: none; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
     footer a:hover { color: var(--ink); }
 
+    /* ── RESPONSIVE ── */
     @media (max-width: 900px) {
-      .hypothesis-grid, .dataset-grid, .h-grid { grid-template-columns: 1fr; }
+      .hypothesis-grid, .dataset-grid, .h-grid, .lit-grid { grid-template-columns: 1fr; }
       .controls-grid { grid-template-columns: 1fr 1fr; }
       .findings-strip { grid-template-columns: 1fr 1fr; }
     }
@@ -242,6 +278,7 @@
       .hero-meta { gap: 1.5rem; }
       .findings-strip { grid-template-columns: 1fr; }
       .page-body { padding: 3rem 1.5rem; }
+      .hero-actions { flex-direction: column; align-items: flex-start; }
     }
   </style>
 </head>
@@ -264,7 +301,7 @@
   <section class="hero">
     <div class="container">
       <div class="hero-eyebrow">Master's Thesis · BI Norwegian Business School · 2026</div>
-      <h1>Passive Dominance and<br/><em>Market Efficiency</em></h1>
+      <h1>The Price of Passive:<br/><em>Valuation Distortion and Systematic<br/>Fragility in the S&P 500</em></h1>
       <div class="hero-meta">
         <div class="hero-meta-item">
           <div class="label">Authors</div>
@@ -280,296 +317,436 @@
         </div>
         <div class="hero-meta-item">
           <div class="label">Status</div>
-          <div class="value">Submission July 2026</div>
+          <div class="value">Submitted July 2026</div>
         </div>
       </div>
       <div class="hero-actions">
         <a href="#overview" class="btn-primary">
           Read overview
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </a>
-        <a href="#" class="btn-ghost" style="opacity: 0.45; cursor: default; pointer-events: none;">PDF coming soon</a>
+        <a href="docs/Master_Thesis_Price_of_Passive.pdf" class="btn-download" download="Price_of_Passive_Halvorsrod_Billington.pdf">
+          <svg viewBox="0 0 24 24"><path d="M12 3v13M7 11l5 5 5-5M3 20h18"/></svg>
+          Download thesis
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Section subnav — sticky in document flow, never touches main nav -->
   <div class="subnav-wrap">
     <div class="subnav-inner">
       <a href="#overview" class="subnav-link">Overview</a>
       <a href="#hypotheses" class="subnav-link">Hypotheses</a>
       <a href="#findings" class="subnav-link">Key Findings</a>
-      <a href="#data" class="subnav-link">Data Sources</a>
-      <a href="#controls" class="subnav-link">Controls</a>
+      <a href="#data" class="subnav-link">Data</a>
       <a href="#method" class="subnav-link">Methodology</a>
+      <a href="#literature" class="subnav-link">Literature</a>
     </div>
   </div>
 
   <div class="page-body">
     <main class="main-content">
 
+      <!-- ── OVERVIEW ── -->
       <div class="content-block" id="overview">
         <div class="section-header">
-          <span class="section-num">01</span>
           <span class="section-label-text">Overview</span>
           <span class="section-line"></span>
         </div>
-        <h2>Evidence from <em>US Equities</em></h2>
-        <p>Passive investing now accounts for more than 60% of total US fund assets. As index-tracking vehicles mechanically allocate capital based on index membership rather than fundamental value, a growing body of literature questions whether this structural shift impairs the price discovery process that underpins market efficiency.</p>
-        <p>This thesis investigates two related but distinct channels through which passive dominance may distort equity markets: valuation inflation among index constituents, and the deterioration of return independence as correlation structures become increasingly driven by mechanical rebalancing rather than firm-specific information.</p>
-        <p>The empirical framework draws on over three decades of CRSP daily data, Compustat valuation ratios, and Morningstar fund flow data, covering 1,257 S&P 500 constituent firms across 8,311 trading days. All estimation is performed in Python using a reproducible, point-in-time pipeline with no look-ahead bias.</p>
+        <h2>Passive Dominance and <em>Market Efficiency</em></h2>
+
+        <div class="abstract-pull">
+          <p>Passive funds now account for 63.4% of total US equity fund assets. When the majority of capital is allocated by index rules rather than fundamental analysis, the informed price discovery that underpins market efficiency is gradually displaced. This thesis asks what that displacement costs — in valuations, in risk concentration, and in the behaviour of correlations when markets fall.</p>
+        </div>
+
+        <p>The Efficient Market Hypothesis assumes that active, informed traders compete to correct mispricings and keep prices anchored to fundamentals. The index fund, which did not exist until 1976, introduces a structurally different participant: one that buys every constituent in proportion to its size, regardless of whether the price is right.</p>
+        <p>This thesis investigates two channels through which passive dominance may degrade market efficiency. The first is valuation distortion: whether non-informational capital flows inflate the prices of index constituents beyond what earnings or book value justifies. The second is systematic fragility: whether passive dominance has increased price synchronicity, concentrated risk in a small number of mega-cap stocks, and made correlations asymmetric in ways that hurt investors precisely when they need diversification most.</p>
+        <p>The empirical framework draws on three decades of CRSP daily data, Compustat valuation ratios, and Morningstar fund flow data, covering 1,257 S&P 500 constituent firms across 8,311 trading days from 1993 to 2024. All estimation is conducted in Python with a fully reproducible, point-in-time pipeline and no look-ahead bias.</p>
+
         <div class="note">
-          <p>Theoretical anchors: Grossman & Stiglitz (1980), the information acquisition paradox, and Asness (2024), the Less-Efficient Market Hypothesis (LEMH).</p>
+          <p>Theoretical anchors: Grossman & Stiglitz (1980) on the information acquisition paradox; Asness (2024) on the Less-Efficient Market Hypothesis (LEMH); Fama (1970) on efficient capital markets.</p>
         </div>
       </div>
 
+      <!-- ── HYPOTHESES ── -->
       <div class="content-block" id="hypotheses">
         <div class="section-header">
-          <span class="section-num">02</span>
           <span class="section-label-text">Hypotheses</span>
           <span class="section-line"></span>
         </div>
-        <h2>Two <em>Research Questions</em></h2>
+        <h2>Two <em>Research Channels</em></h2>
         <p>The thesis tests two primary hypotheses, each addressing a distinct dimension of market quality under passive dominance.</p>
         <div class="hypothesis-grid">
           <div class="hypothesis-card">
             <div class="hypothesis-tag">H1 — Price Distortion</div>
             <h4>Passive flows inflate valuations beyond fundamentals</h4>
-            <p>Passive capital inflows decouple stock prices from fundamental value, driving P/E and P/B multiples of index constituents beyond what earnings growth explains. Index membership creates a valuation premium unrelated to firm quality.</p>
+            <p>As passive ownership grows, index-agnostic capital flows mechanically into constituents without regard to their fundamental value. This non-informational demand should expand P/E and P/B multiples beyond what earnings, book value, or growth prospects justify — and the effect should be concentrated among index members, not the broader market.</p>
           </div>
           <div class="hypothesis-card">
             <div class="hypothesis-tag">H2 — Systematic Fragility</div>
-            <h4>Passive investing increases correlation and concentration risk</h4>
-            <p>Mechanical rebalancing increases return co-movement, price synchronicity, and correlation asymmetry, particularly during market downturns. This increases systemic risk across the index and reduces the portfolio diversification benefit for investors.</p>
+            <h4>Passive dominance increases correlation and concentration risk</h4>
+            <p>Passive funds do not process firm-specific information, which should increase price synchronicity. Market-cap weighting mechanically channels capital to the largest constituents, concentrating risk. And during downturns, passive fund redemptions produce indiscriminate selling that amplifies correlation asymmetry — weakening diversification precisely when it is needed most.</p>
           </div>
         </div>
       </div>
 
+      <!-- ── FINDINGS ── -->
       <div class="content-block" id="findings">
         <div class="section-header">
-          <span class="section-num">03</span>
           <span class="section-label-text">Key Findings</span>
           <span class="section-line"></span>
         </div>
-        <h2>Preliminary <em>Results</em></h2>
-        <div class="preliminary-note">
-          <div class="pn-icon">◎</div>
-          <p>These findings are preliminary and reflect the current state of the analysis ahead of submission in July 2026. All results are subject to revision following final review.</p>
-        </div>
+        <h2>Results Across <em>Four Estimators</em></h2>
+
         <h3>H1 — Price Distortion</h3>
-        <p>The evidence supports H1 across four complementary identification strategies.</p>
+        <p>The evidence supports H1 across four complementary identification strategies: long-run OLS, error correction model, panel fixed effects, and a regression discontinuity design exploiting the annual Russell 1000/2000 reconstitution boundary.</p>
+
         <div class="findings-strip">
           <div class="finding-cell">
             <div class="finding-label">Passive share growth</div>
-            <div class="finding-value positive">4.4% → 64.4%</div>
+            <div class="finding-value positive">4.4% → 63.4%</div>
             <div class="finding-sub">Feb 1993 to Dec 2024. Crossed 50% in April 2019.</div>
           </div>
           <div class="finding-cell">
-            <div class="finding-label">P/E mean reversion</div>
+            <div class="finding-label">P/E mean reversion half-life</div>
             <div class="finding-value">~4 months</div>
-            <div class="finding-sub">ECM half-life. P/B reverts more slowly at ~12 months.</div>
+            <div class="finding-sub">ECM at 17.9% per month. P/B median reverts more slowly at ~12 months (5.9%/month).</div>
           </div>
           <div class="finding-cell">
             <div class="finding-label">Panel premium (log P/B)</div>
             <div class="finding-value positive">+1.025</div>
-            <div class="finding-sub">Index vs. non-index firms per unit increase in passive share.</div>
+            <div class="finding-sub">Index members vs. non-index peers per unit increase in orthogonalised passive share.</div>
           </div>
           <div class="finding-cell">
-            <div class="finding-label">Russell RD — P/B premium</div>
-            <div class="finding-value positive">+24.5pp</div>
-            <div class="finding-sub">Post-2007. Insignificant pre-2007, confirming the passive era mechanism.</div>
+            <div class="finding-label">Russell RD — log P/B premium</div>
+            <div class="finding-value positive">+0.245</div>
+            <div class="finding-sub">Post-2007, BW=100, p&lt;0.05. Insignificant pre-2007 when passive share was below ~25%.</div>
           </div>
         </div>
+
         <div class="h-grid">
           <div class="h-card supported">
             <div class="h-card-tag supported">H1 — Supported</div>
             <h4>Cointegration and long-run equilibrium</h4>
             <ul>
               <li>Passive share cointegrated with <span class="h-stat">P/B median (p=0.028)</span>, P/E median (p=0.007), and P/E EW (p=0.005)</li>
-              <li>ECM confirms genuine mean reversion, not a spurious trend correlation</li>
+              <li>ECM confirms genuine mean reversion — not a spurious trend correlation</li>
               <li>P/E median reverts at <span class="h-stat">17.9% per month</span>; P/B median at 5.9% per month</li>
-              <li>Speed of adjustment has increased substantially post-2010 as passive dominance has grown</li>
-              <li>Granger causality: passive share does not predict valuations at short lags, consistent with the premium shifting from event-driven spikes into chronic structural overpricing</li>
+              <li>Absence of Granger causality at short lags is consistent with the premium migrating from event-driven spikes into chronic structural overpricing — precisely what Greenwood & Sammon (2024) would predict</li>
+              <li>Passive share coefficient stable across specifications: 2.49 (baseline) to 2.07 (full model with FF5 factors)</li>
             </ul>
           </div>
           <div class="h-card supported">
             <div class="h-card-tag supported">H1 — Causal identification</div>
             <h4>Russell reconstitution regression discontinuity</h4>
             <ul>
-              <li>Russell 1000/2000 boundary: mechanical assignment creates quasi-random variation in passive ownership</li>
-              <li>Russell 2000 firms trade at a <span class="h-stat">+14 log-point P/B premium</span> at the core bandwidth (BW=100, p&lt;0.10)</li>
-              <li>Post-2007 coefficient rises to <span class="h-stat">0.245 (p&lt;0.05)</span>; insignificant pre-2007</li>
-              <li>Coefficient stable across linear, quadratic, and cubic polynomial specifications</li>
-              <li>Covariate balance confirmed: no significant difference in ROE, ROA, or net profit margin across the boundary</li>
+              <li>FTSE Russell assigns index membership by end-of-May market cap rank, creating quasi-random passive ownership variation at the boundary</li>
+              <li>Russell 2000 firms trade at a <span class="h-stat">+13.1 log-point P/B premium</span> at the core bandwidth (BW=100, p&lt;0.10)</li>
+              <li>Post-2007 coefficient: <span class="h-stat">0.245 (p&lt;0.05)</span>; 0.021 and insignificant pre-2007</li>
+              <li>Coefficient positive and stable across linear, quadratic, and cubic polynomial specifications</li>
+              <li>Covariate balance confirmed: ROE (p=0.424), ROA (p=0.279), net profit margin (p=0.269) show no significant difference across the boundary</li>
             </ul>
           </div>
         </div>
+
         <h3>H2 — Systematic Fragility</h3>
-        <p>The evidence is mixed but directionally consistent with H2.</p>
+        <p>The evidence is mixed but directionally consistent with H2. Synchronicity is the strongest result; concentration is real but not cleanly attributed to passive investing alone; correlation asymmetry is documented but its time-series variation does not track passive share in annual data.</p>
+
         <div class="findings-strip">
           <div class="finding-cell">
-            <div class="finding-label">Price synchronicity</div>
-            <div class="finding-value positive">β = 4.49</div>
+            <div class="finding-label">Price synchronicity (β)</div>
+            <div class="finding-value positive">4.49***</div>
             <div class="finding-sub">First differences, p&lt;0.001. Passive share crowds out firm-specific price discovery.</div>
           </div>
           <div class="finding-cell">
             <div class="finding-label">MCR concentration</div>
             <div class="finding-value">20.5% → 53.1%</div>
-            <div class="finding-sub">Top-10 risk share, 1993 to 2024. Over half of S&P 500 risk in 10 stocks.</div>
+            <div class="finding-sub">Top-10 risk share, 1993 to 2024. More than half of S&P 500 risk in 10 stocks by end of sample.</div>
           </div>
           <div class="finding-cell">
             <div class="finding-label">Correlation asymmetry</div>
             <div class="finding-value negative">Δ = 0.033</div>
-            <div class="finding-sub">Down-market avg 0.227 vs. up-market 0.194. t = 18.509, p = 0.000.</div>
+            <div class="finding-sub">Down-market avg 0.227 vs. up-market 0.194. t = 18.509, p = 0.000 across 8,300+ trading days.</div>
           </div>
           <div class="finding-cell">
-            <div class="finding-label">Crisis asymmetry peak</div>
-            <div class="finding-value negative">+0.110</div>
-            <div class="finding-sub">European debt crisis (2011). COVID crash (2020) at +0.103.</div>
+            <div class="finding-label">COVID down-day sync gap</div>
+            <div class="finding-value negative">+0.086</div>
+            <div class="finding-sub">vs. +0.008 during GFC (26% passive share) and +0.009 in non-crisis periods.</div>
           </div>
         </div>
+
         <div class="h-grid">
           <div class="h-card supported">
             <div class="h-card-tag supported">H2 — Supported</div>
             <h4>Synchronicity and correlation asymmetry</h4>
             <ul>
-              <li>Price synchronicity rises significantly with passive share in first differences (β = 4.49, p&lt;0.001)</li>
-              <li>Consistent with Roll (1988) and Morck et al. (2000): passive capital crowds out firm-specific informed trading</li>
-              <li>Down-market correlations are <span class="h-stat">17% higher</span> than up-market correlations across 8,000+ trading days</li>
-              <li>Asymmetry most pronounced during broad liquidity-driven panics (2011, 2020) at higher passive share levels</li>
+              <li>Price synchronicity rises significantly with passive share in first differences (<span class="h-stat">β = 4.49, p&lt;0.001</span>)</li>
+              <li>Consistent with Roll (1988) and Morck et al. (2000): passive capital displaces firm-specific informed trading</li>
+              <li>Down-market correlations are <span class="h-stat">17% higher</span> than up-market correlations, highly significant across 8,300+ trading days (t = 18.509)</li>
+              <li>Crisis synchronicity gap ordered COVID &gt; GFC &gt; Dot-com, matching the passive share gradient (51.4%, 26%, 14.7%)</li>
+              <li>Asymmetry most pronounced during broad liquidity-driven panics at higher passive share (European debt 2011: +0.110; COVID 2020: +0.103)</li>
             </ul>
           </div>
           <div class="h-card mixed">
             <div class="h-card-tag mixed">H2 — Nuanced</div>
             <h4>Risk concentration (MCR)</h4>
             <ul>
-              <li>Descriptive trend from <span class="h-stat">20.5% to 53.1%</span> is economically striking and temporally consistent with passive growth</li>
-              <li>First-difference tests: monthly changes in passive share do not independently predict MCR once mega-cap weight is controlled for</li>
-              <li>Passive share coefficient is <span class="h-stat">six times larger post-2017</span>, but insignificant in both sub-periods due to sample length</li>
+              <li>Descriptive trend from <span class="h-stat">20.5% to 53.1%</span> is economically striking and temporally aligned with passive growth</li>
+              <li>First-difference tests: passive share does not independently predict monthly MCR changes once mega-cap weight is controlled for</li>
+              <li>Top-10 market-cap share is the proximate statistical driver (β = 0.632, p&lt;0.001); passive share remains insignificant with it in the model (p = 0.107)</li>
+              <li>Passive share coefficient is <span class="h-stat">six times larger post-2017</span> (0.223 vs. 0.036) but insignificant due to sample length (N = 96 months)</li>
               <li>Full causal identification requires a longer post-2017 sample or an exogenous instrument for passive ownership</li>
             </ul>
           </div>
         </div>
+
+        <div class="note">
+          <p>The absence of short-run Granger causality from passive share to valuations does not contradict H1. Greenwood & Sammon (2024) show that the index inclusion premium has disappeared as active traders front-run predictable flows. That active traders efficiently process discrete rebalancing events does not prevent the same capital accumulation from sustaining a structural valuation elevation over years. The cointegration result captures what Granger cannot.</p>
+        </div>
       </div>
 
+      <!-- ── DATA ── -->
       <div class="content-block" id="data">
         <div class="section-header">
-          <span class="section-num">04</span>
-          <span class="section-label-text">Data Sources</span>
+          <span class="section-label-text">Data</span>
           <span class="section-line"></span>
         </div>
         <h2>Five <em>Primary Sources</em></h2>
-        <p>The empirical analysis draws on five distinct data sources, spanning January 1992 to December 2024. All data assembly is performed in Python with point-in-time integrity enforced throughout.</p>
+        <p>The empirical analysis draws on five data sources spanning January 1992 to December 2024. All assembly is conducted in Python with point-in-time integrity enforced throughout — no look-ahead bias is introduced at any merge step.</p>
+
         <table class="data-table">
           <thead>
             <tr><th>Source</th><th>Provider</th><th>Content</th><th>Coverage</th></tr>
           </thead>
           <tbody>
-            <tr><td>CRSP Daily Stock File</td><td><span class="tag">WRDS</span></td><td>Daily returns, prices, volume, market cap for S&P 500 constituents and large-cap comparison universe</td><td>1992–2024</td></tr>
-            <tr><td>Compustat Fundamentals</td><td><span class="tag">WRDS</span></td><td>Quarterly P/E and P/B ratios via WRDS firm_ratio; winsorised at 1st/99th percentile</td><td>1992–2024</td></tr>
-            <tr><td>S&P 500 Constituent History</td><td><span class="tag">WRDS + GitHub</span></td><td>Annual snapshots 1992–2022 from WRDS; 2023–2024 extended via fja05680/sp500 change log</td><td>1992–2024</td></tr>
-            <tr><td>Morningstar Direct</td><td><span class="tag">Morningstar</span></td><td>Monthly active vs. passive net flows, total net assets, and organic growth rates</td><td>1993–2024</td></tr>
-            <tr><td>CRSP / Russell Membership</td><td><span class="tag">WRDS</span></td><td>Annual Russell 1000/2000 membership reconstructed from CRSP end-of-May market cap ranks</td><td>1992–2024</td></tr>
+            <tr>
+              <td>CRSP Daily Stock File</td>
+              <td><span class="tag">WRDS</span></td>
+              <td>Daily returns, prices, volume, and market cap for S&P 500 constituents and the non-index large-cap comparison universe</td>
+              <td>1992–2024</td>
+            </tr>
+            <tr>
+              <td>Compustat / WRDS Financial Ratios</td>
+              <td><span class="tag">WRDS</span></td>
+              <td>Monthly P/E (pe_inc) and P/B (ptb) from wrds_ratios; supplemented by quarterly Compustat fundamentals for foreign-incorporated US-listed firms. Winsorised at 1st/99th percentile annually.</td>
+              <td>1993–2024, 94.6% P/E and 92.7% P/B coverage</td>
+            </tr>
+            <tr>
+              <td>S&P 500 Constituent History</td>
+              <td><span class="tag">WRDS + GitHub</span></td>
+              <td>Annual membership snapshots 1992–2022 from WRDS (1,256 unique periods across 1,226 PERMNOs); 2023–2024 extended via fja05680/sp500 change log. Three firms required manual PERMNO assignment: BRK.B, BF.B, and WAMUQ.</td>
+              <td>1992–2024, 1,257 PERMNOs</td>
+            </tr>
+            <tr>
+              <td>Morningstar Direct</td>
+              <td><span class="tag">Morningstar</span></td>
+              <td>Monthly active vs. passive net flows, total net assets, and organic growth rates for US equity open-end funds and ETFs. Excludes Funds of Funds, Feeder Funds, and Money Markets. Includes Obsolete funds to mitigate survivorship bias.</td>
+              <td>Feb 1993–Dec 2024, 383 months</td>
+            </tr>
+            <tr>
+              <td>Russell Membership (reconstructed)</td>
+              <td><span class="tag">WRDS / CRSP</span></td>
+              <td>Annual Russell 1000/2000 membership reconstructed from CRSP end-of-May market cap ranks, replicating FTSE Russell's ranking methodology. Running variable is rank minus 1000.</td>
+              <td>1988–2024, restricted to 1992–2024 for RD analysis</td>
+            </tr>
           </tbody>
         </table>
+
         <h3>Constructed Datasets</h3>
-        <p>Raw source data is assembled into six analysis-ready files:</p>
+        <p>Raw source data is assembled into six analysis-ready files used across the two hypotheses.</p>
         <div class="dataset-grid">
           <div class="dataset-card">
             <div class="ds-label">Primary Panel</div>
             <div class="ds-name">S&P 500 Constituent Panel</div>
             <div class="ds-filename">daily_panel.csv</div>
-            <div class="ds-stats"><div class="ds-stat">Rows: <span>6,495,873</span></div><div class="ds-stat">Cols: <span>13</span></div></div>
-            <p>Daily constituent-level panel with price, return, volume, market cap, and winsorised P/E and P/B. 1,257 unique PERMNOs across 8,311 trading days.</p>
+            <div class="ds-stats">
+              <div class="ds-stat">Stock-days: <span>4,165,672</span></div>
+              <div class="ds-stat">PERMNOs: <span>1,257</span></div>
+              <div class="ds-stat">Trading days: <span>8,311</span></div>
+            </div>
+            <p>Daily constituent-level panel with closing price, return, volume, market cap, and P/E and P/B. Avg 501.1 constituents per day (min 498, max 507; excess from dual share class listings).</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Comparison Universe</div>
             <div class="ds-name">Non-Index Large-Cap Panel</div>
             <div class="ds-filename">crsp_nonindex.csv</div>
-            <div class="ds-stats"><div class="ds-stat">Rows: <span>447,659</span></div><div class="ds-stat">Cols: <span>12</span></div></div>
-            <p>Monthly panel of large-cap stocks outside the S&P 500. Control group for panel fixed-effects specifications.</p>
+            <div class="ds-stats">
+              <div class="ds-stat">Firm-months: <span>~447,000</span></div>
+            </div>
+            <p>Monthly panel of US common stocks (share codes 10/11) on NYSE, AMEX, and NASDAQ with market cap above $500M, confirmed outside the S&P 500. Control group for all H1 panel fixed-effects specifications.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Membership History</div>
             <div class="ds-name">Constituent Membership Log</div>
             <div class="ds-filename">sp500_membership.csv</div>
-            <div class="ds-stats"><div class="ds-stat">Rows: <span>4,165,848</span></div><div class="ds-stat">Cols: <span>4</span></div></div>
-            <p>Point-in-time daily index membership for each PERMNO. Built from 33 annual WRDS snapshots supplemented with GitHub change-log data for 2023–2024.</p>
+            <div class="ds-stats">
+              <div class="ds-stat">Observations: <span>4,165,848</span></div>
+            </div>
+            <p>Point-in-time daily index membership for each PERMNO, separately for each membership period. 30 companies have two distinct periods (e.g. Maxim Integrated Products); gap years are correctly excluded.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Fund Flows</div>
             <div class="ds-name">Morningstar Flow Panel</div>
             <div class="ds-filename">morningstar.csv</div>
-            <div class="ds-stats"><div class="ds-stat">Rows: <span>383</span></div><div class="ds-stat">Cols: <span>11</span></div></div>
-            <p>Monthly active vs. passive net flows and total net assets. Key variable is organic growth rate (flow / lagged AUM). Covers 1993–2024.</p>
+            <div class="ds-stats">
+              <div class="ds-stat">Months: <span>383</span></div>
+            </div>
+            <p>Monthly active vs. passive net flows, AUM, and organic growth rate. Primary variable is passive share of total net assets, which grew from 4.4% (Feb 1993) to 63.4% (Dec 2024), crossing 50% in April 2019.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Causal Identification</div>
             <div class="ds-name">Russell RD Panel</div>
             <div class="ds-filename">russell_rd.csv</div>
-            <div class="ds-stats"><div class="ds-stat">Rows: <span>61,491</span></div></div>
-            <p>Annual firm-year panel from CRSP end-of-May market cap ranks. Used for regression discontinuity at the Russell 1000/2000 boundary (22,281 R1000 / 39,210 R2000 obs).</p>
+            <div class="ds-stats">
+              <div class="ds-stat">Firm-years: <span>61,491</span></div>
+              <div class="ds-stat">R1000: <span>22,281</span></div>
+              <div class="ds-stat">R2000: <span>39,210</span></div>
+            </div>
+            <p>Annual firm-year panel for regression discontinuity at the Russell 1000/2000 boundary. Bandwidths of ±250, ±100, and ±50 ranks correspond to 10,508, 4,214, and 2,111 observations.</p>
           </div>
           <div class="dataset-card">
             <div class="ds-label">Combined Panel</div>
             <div class="ds-name">Panel Fixed-Effects Dataset</div>
             <div class="ds-filename">panel_fe.csv</div>
-            <div class="ds-stats"><div class="ds-stat">Rows: <span>~1.23M</span></div></div>
-            <p>Stacked monthly panel of index and non-index firms. Unbalanced, indexed by PERMNO and date. Used for all H1 panel fixed-effects specifications.</p>
+            <div class="ds-stats">
+              <div class="ds-stat">Firm-months: <span>~1.23M</span></div>
+              <div class="ds-stat">Used in regressions: <span>~608K–622K</span></div>
+            </div>
+            <p>Stacked monthly panel of index and non-index firms, unbalanced, indexed by PERMNO and date. Estimation samples exclude non-positive earnings observations; log P/B and log P/E are dependent variables.</p>
           </div>
         </div>
       </div>
 
-      <div class="content-block" id="controls">
-        <div class="section-header">
-          <span class="section-num">05</span>
-          <span class="section-label-text">Controls</span>
-          <span class="section-line"></span>
-        </div>
-        <h2>Macroeconomic <em>Controls</em></h2>
-        <p>To isolate the effect of passive flows from broader macroeconomic conditions, six external control series are merged into the analysis panel. The key passive flow variable is orthogonalised against interest rates and active flows to address multi-collinearity.</p>
-        <div class="controls-grid">
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">10-Year Treasury Yield</div><div class="c-desc">GS10, monthly, risk-free rate proxy</div></div>
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Fed Funds Rate</div><div class="c-desc">FEDFUNDS, monetary policy stance</div></div>
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">CPI Inflation</div><div class="c-desc">CPIAUCSL, YoY % change, monthly</div></div>
-          <div class="control-item"><div class="c-source">FRED</div><div class="c-name">Real GDP Growth</div><div class="c-desc">A191RL1Q225SBEA, quarterly, interpolated</div></div>
-          <div class="control-item"><div class="c-source">CBOE</div><div class="c-name">VIX</div><div class="c-desc">Daily volatility index, collapsed to monthly</div></div>
-          <div class="control-item"><div class="c-source">Ken French</div><div class="c-name">Fama-French 5 Factors</div><div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA, monthly</div></div>
-        </div>
-        <div class="note">
-          <p>The passive share variable is double-orthogonalised against the 10-year Treasury yield and active flow rate before entry into panel regressions, producing <code>passive_share_orth</code>. This removes the mechanical correlation between passive growth and the broader rate environment.</p>
-        </div>
-      </div>
-
+      <!-- ── METHODOLOGY ── -->
       <div class="content-block" id="method">
         <div class="section-header">
-          <span class="section-num">06</span>
           <span class="section-label-text">Methodology</span>
           <span class="section-line"></span>
         </div>
         <h2>Econometric <em>Framework</em></h2>
-        <p>The analysis employs a suite of time-series and panel econometric methods, selected to address both the cointegration properties of passive share and valuation multiples, and the panel structure of firm-level data.</p>
-        <h3>Time-Series Methods</h3>
+        <p>The analysis employs a layered suite of time-series and panel methods, selected to address the non-stationarity of passive share and valuation multiples, the panel structure of firm-level data, and the endogeneity concern that passive capital may mechanically flow into already-overvalued index members.</p>
+
+        <h3>Time-Series Methods (H1)</h3>
         <div class="method-tags">
-          <span class="method-tag">OLS-HAC (Newey-West, 12 lags)</span>
-          <span class="method-tag">Engle-Granger Cointegration</span>
-          <span class="method-tag">Error Correction Model (ECM)</span>
-          <span class="method-tag">Granger Causality via VAR</span>
           <span class="method-tag">ADF / KPSS Unit Root Tests</span>
           <span class="method-tag">Zivot-Andrews Structural Break</span>
+          <span class="method-tag">Engle-Granger Cointegration</span>
+          <span class="method-tag">Long-Run OLS (Newey-West HAC, 12 lags)</span>
+          <span class="method-tag">Error Correction Model (ECM)</span>
+          <span class="method-tag">Granger Causality via Bivariate VAR</span>
         </div>
-        <h3>Panel & Cross-Sectional Methods</h3>
+
+        <h3>Panel & Cross-Sectional Methods (H1)</h3>
         <div class="method-tags">
-          <span class="method-tag">Panel Fixed Effects (firm + time FE)</span>
-          <span class="method-tag">Regression Discontinuity Design</span>
-          <span class="method-tag">Rolling 36-Month OLS</span>
-          <span class="method-tag">Crisis Period Subsample Analysis</span>
-          <span class="method-tag">Market Model R² (Price Synchronicity)</span>
-          <span class="method-tag">Marginal Contribution to Risk (MCR)</span>
-          <span class="method-tag">Welch t-test (Correlation Asymmetry)</span>
+          <span class="method-tag">Panel Fixed Effects (firm FE, clustered SE)</span>
+          <span class="method-tag">Passive Share Orthogonalisation</span>
+          <span class="method-tag">Regression Discontinuity Design (Russell boundary)</span>
+          <span class="method-tag">Polynomial Sensitivity (linear / quadratic / cubic)</span>
+          <span class="method-tag">Pre/Post 2007 Subsample Split</span>
         </div>
-        <h3>Implementation</h3>
-        <p>All estimation is conducted in Python using <code>statsmodels</code>, <code>linearmodels</code>, and <code>scipy</code>. CRSP data is accessed via WRDS using SQLAlchemy with <code>sqlalchemy.text()</code> after resolving a psycopg2 incompatibility. Point-in-time merges use <code>pd.merge_asof</code> throughout to prevent look-ahead bias.</p>
+
+        <h3>Fragility Methods (H2)</h3>
+        <div class="method-tags">
+          <span class="method-tag">Market Model R² (Price Synchronicity, Roll 1988)</span>
+          <span class="method-tag">Rolling 90-Day Market Model</span>
+          <span class="method-tag">Marginal Contribution to Risk (MCR)</span>
+          <span class="method-tag">Rolling 60-Day Covariance Matrix</span>
+          <span class="method-tag">Welch t-test (Correlation Asymmetry)</span>
+          <span class="method-tag">Crisis Period Daily Synchronicity</span>
+          <span class="method-tag">Rolling 36-Month OLS</span>
+          <span class="method-tag">Structural Break Test (Chow)</span>
+        </div>
+
+        <h3>Controls</h3>
+        <p>Six external series are included across all specifications to isolate passive share variation from the macroeconomic environment. The passive share variable is orthogonalised against the 10-year Treasury yield before entry into any regression, removing the mechanical correlation between passive growth and the secular rate decline.</p>
+        <div class="controls-grid">
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">10-Year Treasury Yield</div>
+            <div class="c-desc">GS10. Passive share orthogonalised against this series throughout.</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">CPI Inflation</div>
+            <div class="c-desc">CPIAUCSL, year-on-year % change, monthly.</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">FRED</div>
+            <div class="c-name">Real GDP Growth</div>
+            <div class="c-desc">A191RL1Q225SBEA, quarterly, forward-filled to monthly.</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">CBOE</div>
+            <div class="c-name">VIX</div>
+            <div class="c-desc">Daily volatility index, averaged within each calendar month.</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">Ken French</div>
+            <div class="c-name">Fama-French 5 Factors</div>
+            <div class="c-desc">Mkt-RF, SMB, HML, RMW, CMA. Monthly frequency.</div>
+          </div>
+          <div class="control-item">
+            <div class="c-source">Panel</div>
+            <div class="c-name">Firm Fixed Effects</div>
+            <div class="c-desc">Entity FE in all panel specifications. SE clustered at entity level.</div>
+          </div>
+        </div>
+
+        <div class="note">
+          <p>All estimation is conducted in Python using statsmodels, linearmodels, and scipy. CRSP data is accessed via WRDS using SQLAlchemy. Point-in-time merges use pd.merge_asof throughout to prevent look-ahead bias.</p>
+        </div>
+      </div>
+
+      <!-- ── LITERATURE ── -->
+      <div class="content-block" id="literature">
+        <div class="section-header">
+          <span class="section-label-text">Literature</span>
+          <span class="section-line"></span>
+        </div>
+        <h2>Key <em>References</em></h2>
+        <p>The thesis sits at the intersection of three strands of literature: market efficiency theory, empirical evidence on passive investing's effects, and the structural fragility of equity markets under stress.</p>
+        <div class="lit-grid">
+          <div class="lit-item">
+            <div class="lit-author">Asness (2024)</div>
+            <div class="lit-title">The Less-Efficient Market Hypothesis</div>
+            <p>Formalises the argument that the reduction in informed capital relative to passive flows allows mispricings to persist longer than in prior decades. Primary theoretical framework for H1.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">Israel, Laursen & Richardson (2021)</div>
+            <div class="lit-title">Is (Systematic) Value Investing Dead?</div>
+            <p>Find that passive investing has weakened the link between stock prices and fundamentals. The index-agnostic flow mechanism is the price-pressure channel tested in the panel fixed-effects specifications.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">Greenwood & Sammon (2024)</div>
+            <div class="lit-title">The Disappearing Index Effect</div>
+            <p>Document that abnormal returns upon S&P 500 inclusion have largely vanished as active traders front-run predictable flows. This finding is not in conflict with H1 — the premium has migrated from discrete events into chronic structural overpricing.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">Appel, Gormley & Keim (2016)</div>
+            <div class="lit-title">Passive Investors, Not Passive Owners</div>
+            <p>Foundational application of the Russell 1000/2000 boundary as an identification device. Their two-stage least squares framework is the methodological template for the RD design used in Section 5.2.8.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">Roll (1988)</div>
+            <div class="lit-title">R²</div>
+            <p>Proposes the market model R² as a proxy for firm-specific price discovery. The primary measurement tool for the synchronicity analysis in H2. Higher R² indicates less firm-specific information being priced in.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">Chua, Kritzman & Page (2009)</div>
+            <div class="lit-title">The Myth of Diversification</div>
+            <p>Documents that pairwise stock correlations are systematically higher during downturns than upturns. Primary framework for the correlation asymmetry analysis. Confirms the diversification benefit weakens when it is most needed.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">von Moltke & Sløk (2024)</div>
+            <div class="lit-title">Assessing the Impact of Passive Investing</div>
+            <p>Apollo Academy report arguing that market-cap weighting creates inelastic demand concentrated in the top constituents. Theoretical basis for the mechanical risk concentration channel in H2.</p>
+          </div>
+          <div class="lit-item">
+            <div class="lit-author">Sammon (2024)</div>
+            <div class="lit-title">Passive Ownership and Price Informativeness</div>
+            <p>Provides direct microeconomic evidence that passive ownership reduces the market's anticipation of earnings announcements. Corroborates the synchronicity finding at the stock level.</p>
+          </div>
+        </div>
       </div>
 
     </main>
@@ -577,42 +754,40 @@
 
   <footer>
     <div class="container">
-      <p>© 2026 Alexander Moe Halvorsrød</p>
+      <p>© 2026 Alexander Moe Halvorsrød & Benjamin Egeland Billington · MSc Finance, BI Norwegian Business School</p>
       <a href="index.html">← Back to main site</a>
     </div>
   </footer>
 
   <script>
+    // Scroll progress bar
     const progressBar = document.getElementById('scrollProgress');
     window.addEventListener('scroll', () => {
       const pct = window.scrollY / (document.documentElement.scrollHeight - window.innerHeight) * 100;
       progressBar.style.width = pct + '%';
     }, { passive: true });
 
+    // Nav border on scroll
     const nav = document.getElementById('navbar');
     window.addEventListener('scroll', () => {
       nav.classList.toggle('scrolled', window.scrollY > 50);
     }, { passive: true });
 
-    // Active subnav link highlight on scroll
+    // Active subnav highlight
     const subnavLinks = document.querySelectorAll('.subnav-link');
     const sections = document.querySelectorAll('.content-block[id]');
 
     function setActive() {
       let current = '';
       sections.forEach(section => {
-        const top = section.getBoundingClientRect().top;
-        if (top <= 130) current = section.id;
+        if (section.getBoundingClientRect().top <= 130) current = section.id;
       });
       subnavLinks.forEach(a => {
         const isActive = a.getAttribute('href') === '#' + current;
         a.classList.toggle('active', isActive);
         if (isActive) {
           const subnav = document.querySelector('.subnav-inner');
-          const linkLeft = a.offsetLeft;
-          const linkWidth = a.offsetWidth;
-          const navWidth = subnav.offsetWidth;
-          subnav.scrollTo({ left: linkLeft - (navWidth / 2) + (linkWidth / 2), behavior: 'smooth' });
+          subnav.scrollTo({ left: a.offsetLeft - subnav.offsetWidth / 2 + a.offsetWidth / 2, behavior: 'smooth' });
         }
       });
     }
@@ -620,5 +795,6 @@
     window.addEventListener('scroll', setActive, { passive: true });
     setActive();
   </script>
+
 </body>
 </html>
