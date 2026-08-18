@@ -242,6 +242,49 @@
   .toast.show{opacity:1;}
 
   input[type=file]{display:none;}
+
+  .modal-overlay{
+    display:none;
+    position:fixed; inset:0;
+    background:rgba(13,15,17,.72);
+    z-index:200;
+    align-items:center;
+    justify-content:center;
+  }
+  .modal-box{
+    background:var(--panel-bg-2);
+    border:1px solid var(--panel-line);
+    border-radius:10px;
+    padding:22px 24px;
+    width:340px;
+    max-width:90vw;
+    box-shadow:0 20px 60px rgba(0,0,0,.45);
+  }
+  .modal-box h3{margin:0 0 8px;font-size:16px;color:var(--panel-text);}
+  .modal-box p{margin:0 0 14px;font-size:13px;color:var(--panel-text-dim);line-height:1.5;}
+  #modal-input{
+    display:none;
+    width:100%;
+    background:var(--panel-bg);
+    border:1px solid var(--panel-line);
+    color:var(--panel-text);
+    border-radius:var(--radius);
+    padding:8px 10px;
+    font-size:13.5px;
+    margin-bottom:14px;
+    font-family:'Inter',sans-serif;
+  }
+  .modal-actions{display:flex;justify-content:flex-end;gap:8px;}
+  .modal-actions button{
+    border:1px solid var(--panel-line);
+    border-radius:var(--radius);
+    padding:7px 14px;
+    font-size:12.5px;
+    cursor:pointer;
+    background:transparent;
+    color:var(--panel-text);
+  }
+  #modal-confirm{border:none;font-weight:600;}
 </style>
 </head>
 <body>
@@ -255,9 +298,11 @@
   <button class="tool" data-mode="door" id="btn-door">+ Door</button>
   <button class="tool" data-mode="window" id="btn-window">+ Window</button>
   <button class="tool" data-mode="arch" id="btn-arch">+ Archway</button>
+  <button class="tool" data-mode="room" id="btn-room">Define room</button>
   <div class="divider"></div>
   <button class="tool icon-only" id="btn-undo" title="Undo last wall point">Undo pt</button>
   <button class="tool icon-only" id="btn-delete" title="Delete selected (Del)">Delete</button>
+  <button class="tool" id="btn-clear" style="color:var(--danger);">Clear all</button>
   <div class="spacer"></div>
   <button class="tool" id="btn-save">Export plan (.json)</button>
   <button class="tool" id="btn-load">Import plan</button>
@@ -271,11 +316,30 @@
 <div id="main">
   <div id="leftpanel">
     <h3>Room</h3>
+    <div class="field"><label>Ceiling height (cm)</label><input type="number" id="ceiling-height" value="240"></div>
     <div class="hint">Pick <b>Draw wall</b>, click to place corners, double-click or press Esc to finish a wall run. Everything snaps to 5&nbsp;cm. Walls that meet at a shared corner join cleanly — no gap.</div>
     <div class="hint"><b>Type: Partition / Load-bearing</b> toggles which kind new walls are drawn as. Load-bearing walls default to 25&nbsp;cm and show darker with a hatch fill in 2D and a concrete tone in 3D; partitions default to 10&nbsp;cm. Change it anytime per wall in the properties panel.</div>
 
     <h3>Openings</h3>
     <div class="hint">With <b>+ Door</b>, <b>+ Window</b> or <b>+ Archway</b> active, click a point on a wall to insert it there. Arches get a true curved header in the 3D view — a straight-top door doesn't.</div>
+
+    <h3>Rooms</h3>
+    <div id="rooms-list"></div>
+    <div class="hint">Close a wall run back to its start (or box in an area with separate walls), pick <b>Define room</b>, then click inside — you'll be asked to name it and get its floor area. Do this once per room: kitchen now, living room next.</div>
+
+    <h3>Materials <span style="font-weight:400;color:var(--panel-text-dim);text-transform:none;letter-spacing:0;">— 3D view only</span></h3>
+    <div class="field"><label>Flooring</label>
+      <select id="floor-select">
+        <option value="herringbone">Herringbone parquet (fiskebein)</option>
+        <option value="plank">Straight plank oak</option>
+        <option value="tile">Light tile</option>
+        <option value="concrete">Polished concrete</option>
+      </select>
+    </div>
+    <div class="field"><label>Wall colour</label>
+      <div id="wall-swatches" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="hint">These are stylised, generated patterns for gauging look and scale — not photoreal renders of an actual product SKU.</div>
 
     <h3>Kitchen &amp; furniture</h3>
     <div id="furniture-list"></div>
@@ -296,6 +360,18 @@
   <div id="rightpanel"></div>
 </div>
 
+<div id="modal-overlay" class="modal-overlay">
+  <div class="modal-box">
+    <h3 id="modal-title"></h3>
+    <p id="modal-message"></p>
+    <input type="text" id="modal-input">
+    <div class="modal-actions">
+      <button id="modal-cancel" class="tool">Cancel</button>
+      <button id="modal-confirm" class="tool">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
 "use strict";
@@ -305,26 +381,31 @@
    All coordinates/dimensions in centimetres unless noted.
    ============================================================ */
 let state = {
-  walls: [],       // {id, x1,y1,x2,y2, thickness, height}
+  walls: [],       // {id, x1,y1,x2,y2, thickness, height, kind}
   openings: [],    // {id, wallId, offset, width, type:'door'|'window'|'arch', sill, height, archRise}
   furniture: [],   // {id, type, x, y, w, d, rotation, label}
+  rooms: [],       // {id, name, rects:[{x,y,w,d}], area_m2, centroid, color}
+  ceilingHeight: 240,
+  floorMaterial: 'herringbone', // 'herringbone' | 'plank' | 'tile' | 'concrete'
+  wallColor: '#f4f0e6',
   nextId: 1
 };
 
 const FURNITURE_TYPES = {
-  base:     { label:'Base cabinet',        w:60,  d:60,  color:'#c9b28a', z0:0,   z1:90  },
-  corner:   { label:'Corner base cabinet',  w:90,  d:90,  color:'#c9b28a', z0:0,   z1:90  },
-  wall:     { label:'Wall cabinet',         w:60,  d:35,  color:'#dcc9a3', z0:140, z1:220, floating:true },
-  island:   { label:'Kitchen island',       w:140, d:90,  color:'#a9895e', z0:0,   z1:90  },
-  fridge:   { label:'Fridge / freezer',     w:70,  d:70,  color:'#8f97a0', z0:0,   z1:185 },
-  stove:    { label:'Stove / cooktop',      w:60,  d:60,  color:'#3d4650', z0:0,   z1:90  },
-  oven:     { label:'Built-in oven',        w:60,  d:60,  color:'#5c6874', z0:0,   z1:90  },
-  sink:     { label:'Sink base',            w:80,  d:60,  color:'#b7c4cc', z0:0,   z1:90  },
-  dish:     { label:'Dishwasher',           w:60,  d:60,  color:'#6d7680', z0:0,   z1:82  },
-  table:    { label:'Table',                w:120, d:80,  color:'#a9825a', z0:0,   z1:74  },
-  chair:    { label:'Chair',                w:45,  d:45,  color:'#7a5c3e', z0:0,   z1:45  }
+  base:       { label:'Base cabinet',        w:60,  d:60,  color:'#c9b28a', z0:0,   z1:90  },
+  corner:     { label:'Corner base cabinet',  w:90,  d:90,  color:'#c9b28a', z0:0,   z1:90  },
+  wall:       { label:'Wall cabinet',         w:60,  d:35,  color:'#dcc9a3', z0:140, z1:220, floating:true },
+  island:     { label:'Kitchen island',       w:140, d:90,  color:'#a9895e', z0:0,   z1:90  },
+  fridge:     { label:'Fridge / freezer',     w:70,  d:70,  color:'#8f97a0', z0:0,   z1:185 },
+  stove:      { label:'Stove / cooktop',      w:60,  d:60,  color:'#3d4650', z0:0,   z1:90  },
+  oven:       { label:'Built-in oven',        w:60,  d:60,  color:'#5c6874', z0:0,   z1:90  },
+  sink:       { label:'Sink base',            w:80,  d:60,  color:'#b7c4cc', z0:0,   z1:90  },
+  dish:       { label:'Dishwasher',           w:60,  d:60,  color:'#6d7680', z0:0,   z1:82  },
+  winefridge: { label:'Wine fridge',          w:60,  d:60,  color:'#2b3238', z0:0,   z1:85  },
+  table:      { label:'Table',                w:120, d:80,  color:'#a9825a', z0:0,   z1:74  },
+  chair:      { label:'Chair',                w:45,  d:45,  color:'#7a5c3e', z0:0,   z1:45  }
 };
-const DEFAULT_WALL_HEIGHT = 240;
+let DEFAULT_WALL_HEIGHT = 240;
 const WALL_TYPES = {
   loadBearing: { label:'Load-bearing', thickness:25, fill:'#3a3d42', fillSel:'#4a3d2e', hatch:true  },
   partition:   { label:'Partition',    thickness:10, fill:'#c7cdd3', fillSel:'#e8d6bd', hatch:false }
@@ -333,6 +414,7 @@ let newWallKind = 'partition'; // which type new walls are drawn as
 
 function uid(){ return state.nextId++; }
 function wallKind(w){ return w.kind || (w.thickness>=18 ? 'loadBearing' : 'partition'); }
+
 
 /* ============================================================
    VIEW / CAMERA (2D)
@@ -429,6 +511,12 @@ function hitTest(wx, wy){
       return {kind:'wall', id:w.id};
     }
   }
+  // rooms (background fill, lowest priority so it never blocks the above)
+  for(const room of state.rooms){
+    for(const r of room.rects){
+      if(wx>=r.x && wx<=r.x+r.w && wy>=r.y && wy<=r.y+r.d) return {kind:'room', id:room.id};
+    }
+  }
   return null;
 }
 
@@ -439,12 +527,46 @@ function draw(){
   const r = wrap.getBoundingClientRect();
   ctx.clearRect(0,0,r.width,r.height);
   drawGrid(r);
+  for(const room of state.rooms) drawRoom(room);
   for(const w of state.walls) drawWall(w);
   if(wallChain && wallChain.length){
     drawWallChainPreview();
   }
   for(const f of state.furniture) drawFurniture(f);
   drawSelectionOverlay();
+}
+
+function drawRoom(room){
+  const isSel = selected && selected.kind==='room' && selected.id===room.id;
+  ctx.save();
+  ctx.globalAlpha = isSel ? 0.55 : 0.36;
+  ctx.fillStyle = room.color;
+  for(const rect of room.rects){
+    const p1 = w2s(rect.x, rect.y);
+    const p2 = w2s(rect.x+rect.w, rect.y+rect.d);
+    ctx.fillRect(p1[0], p1[1], p2[0]-p1[0], p2[1]-p1[1]);
+  }
+  ctx.globalAlpha = 1;
+  if(isSel){
+    ctx.strokeStyle = '#b8794a';
+    ctx.lineWidth = 2;
+    for(const rect of room.rects){
+      const p1 = w2s(rect.x, rect.y);
+      const p2 = w2s(rect.x+rect.w, rect.y+rect.d);
+      ctx.strokeRect(p1[0], p1[1], p2[0]-p1[0], p2[1]-p1[1]);
+    }
+  }
+  ctx.restore();
+  const c = w2s(room.centroid.x, room.centroid.y);
+  ctx.save();
+  ctx.font = '700 13px Space Grotesk, sans-serif';
+  ctx.fillStyle = '#20242a';
+  ctx.textAlign = 'center';
+  ctx.fillText(room.name, c[0], c[1]-4);
+  ctx.font = '500 10.5px JetBrains Mono, monospace';
+  ctx.fillStyle = '#4a5058';
+  ctx.fillText(room.area_m2.toFixed(1)+' m²', c[0], c[1]+11);
+  ctx.restore();
 }
 
 function drawGrid(r){
@@ -485,6 +607,92 @@ function wallEndExtension(wall){
     }
   }
   return {extStart, extEnd};
+}
+
+/* ============================================================
+   ROOM DEFINITION (flood fill from a click point)
+   Grid-rasterizes the plan, floods from the clicked cell until it
+   hits wall footprints, and bails out if the flood reaches the
+   outer bounding box (meaning the area isn't actually enclosed).
+   ============================================================ */
+function isCellBlocked(wx, wy){
+  for(const w of state.walls){
+    const L = wallLength(w);
+    if(L<1) continue;
+    const ang = wallAngle(w);
+    const cos=Math.cos(ang), sin=Math.sin(ang);
+    const dx = wx-w.x1, dy = wy-w.y1;
+    const along = dx*cos+dy*sin;
+    const perp = -dx*sin+dy*cos;
+    const {extStart, extEnd} = wallEndExtension(w);
+    if(along >= -extStart-1 && along <= L+extEnd+1 && Math.abs(perp) <= w.thickness/2+1) return true;
+  }
+  return false;
+}
+
+function floodFillRoom(startX, startY){
+  const CELL = 5; // cm — matches the drawing grid snap
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const w of state.walls){
+    minX=Math.min(minX,w.x1,w.x2); maxX=Math.max(maxX,w.x1,w.x2);
+    minY=Math.min(minY,w.y1,w.y2); maxY=Math.max(maxY,w.y1,w.y2);
+  }
+  if(!isFinite(minX)) return null;
+  const pad = 40;
+  minX-=pad; minY-=pad; maxX+=pad; maxY+=pad;
+  const cols = Math.min(400, Math.max(1, Math.ceil((maxX-minX)/CELL)));
+  const rows = Math.min(400, Math.max(1, Math.ceil((maxY-minY)/CELL)));
+  const startCx = Math.floor((startX-minX)/CELL);
+  const startCy = Math.floor((startY-minY)/CELL);
+  if(startCx<0||startCy<0||startCx>=cols||startCy>=rows) return null;
+  if(isCellBlocked(minX+(startCx+0.5)*CELL, minY+(startCy+0.5)*CELL)) return null;
+
+  const visited = new Uint8Array(cols*rows);
+  const idx = (cx,cy)=>cy*cols+cx;
+  const stack = [[startCx,startCy]];
+  visited[idx(startCx,startCy)] = 1;
+  const filled = [];
+  let leaked = false;
+
+  while(stack.length){
+    const [cx,cy] = stack.pop();
+    if(cx<=0||cy<=0||cx>=cols-1||cy>=rows-1) leaked = true;
+    filled.push([cx,cy]);
+    if(filled.length > cols*rows) break; // safety valve
+    const neighbors = [[cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1]];
+    for(const [nx,ny] of neighbors){
+      if(nx<0||ny<0||nx>=cols||ny>=rows) continue;
+      const ni = idx(nx,ny);
+      if(visited[ni]) continue;
+      const wx = minX+(nx+0.5)*CELL, wy = minY+(ny+0.5)*CELL;
+      if(isCellBlocked(wx,wy)) continue;
+      visited[ni] = 1;
+      stack.push([nx,ny]);
+    }
+  }
+  if(leaked) return null; // escaped the plan — not fully enclosed
+
+  // run-length encode filled cells into rects for cheap rendering
+  const rowsMap = {};
+  for(const [cx,cy] of filled){
+    (rowsMap[cy] = rowsMap[cy] || []).push(cx);
+  }
+  const rects = [];
+  for(const cyStr of Object.keys(rowsMap)){
+    const cy = +cyStr;
+    const xs = rowsMap[cyStr].sort((a,b)=>a-b);
+    let runStart = xs[0], prev = xs[0];
+    for(let i=1;i<=xs.length;i++){
+      if(i<xs.length && xs[i]===prev+1){ prev=xs[i]; continue; }
+      rects.push({ x:minX+runStart*CELL, y:minY+cy*CELL, w:(prev-runStart+1)*CELL, d:CELL });
+      if(i<xs.length){ runStart=xs[i]; prev=xs[i]; }
+    }
+  }
+  const area_m2 = filled.length*CELL*CELL/10000;
+  let sx=0, sy=0;
+  for(const [cx,cy] of filled){ sx += minX+(cx+0.5)*CELL; sy += minY+(cy+0.5)*CELL; }
+  const centroid = { x: sx/filled.length, y: sy/filled.length };
+  return { rects, area_m2, centroid };
 }
 
 function drawWall(w){
@@ -720,7 +928,8 @@ const modeButtons = {
   wall: document.getElementById('btn-wall'),
   door: document.getElementById('btn-door'),
   window: document.getElementById('btn-window'),
-  arch: document.getElementById('btn-arch')
+  arch: document.getElementById('btn-arch'),
+  room: document.getElementById('btn-room')
 };
 function setMode(m){
   mode = m;
@@ -734,7 +943,8 @@ function setMode(m){
     wall: 'Click to place corners · double-click / Esc to finish',
     door: 'Click a wall to insert a door (80 cm default)',
     window: 'Click a wall to insert a window (100 cm default)',
-    arch: 'Click a wall to insert an archway (100 cm default, no leaf)'
+    arch: 'Click a wall to insert an archway (100 cm default, no leaf)',
+    room: 'Click inside a fully enclosed area to name it and get its area'
   };
   document.getElementById('status-hint').textContent = hints[m] || '';
   draw();
@@ -771,6 +981,44 @@ Object.entries(FURNITURE_TYPES).forEach(([key,def])=>{
   });
   furnList.appendChild(el);
 });
+
+/* ceiling height (global, not per-wall) */
+document.getElementById('ceiling-height').addEventListener('input', (e)=>{
+  const v = Math.max(150, +e.target.value || 240);
+  state.ceilingHeight = v;
+  DEFAULT_WALL_HEIGHT = v;
+  for(const w of state.walls) w.height = v;
+  if(selected && selected.kind==='wall') renderRightPanel(true);
+  if(viewport3d.style.display==='block') build3D();
+});
+
+/* materials — floor + wall colour (3D view only) */
+const WALL_COLOR_PRESETS = ['#f4f0e6','#e8e2d5','#d9d2c3','#b9c4b8','#9aa8b0','#3c3f42'];
+const floorSelect = document.getElementById('floor-select');
+const wallSwatchesEl = document.getElementById('wall-swatches');
+
+function refreshMaterialsUI(){
+  floorSelect.value = state.floorMaterial;
+  wallSwatchesEl.innerHTML = '';
+  WALL_COLOR_PRESETS.forEach(color=>{
+    const sw = document.createElement('button');
+    sw.type = 'button';
+    sw.title = color;
+    const isSel = state.wallColor.toLowerCase()===color.toLowerCase();
+    sw.style.cssText = `width:22px;height:22px;border-radius:5px;background:${color};cursor:pointer;border:2px solid ${isSel?'var(--brass)':'var(--panel-line)'};padding:0;`;
+    sw.addEventListener('click', ()=>{
+      state.wallColor = color;
+      refreshMaterialsUI();
+      if(viewport3d.style.display==='block') build3D();
+    });
+    wallSwatchesEl.appendChild(sw);
+  });
+}
+floorSelect.addEventListener('change', ()=>{
+  state.floorMaterial = floorSelect.value;
+  if(viewport3d.style.display==='block') build3D();
+});
+refreshMaterialsUI();
 
 /* ============================================================
    MOUSE / KEYBOARD
@@ -855,6 +1103,27 @@ canvas.addEventListener('mousedown', (e)=>{
     } else {
       showToast('Click directly on a wall to add an opening');
     }
+    return;
+  }
+
+  if(mode==='room'){
+    const result = floodFillRoom(wx, wy);
+    if(!result){
+      showToast("That spot isn't fully enclosed by walls — check for a gap in the corners");
+      return;
+    }
+    showNamePrompt('Name this room', 'e.g. Kitchen', (name)=>{
+      if(!name) return;
+      const palette = ['#d7c9a8','#b7cdd1','#cdb9d8','#c9d6b0','#e0c3b0','#b0c9e0'];
+      state.rooms.push({
+        id: uid(), name,
+        rects: result.rects, area_m2: result.area_m2, centroid: result.centroid,
+        color: palette[state.rooms.length % palette.length]
+      });
+      renderRoomsList();
+      draw();
+      showToast(`"${name}" added — ${result.area_m2.toFixed(1)} m²`);
+    });
     return;
   }
 });
@@ -956,11 +1225,43 @@ function deleteSelected(){
     state.openings = state.openings.filter(o=>o.id!==selected.id);
   } else if(selected.kind==='furniture'){
     state.furniture = state.furniture.filter(f=>f.id!==selected.id);
+  } else if(selected.kind==='room'){
+    state.rooms = state.rooms.filter(r=>r.id!==selected.id);
+    renderRoomsList();
   }
   selected = null;
   renderRightPanel();
   draw();
 }
+
+document.getElementById('btn-clear').addEventListener('click', ()=>{
+  showModal({
+    title: 'Clear the entire plan?',
+    message: 'This removes every wall, opening, room and piece of furniture.',
+    confirmLabel: 'Yes, clear it',
+    danger: true,
+    onConfirm: ()=>{
+      showModal({
+        title: 'Are you really sure?',
+        message: "There's no undo for this — the whole plan will be gone for good.",
+        confirmLabel: 'Yes, really clear everything',
+        danger: true,
+        onConfirm: ()=>{
+          state = { walls:[], openings:[], furniture:[], rooms:[], ceilingHeight:240, floorMaterial:'herringbone', wallColor:'#f4f0e6', nextId:1 };
+          DEFAULT_WALL_HEIGHT = 240;
+          selected = null;
+          wallChain = null;
+          document.getElementById('ceiling-height').value = 240;
+          refreshMaterialsUI();
+          renderRoomsList();
+          renderRightPanel();
+          draw();
+          showToast('Plan cleared');
+        }
+      });
+    }
+  });
+});
 
 /* ============================================================
    RIGHT PANEL (properties)
@@ -1004,7 +1305,7 @@ function renderRightPanel(skipIfTyping){
     if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
     rightpanel.innerHTML = `
       <h3>Wall <span class="type-tag">${WALL_TYPES[w.kind].label.toLowerCase()}</span></h3>
-      <div class="field"><label>Length (cm, read-only)</label><input type="text" value="${Math.round(wallLength(w))}" disabled></div>
+      <div class="field"><label>Length (cm)</label><input type="number" id="p-len" value="${Math.round(wallLength(w))}"></div>
       <div class="field"><label>Wall type</label>
         <select id="p-kind">
           <option value="partition" ${w.kind==='partition'?'selected':''}>Partition (thin, non-structural)</option>
@@ -1014,6 +1315,7 @@ function renderRightPanel(skipIfTyping){
       <div class="field"><label>Thickness (cm)</label><input type="number" id="p-t" value="${w.thickness}"></div>
       <div class="field"><label>Height (cm)</label><input type="number" id="p-h" value="${w.height}"></div>
       <div class="hint">Load-bearing walls render darker with a hatch fill in 2D and a concrete tone in 3D, so you can tell them apart from partitions at a glance. Changing the type resets thickness to a sensible default — you can still fine-tune it after.</div>
+      <div class="hint">Changing length keeps the wall's first corner fixed and moves its second corner. If another wall was joined at that second corner, moving it will pull the two apart — redraw that corner or nudge the other wall to match.</div>
       <button class="danger" id="p-del">Delete wall</button>
     `;
     document.getElementById('p-kind').addEventListener('change', (e)=>{
@@ -1021,6 +1323,12 @@ function renderRightPanel(skipIfTyping){
       w.thickness = WALL_TYPES[w.kind].thickness;
       renderRightPanel();
       draw();
+    });
+    bind('p-len', v=>{
+      const newLen = Math.max(10, +v);
+      const ang = wallAngle(w);
+      w.x2 = w.x1 + Math.cos(ang)*newLen;
+      w.y2 = w.y1 + Math.sin(ang)*newLen;
     });
     bind('p-t', v=>w.thickness=Math.max(5,+v));
     bind('p-h', v=>w.height=Math.max(150,+v));
@@ -1057,10 +1365,45 @@ function renderRightPanel(skipIfTyping){
     document.getElementById('p-del').addEventListener('click', deleteSelected);
   }
 
+  else if(selected.kind==='room'){
+    const room = state.rooms.find(x=>x.id===selected.id);
+    if(!room){ selected=null; return renderRightPanel(); }
+    rightpanel.innerHTML = `
+      <h3>${room.name} <span class="type-tag">room</span></h3>
+      <div class="field"><label>Name</label><input type="text" id="p-name" value="${room.name}"></div>
+      <div class="field"><label>Area (read-only)</label><input type="text" value="${room.area_m2.toFixed(1)} m²" disabled></div>
+      <button class="danger" id="p-del">Delete room</button>
+    `;
+    bind('p-name', v=>{ room.name=v; }, true);
+    document.getElementById('p-del').addEventListener('click', deleteSelected);
+  }
+
   function bind(id, setter, isText){
     const el = document.getElementById(id);
-    el.addEventListener('input', ()=>{ setter(isText?el.value:el.value); draw(); });
+    el.addEventListener('input', ()=>{ setter(isText?el.value:el.value); draw(); if(isText) renderRoomsList(); });
   }
+}
+
+function renderRoomsList(){
+  const el = document.getElementById('rooms-list');
+  if(!el) return;
+  if(!state.rooms.length){
+    el.innerHTML = '<div class="hint">No rooms defined yet.</div>';
+    return;
+  }
+  el.innerHTML = state.rooms.map(r=>`
+    <div class="furn-item" data-room="${r.id}" style="cursor:pointer;">
+      <span class="furn-swatch" style="background:${r.color}"></span>
+      ${r.name} <span class="mono" style="margin-left:auto;color:var(--panel-text-dim);font-size:10px;">${r.area_m2.toFixed(1)} m²</span>
+    </div>
+  `).join('');
+  el.querySelectorAll('[data-room]').forEach(elm=>{
+    elm.addEventListener('click', ()=>{
+      selected = { kind:'room', id:+elm.dataset.room };
+      renderRightPanel();
+      draw();
+    });
+  });
 }
 
 /* ============================================================
@@ -1073,6 +1416,52 @@ function showToast(msg){
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   MODAL (confirmations + name prompts)
+   ============================================================ */
+const modalOverlay = document.getElementById('modal-overlay');
+const modalTitle = document.getElementById('modal-title');
+const modalMessage = document.getElementById('modal-message');
+const modalInput = document.getElementById('modal-input');
+const modalCancel = document.getElementById('modal-cancel');
+const modalConfirm = document.getElementById('modal-confirm');
+
+function showModal({title, message='', confirmLabel='Confirm', cancelLabel='Cancel', danger=false, withInput=false, inputPlaceholder='', inputDefault='', onConfirm}){
+  modalTitle.textContent = title;
+  modalMessage.textContent = message;
+  modalMessage.style.display = message ? 'block' : 'none';
+  modalInput.style.display = withInput ? 'block' : 'none';
+  modalInput.value = inputDefault;
+  modalInput.placeholder = inputPlaceholder;
+  modalConfirm.textContent = confirmLabel;
+  modalConfirm.style.background = danger ? 'var(--danger)' : 'var(--brass)';
+  modalConfirm.style.color = danger ? '#fff' : '#1c1108';
+  modalCancel.textContent = cancelLabel;
+  modalOverlay.style.display = 'flex';
+  if(withInput) setTimeout(()=>modalInput.focus(), 30);
+
+  function cleanup(){
+    modalOverlay.style.display = 'none';
+    modalConfirm.removeEventListener('click', onOk);
+    modalCancel.removeEventListener('click', onCancel);
+    modalInput.removeEventListener('keydown', onKey);
+  }
+  function onOk(){
+    const val = withInput ? modalInput.value.trim() : true;
+    cleanup();
+    if(onConfirm) onConfirm(val);
+  }
+  function onCancel(){ cleanup(); }
+  function onKey(e){ if(e.key==='Enter'){ e.preventDefault(); onOk(); } if(e.key==='Escape') onCancel(); }
+  modalConfirm.addEventListener('click', onOk);
+  modalCancel.addEventListener('click', onCancel);
+  modalInput.addEventListener('keydown', onKey);
+}
+
+function showNamePrompt(title, placeholder, cb){
+  showModal({ title, withInput:true, inputPlaceholder:placeholder, confirmLabel:'Add room', onConfirm:(name)=>cb(name) });
 }
 
 /* ============================================================
@@ -1095,8 +1484,20 @@ document.getElementById('file-input').addEventListener('change', (e)=>{
     try{
       const data = JSON.parse(reader.result);
       if(!data.walls || !data.furniture) throw new Error('bad file');
+      if(!data.rooms) data.rooms = [];
+      if(!data.floorMaterial) data.floorMaterial = 'herringbone';
+      if(!data.wallColor) data.wallColor = '#f4f0e6';
+      if(!data.ceilingHeight) data.ceilingHeight = (data.walls[0] && data.walls[0].height) || 240;
+      for(const w of data.walls){
+        if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
+        if(!w.height) w.height = data.ceilingHeight;
+      }
       state = data;
+      DEFAULT_WALL_HEIGHT = state.ceilingHeight;
       selected = null;
+      document.getElementById('ceiling-height').value = state.ceilingHeight;
+      refreshMaterialsUI();
+      renderRoomsList();
       renderRightPanel();
       draw();
       showToast('Plan imported');
@@ -1191,6 +1592,95 @@ function buildOpeningHolePath(bottom, top, width, isArch, archRise){
   return path;
 }
 
+/* ============================================================
+   FLOOR TEXTURES — generated once per build3D call, sized to the
+   exact real-world floor extent so no tiling/seam math is needed.
+   These are stylised approximations for gauging look and scale,
+   not photoreal renders of a specific product.
+   ============================================================ */
+function generateFloorTexture(kind, widthCm, heightCm){
+  const maxDim = 1400;
+  const scale = Math.min(4, maxDim/Math.max(widthCm, heightCm, 1));
+  const w = Math.max(64, Math.round(widthCm*scale));
+  const h = Math.max(64, Math.round(heightCm*scale));
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const cx = c.getContext('2d');
+  if(kind==='herringbone') drawHerringboneFloor(cx,w,h,scale);
+  else if(kind==='plank') drawPlankFloor(cx,w,h,scale);
+  else if(kind==='tile') drawTileFloor(cx,w,h,scale);
+  else drawConcreteFloor(cx,w,h,scale);
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping;
+  tex.needsUpdate = true;
+  return tex;
+}
+
+function drawHerringboneFloor(ctx,w,h,scale){
+  ctx.fillStyle = '#b98a52';
+  ctx.fillRect(0,0,w,h);
+  const L = Math.max(10, 22*scale), W = Math.max(3, 6*scale);
+  const step = L/Math.SQRT2;
+  const colors = ['#c79a63','#bd8f57','#d1a56d','#b28048'];
+  let row=0;
+  for(let y=-L; y<h+L; y+=step){
+    let col=0;
+    for(let x=-L; x<w+L; x+=step){
+      ctx.save();
+      ctx.translate(x,y);
+      ctx.rotate(((row+col)%2===0) ? Math.PI/4 : -Math.PI/4);
+      ctx.fillStyle = colors[(row*7+col*13)%colors.length];
+      ctx.fillRect(-L/2,-W/2,L,W);
+      ctx.strokeStyle = 'rgba(0,0,0,.3)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(-L/2+0.5,-W/2+0.5,L-1,W-1);
+      ctx.restore();
+      col++;
+    }
+    row++;
+  }
+}
+
+function drawPlankFloor(ctx,w,h,scale){
+  ctx.fillStyle = '#c9a877';
+  ctx.fillRect(0,0,w,h);
+  const L = Math.max(30,120*scale), W = Math.max(6,14*scale);
+  const colors = ['#cdae7d','#c2a071','#d6b98a','#b89463'];
+  let row=0;
+  for(let y=0;y<h;y+=W){
+    let x = (row%2===0) ? 0 : -L/2;
+    let i=0;
+    while(x<w){
+      ctx.fillStyle = colors[(row+i)%colors.length];
+      ctx.fillRect(x,y,Math.max(1,L-2),Math.max(1,W-2));
+      ctx.strokeStyle = 'rgba(0,0,0,.22)';
+      ctx.strokeRect(x+0.5,y+0.5,Math.max(1,L-3),Math.max(1,W-3));
+      x+=L; i++;
+    }
+    row++;
+  }
+}
+
+function drawTileFloor(ctx,w,h,scale){
+  ctx.fillStyle = '#e7e3da';
+  ctx.fillRect(0,0,w,h);
+  const T = Math.max(14, 40*scale);
+  ctx.strokeStyle = 'rgba(0,0,0,.15)';
+  ctx.lineWidth = Math.max(1, scale*0.4);
+  for(let x=0;x<=w;x+=T){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
+  for(let y=0;y<=h;y+=T){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+}
+
+function drawConcreteFloor(ctx,w,h,scale){
+  ctx.fillStyle = '#9a9a96';
+  ctx.fillRect(0,0,w,h);
+  for(let i=0;i<500;i++){
+    const shade = Math.random()>0.5 ? 0 : 255;
+    ctx.fillStyle = `rgba(${shade},${shade},${shade},${(Math.random()*0.05).toFixed(3)})`;
+    ctx.fillRect(Math.random()*w, Math.random()*h, Math.random()*40+10, Math.random()*40+10);
+  }
+}
+
 function build3D(){
   const t3 = ensureThree();
   const scene = t3.scene;
@@ -1224,15 +1714,19 @@ function build3D(){
 
   // floor
   const floorPad = 60;
-  const floorGeo = new THREE.PlaneGeometry(((maxX-minX)+floorPad*2)*M, ((maxY-minY)+floorPad*2)*M);
-  const floorMat = new THREE.MeshStandardMaterial({color:0xcdb896, roughness:0.85});
+  const floorWidthCm = (maxX-minX)+floorPad*2;
+  const floorDepthCm = (maxY-minY)+floorPad*2;
+  const floorGeo = new THREE.PlaneGeometry(floorWidthCm*M, floorDepthCm*M);
+  const floorTex = generateFloorTexture(state.floorMaterial||'herringbone', floorWidthCm, floorDepthCm);
+  const floorMat = new THREE.MeshStandardMaterial({map:floorTex, roughness: state.floorMaterial==='concrete'?0.55:0.8});
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI/2;
   floor.position.set(cx, 0, cz);
   scene.add(floor);
 
-  const wallMatLoadBearing = new THREE.MeshStandardMaterial({color:0x8b8f94, roughness:0.95});
-  const wallMatPartition = new THREE.MeshStandardMaterial({color:0xf3efe6, roughness:0.9});
+  const baseWallColor = new THREE.Color(state.wallColor || '#f4f0e6');
+  const wallMatPartition = new THREE.MeshStandardMaterial({color:baseWallColor, roughness:0.9});
+  const wallMatLoadBearing = new THREE.MeshStandardMaterial({color:baseWallColor.clone().multiplyScalar(0.6), roughness:0.95});
 
   for(const w of state.walls){
     const L = wallLength(w);
@@ -1334,6 +1828,7 @@ seed();
    ============================================================ */
 resize();
 setMode('select');
+renderRoomsList();
 draw();
 
 })();
