@@ -323,6 +323,7 @@
     <h3>Room</h3>
     <div class="field"><label>Ceiling height (cm)</label><input type="number" id="ceiling-height" value="240"></div>
     <div class="hint">Pick <b>Draw wall</b>, click to place corners, double-click or press Esc to finish a wall run. Everything snaps to 5&nbsp;cm. Walls that meet at a shared corner join cleanly — no gap.</div>
+    <div class="hint">Freehand clicking places corners on the wall's structural centerline, so it won't hit your tape numbers exactly. Once a wall exists, select it and set its <b>Length — inside (cm)</b> field to match what you actually measured — that's the one that reflects real inside-face distance, and the plan label on each wall shows that same inside number.</div>
     <div class="hint"><b>Type: Partition / Load-bearing</b> toggles which kind new walls are drawn as. Load-bearing walls default to 25&nbsp;cm and show darker with a hatch fill in 2D and a concrete tone in 3D; partitions default to 10&nbsp;cm. Change it anytime per wall in the properties panel.</div>
 
     <h3>Openings</h3>
@@ -415,7 +416,7 @@ const FURNITURE_TYPES = {
   oven:       { label:'Built-in oven',        w:60,  d:60,  color:'#5c6874', z0:0,   z1:90  },
   sink:       { label:'Sink base',            w:80,  d:60,  color:'#b7c4cc', z0:0,   z1:90  },
   dish:       { label:'Dishwasher',           w:60,  d:60,  color:'#6d7680', z0:0,   z1:82  },
-  winefridge: { label:'Wine fridge',          w:60,  d:60,  color:'#2b3238', z0:0,   z1:85  },
+  winefridge: { label:'Wine fridge',          w:60,  d:60,  color:'#2b3238', z0:0,   z1:90  },
   table:      { label:'Table',                w:120, d:80,  color:'#a9825a', z0:0,   z1:74  },
   chair:      { label:'Chair',                w:45,  d:45,  color:'#7a5c3e', z0:0,   z1:45  }
 };
@@ -747,6 +748,29 @@ function wallEndExtension(wall){
   return {extStart, extEnd};
 }
 
+/* How much shorter this wall's INSIDE (tape-measured) length is than its
+   centerline length, at each end. At a corner, the inside face is set back
+   by half the THICKNESS OF WHATEVER WALL MEETS IT THERE (not this wall's
+   own thickness) — that's what a tape measure actually reads. An open end
+   (nothing joined) has zero reduction. */
+function wallCornerReduction(wall){
+  function reductionAt(x,y){
+    let maxT = 0;
+    for(const other of state.walls){
+      if(other.id===wall.id) continue;
+      if(Math.hypot(other.x1-x,other.y1-y)<CONNECT_EPS || Math.hypot(other.x2-x,other.y2-y)<CONNECT_EPS){
+        maxT = Math.max(maxT, other.thickness);
+      }
+    }
+    return maxT/2;
+  }
+  return { redStart: reductionAt(wall.x1,wall.y1), redEnd: reductionAt(wall.x2,wall.y2) };
+}
+function wallInsideLength(wall){
+  const {redStart,redEnd} = wallCornerReduction(wall);
+  return wallLength(wall) - redStart - redEnd;
+}
+
 /* ============================================================
    ROOM DEFINITION (flood fill from a click point)
    Grid-rasterizes the plan, floods from the clicked cell until it
@@ -902,7 +926,8 @@ function drawWall(w){
     drawOpeningSymbol(w, o, ang, cos, sin);
   }
 
-  // length label
+  // length label — inside (tape-measured) length, not centerline
+  const insideLen = Math.round(wallInsideLength(w));
   const mid = w2s((w.x1+w.x2)/2, (w.y1+w.y2)/2);
   ctx.save();
   ctx.translate(mid[0], mid[1]);
@@ -910,7 +935,7 @@ function drawWall(w){
   ctx.font = '600 10.5px JetBrains Mono, monospace';
   ctx.fillStyle = '#5b8fa8';
   ctx.textAlign = 'center';
-  ctx.fillText(Math.round(L)+' cm', 0, -t/2*view.scale - 6);
+  ctx.fillText(insideLen+' cm', 0, -t/2*view.scale - 6);
   ctx.restore();
 
   ctx.restore();
@@ -1478,10 +1503,12 @@ function renderRightPanel(skipIfTyping){
     if(!w){ selected=null; return renderRightPanel(); }
     if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
     const angDeg = Math.round(wallAngle(w)*180/Math.PI);
+    const {redStart, redEnd} = wallCornerReduction(w);
+    const insideLen = Math.round(wallLength(w) - redStart - redEnd);
     rightpanel.innerHTML = `
       <h3>Wall <span class="type-tag">${WALL_TYPES[w.kind].label.toLowerCase()}</span></h3>
       <div class="field-row">
-        <div class="field"><label>Length (cm)</label><input type="number" id="p-len" value="${Math.round(wallLength(w))}"></div>
+        <div class="field"><label>Length — inside (cm)</label><input type="number" id="p-len" value="${insideLen}"></div>
         <div class="field"><label>Angle (°)</label><input type="number" id="p-ang" value="${angDeg}"></div>
       </div>
       <div class="field"><label>Wall type</label>
@@ -1493,6 +1520,7 @@ function renderRightPanel(skipIfTyping){
       <div class="field"><label>Thickness (cm)</label><input type="number" id="p-t" value="${w.thickness}"></div>
       <div class="field"><label>Height (cm)</label><input type="number" id="p-h" value="${w.height}"></div>
       <div class="hint">Load-bearing walls render darker with a hatch fill in 2D and a concrete tone in 3D, so you can tell them apart from partitions at a glance. Changing the type resets thickness to a sensible default — you can still fine-tune it after.</div>
+      <div class="hint">Length is the <b>inside face</b> distance — what a tape measure reads — not the wall's structural centerline. It's worked out from this wall's own thickness plus whatever wall is joined at each corner. If you later learn the real thickness of a wall you guessed on, update it here and every connected inside measurement recalculates.</div>
       <div class="hint">Length and angle both pivot around the wall's first corner and move its second corner. Any wall joined at that second corner moves with it, so the room stays closed.</div>
       <button class="danger" id="p-del">Delete wall</button>
     `;
@@ -1505,9 +1533,11 @@ function renderRightPanel(skipIfTyping){
       scheduleRoomRefresh();
     });
     bind('p-len', v=>{
-      const newLen = Math.max(10, +v);
+      const {redStart:rs, redEnd:re} = wallCornerReduction(w);
+      const newInsideLen = Math.max(1, +v || 1);
+      const newCenterlineLen = Math.max(10, newInsideLen + rs + re);
       const ang = wallAngle(w);
-      moveWallEndpoint(w, 2, w.x1 + Math.cos(ang)*newLen, w.y1 + Math.sin(ang)*newLen);
+      moveWallEndpoint(w, 2, w.x1 + Math.cos(ang)*newCenterlineLen, w.y1 + Math.sin(ang)*newCenterlineLen);
       scheduleRoomRefresh();
     });
     bind('p-ang', v=>{
@@ -1525,22 +1555,23 @@ function renderRightPanel(skipIfTyping){
     const o = state.openings.find(x=>x.id===selected.id);
     if(!o){ selected=null; return renderRightPanel(); }
     const wall = state.walls.find(w=>w.id===o.wallId);
-    const maxW = wall ? Math.round(wallLength(wall)) : 999;
-    const before = Math.round(o.offset);
-    const after = Math.round(maxW - o.offset - o.width);
+    const wallLen = wall ? wallLength(wall) : 999;
+    const {redStart, redEnd} = wall ? wallCornerReduction(wall) : {redStart:0, redEnd:0};
+    const before = Math.round(o.offset - redStart);
+    const after = Math.round(wallLen - o.offset - o.width - redEnd);
     rightpanel.innerHTML = `
       <h3>${o.type[0].toUpperCase()+o.type.slice(1)} <span class="type-tag">opening</span></h3>
       <div class="field"><label>Width (cm)</label><input type="number" id="p-w" value="${o.width}"></div>
       <div class="field-row">
-        <div class="field"><label>Wall before (cm)</label><input type="number" id="p-before" value="${before}"></div>
-        <div class="field"><label>Wall after (cm)</label><input type="number" id="p-after" value="${after}"></div>
+        <div class="field"><label>Wall before — inside (cm)</label><input type="number" id="p-before" value="${before}"></div>
+        <div class="field"><label>Wall after — inside (cm)</label><input type="number" id="p-after" value="${after}"></div>
       </div>
-      <div class="hint">"Before" and "after" are the solid wall lengths on each side of the opening. Editing any of these three fields stretches or shrinks the <b>wall itself</b> (from its second corner) so all three hold at once — they don't just redistribute inside a fixed wall length anymore.</div>
+      <div class="hint">"Before" and "after" are inside face measurements — the same span a tape measure gives you from the room's inside corner to the opening. Editing any of these three fields stretches or shrinks the <b>wall itself</b> so all three hold at once.</div>
       <div class="field"><label>${o.type==='window'?'Sill height (cm)':'Height to lintel / springline (cm)'}</label>
         <input type="number" id="p-h" value="${o.type==='window'?o.sill:o.height}"></div>
       ${o.type==='window' ? `<div class="field"><label>Window height (cm)</label><input type="number" id="p-wh" value="${o.height}"></div>` : ''}
       ${o.type==='arch' ? `<div class="field"><label>Arch rise (cm) — how tall the curve is above the springline</label><input type="number" id="p-rise" value="${o.archRise}"></div>` : ''}
-      <div class="hint" id="p-total-hint">Wall total: ${maxW} cm.</div>
+      <div class="hint" id="p-total-hint">Wall total, inside: ${Math.round(wallLen-redStart-redEnd)} cm.</div>
       <button class="danger" id="p-del">Delete</button>
     `;
     const widthInput = document.getElementById('p-w');
@@ -1549,18 +1580,20 @@ function renderRightPanel(skipIfTyping){
     const totalHint = document.getElementById('p-total-hint');
 
     function applyOpeningGeometry(){
-      const beforeVal = Math.max(0, +beforeInput.value || 0);
+      if(!wall) return;
+      const {redStart:rs, redEnd:re} = wallCornerReduction(wall);
+      const beforeInsideVal = Math.max(0, +beforeInput.value || 0);
       const widthVal = Math.max(20, +widthInput.value || o.width);
-      const afterVal = Math.max(0, +afterInput.value || 0);
-      o.offset = beforeVal;
+      const afterInsideVal = Math.max(0, +afterInput.value || 0);
+      const centerlineBefore = beforeInsideVal + rs;
+      const centerlineAfter = afterInsideVal + re;
+      o.offset = centerlineBefore;
       o.width = widthVal;
-      const newTotalLength = Math.max(20, beforeVal + widthVal + afterVal);
-      if(wall){
-        const ang = wallAngle(wall);
-        moveWallEndpoint(wall, 2, wall.x1 + Math.cos(ang)*newTotalLength, wall.y1 + Math.sin(ang)*newTotalLength);
-        scheduleRoomRefresh();
-      }
-      if(totalHint) totalHint.textContent = `Wall total: ${Math.round(newTotalLength)} cm.`;
+      const newCenterlineTotal = Math.max(20, centerlineBefore + widthVal + centerlineAfter);
+      const ang = wallAngle(wall);
+      moveWallEndpoint(wall, 2, wall.x1 + Math.cos(ang)*newCenterlineTotal, wall.y1 + Math.sin(ang)*newCenterlineTotal);
+      scheduleRoomRefresh();
+      if(totalHint) totalHint.textContent = `Wall total, inside: ${Math.round(newCenterlineTotal-rs-re)} cm.`;
       draw();
     }
 
@@ -1816,7 +1849,7 @@ function buildOpeningHolePath(bottom, top, width, isArch, archRise){
    not photoreal renders of a specific product.
    ============================================================ */
 function generateFloorTexture(kind, widthCm, heightCm){
-  const maxDim = 1400;
+  const maxDim = 1800;
   const scale = Math.min(4, maxDim/Math.max(widthCm, heightCm, 1));
   const w = Math.max(64, Math.round(widthCm*scale));
   const h = Math.max(64, Math.round(heightCm*scale));
@@ -1833,69 +1866,157 @@ function generateFloorTexture(kind, widthCm, heightCm){
   return tex;
 }
 
+function seededRand(seed){
+  // small deterministic hash -> [0,1), so wood variation is stable across redraws
+  let x = Math.sin(seed*127.1)*43758.5453;
+  return x - Math.floor(x);
+}
+
 function drawHerringboneFloor(ctx,w,h,scale){
-  ctx.fillStyle = '#b98a52';
+  const baseTone = '#c9a06b';
+  ctx.fillStyle = baseTone;
   ctx.fillRect(0,0,w,h);
-  const L = Math.max(10, 22*scale), W = Math.max(3, 6*scale);
-  const step = L/Math.SQRT2;
-  const colors = ['#c79a63','#bd8f57','#d1a56d','#b28048'];
+
+  const W = Math.max(4, 6*scale);   // board width
+  const L = W*4;                    // board length, 4:1 — narrow strip parquet proportions
+  const step = (L/Math.SQRT2) * 0.84; // tightened so planks overlap slightly rather than risk gaps
+  const oakTones = [
+    [201,160,107], [190,148,96], [211,172,118], [180,138,88], [197,155,101]
+  ];
+
   let row=0;
   for(let y=-L; y<h+L; y+=step){
     let col=0;
     for(let x=-L; x<w+L; x+=step){
+      const seed = row*131.7 + col*371.3;
+      const rot = ((row+col)%2===0) ? Math.PI/4 : -Math.PI/4;
+      const tone = oakTones[Math.floor(seededRand(seed)*oakTones.length)];
+      const shade = 0.88 + seededRand(seed+1)*0.22; // per-plank brightness variation
+      const [r,g,b] = tone.map(c=>Math.min(255, Math.round(c*shade)));
+
       ctx.save();
       ctx.translate(x,y);
-      ctx.rotate(((row+col)%2===0) ? Math.PI/4 : -Math.PI/4);
-      ctx.fillStyle = colors[(row*7+col*13)%colors.length];
+      ctx.rotate(rot);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(-L/2,-W/2,L,W);
-      ctx.strokeStyle = 'rgba(0,0,0,.3)';
+
+      // wood grain — a few faint streaks along the board's length
+      ctx.strokeStyle = `rgba(90,60,30,${0.05+seededRand(seed+2)*0.05})`;
+      ctx.lineWidth = Math.max(1, W*0.08);
+      for(let g2=0; g2<3; g2++){
+        const gy = -W/2 + (g2+0.5)*(W/3) + (seededRand(seed+3+g2)-0.5)*W*0.3;
+        ctx.beginPath();
+        ctx.moveTo(-L/2+2, gy);
+        ctx.lineTo(L/2-2, gy);
+        ctx.stroke();
+      }
+
+      // beveled seam: light edge (top/left) + dark edge (bottom/right) so each
+      // board reads as a distinct plank rather than a flat painted rectangle
+      ctx.strokeStyle = 'rgba(255,255,255,.22)';
       ctx.lineWidth = 1;
-      ctx.strokeRect(-L/2+0.5,-W/2+0.5,L-1,W-1);
+      ctx.beginPath(); ctx.moveTo(-L/2,-W/2); ctx.lineTo(L/2,-W/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-L/2,-W/2); ctx.lineTo(-L/2,W/2); ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,.32)';
+      ctx.beginPath(); ctx.moveTo(-L/2,W/2); ctx.lineTo(L/2,W/2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(L/2,-W/2); ctx.lineTo(L/2,W/2); ctx.stroke();
+
       ctx.restore();
       col++;
     }
     row++;
   }
+
+  addFloorVignette(ctx,w,h);
+}
+
+function addFloorVignette(ctx,w,h){
+  const grad = ctx.createRadialGradient(w/2,h/2, Math.max(w,h)*0.25, w/2,h/2, Math.max(w,h)*0.72);
+  grad.addColorStop(0, 'rgba(0,0,0,0)');
+  grad.addColorStop(1, 'rgba(0,0,0,.16)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,w,h);
 }
 
 function drawPlankFloor(ctx,w,h,scale){
   ctx.fillStyle = '#c9a877';
   ctx.fillRect(0,0,w,h);
   const L = Math.max(30,120*scale), W = Math.max(6,14*scale);
-  const colors = ['#cdae7d','#c2a071','#d6b98a','#b89463'];
+  const oakTones = [[205,174,125],[194,161,113],[216,184,135],[184,150,101]];
   let row=0;
   for(let y=0;y<h;y+=W){
     let x = (row%2===0) ? 0 : -L/2;
     let i=0;
     while(x<w){
-      ctx.fillStyle = colors[(row+i)%colors.length];
-      ctx.fillRect(x,y,Math.max(1,L-2),Math.max(1,W-2));
-      ctx.strokeStyle = 'rgba(0,0,0,.22)';
-      ctx.strokeRect(x+0.5,y+0.5,Math.max(1,L-3),Math.max(1,W-3));
+      const seed = row*97.3 + i*211.7;
+      const tone = oakTones[Math.floor(seededRand(seed)*oakTones.length)];
+      const shade = 0.9 + seededRand(seed+1)*0.18;
+      const [r,g,b] = tone.map(c=>Math.min(255,Math.round(c*shade)));
+      const bw = Math.max(1,L-2), bh = Math.max(1,W-2);
+      ctx.fillStyle = `rgb(${r},${g},${b})`;
+      ctx.fillRect(x,y,bw,bh);
+      for(let g2=0; g2<2; g2++){
+        const gy = y + (g2+0.5)*(bh/2) + (seededRand(seed+2+g2)-0.5)*bh*0.3;
+        ctx.strokeStyle = `rgba(90,60,30,${0.05+seededRand(seed+4+g2)*0.05})`;
+        ctx.lineWidth = Math.max(1, W*0.06);
+        ctx.beginPath(); ctx.moveTo(x+2,gy); ctx.lineTo(x+bw-2,gy); ctx.stroke();
+      }
+      ctx.strokeStyle = 'rgba(255,255,255,.18)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+bw,y); ctx.stroke();
+      ctx.strokeStyle = 'rgba(0,0,0,.28)';
+      ctx.beginPath(); ctx.moveTo(x,y+bh); ctx.lineTo(x+bw,y+bh); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x+bw,y); ctx.lineTo(x+bw,y+bh); ctx.stroke();
       x+=L; i++;
     }
     row++;
   }
+  addFloorVignette(ctx,w,h);
 }
 
 function drawTileFloor(ctx,w,h,scale){
   ctx.fillStyle = '#e7e3da';
   ctx.fillRect(0,0,w,h);
   const T = Math.max(14, 40*scale);
+  let ri=0;
+  for(let y=0;y<h;y+=T){
+    let ci=0;
+    for(let x=0;x<w;x+=T){
+      const seed = ri*53.1+ci*91.7;
+      const shade = 0.96 + seededRand(seed)*0.06;
+      const c = Math.round(231*shade);
+      ctx.fillStyle = `rgb(${c},${Math.round(227*shade)},${Math.round(218*shade)})`;
+      ctx.fillRect(x,y,T,T);
+      ci++;
+    }
+    ri++;
+  }
   ctx.strokeStyle = 'rgba(0,0,0,.15)';
   ctx.lineWidth = Math.max(1, scale*0.4);
   for(let x=0;x<=w;x+=T){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke(); }
   for(let y=0;y<=h;y+=T){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke(); }
+  addFloorVignette(ctx,w,h);
 }
 
 function drawConcreteFloor(ctx,w,h,scale){
   ctx.fillStyle = '#9a9a96';
   ctx.fillRect(0,0,w,h);
-  for(let i=0;i<500;i++){
+  for(let i=0;i<700;i++){
     const shade = Math.random()>0.5 ? 0 : 255;
     ctx.fillStyle = `rgba(${shade},${shade},${shade},${(Math.random()*0.05).toFixed(3)})`;
     ctx.fillRect(Math.random()*w, Math.random()*h, Math.random()*40+10, Math.random()*40+10);
   }
+  // faint hairline cracks for texture
+  ctx.strokeStyle = 'rgba(0,0,0,.06)';
+  ctx.lineWidth = 1;
+  for(let i=0;i<6;i++){
+    ctx.beginPath();
+    let px=Math.random()*w, py=Math.random()*h;
+    ctx.moveTo(px,py);
+    for(let s=0;s<5;s++){ px+=(Math.random()-0.5)*120; py+=(Math.random()-0.5)*120; ctx.lineTo(px,py); }
+    ctx.stroke();
+  }
+  addFloorVignette(ctx,w,h);
 }
 
 /* ============================================================
@@ -1970,6 +2091,131 @@ function addBeadboardToWall(scene, wall, M, style, baseColor){
       scene.add(cap);
     }
   }
+}
+
+/* ============================================================
+   FURNITURE GEOMETRY (3D only)
+   Built as small groups of boxes per item — a cabinet body, an
+   inset door panel, a handle, and (for counter-height pieces) a
+   shared-looking countertop cap — instead of one flat-colored
+   block. Sinks get a recessed basin + faucet, stoves a flush dark
+   cooktop panel, ovens a door handle bar, fridges a freezer split
+   and door seam, wine fridges a tinted glass front, tables/chairs
+   get slab-and-legs instead of solid blocks.
+   ============================================================ */
+const COUNTERTOP_H = 4;       // cm, cap thickness
+const COUNTERTOP_OVERHANG = 2; // cm, overhang per side
+const COUNTERTOP_COLOR = '#e9e4d6';
+
+function shadeColor(color, factor){
+  return new THREE.Color(color).multiplyScalar(factor);
+}
+
+function mkBox(group, w,h,d, cx,cyBottom,cz, color, roughness=0.7, metalness=0){
+  const hh = Math.max(0.5,h);
+  const geo = new THREE.BoxGeometry(Math.max(0.5,w), hh, Math.max(0.5,d));
+  const mat = new THREE.MeshStandardMaterial({color, roughness, metalness});
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.position.set(cx, cyBottom+hh/2, cz);
+  group.add(mesh);
+  return mesh;
+}
+
+function addCountertop(group, w, d, topZ){
+  mkBox(group, w+COUNTERTOP_OVERHANG*2, COUNTERTOP_H, d+COUNTERTOP_OVERHANG*2,
+        0, topZ, 0, COUNTERTOP_COLOR, 0.32, 0.05);
+}
+
+function buildFurnitureGroup(f, def){
+  const group = new THREE.Group();
+  const w=f.w, d=f.d, z0=def.z0, z1=def.z1;
+
+  switch(f.type){
+    case 'base': case 'corner': case 'island': {
+      const bodyTop = z1 - COUNTERTOP_H;
+      mkBox(group, w, bodyTop-z0, d, 0, z0, 0, def.color, 0.75);
+      mkBox(group, w-6, bodyTop-z0-6, 1.2, 0, z0+3, d/2-0.6, shadeColor(def.color,0.85), 0.6);
+      mkBox(group, 2, 10, 1.5, w/2-8, bodyTop-16, d/2+0.2, '#2a2a2a', 0.4, 0.6);
+      addCountertop(group, w, d, bodyTop);
+      break;
+    }
+    case 'sink': {
+      const bodyTop = z1 - COUNTERTOP_H;
+      mkBox(group, w, bodyTop-z0, d, 0, z0, 0, def.color, 0.75);
+      mkBox(group, w-6, bodyTop-z0-6, 1.2, 0, z0+3, d/2-0.6, shadeColor(def.color,0.85), 0.6);
+      addCountertop(group, w, d, bodyTop);
+      mkBox(group, w-16, 6, d-16, 0, bodyTop-5, 0, '#8b9aa3', 0.3, 0.3);
+      mkBox(group, 2.5, 14, 2.5, 0, bodyTop+COUNTERTOP_H, -d/2+6, '#555a5e', 0.3, 0.7);
+      mkBox(group, 2.5, 2.5, 10, 0, bodyTop+COUNTERTOP_H+12, -d/2+11, '#555a5e', 0.3, 0.7);
+      break;
+    }
+    case 'stove': {
+      const bodyTop = z1 - COUNTERTOP_H;
+      mkBox(group, w, bodyTop-z0, d, 0, z0, 0, '#2c3036', 0.6);
+      addCountertop(group, w, d, bodyTop);
+      mkBox(group, w-10, 0.6, d-10, 0, bodyTop+COUNTERTOP_H-0.3, 0, '#111315', 0.25, 0.2);
+      break;
+    }
+    case 'oven': {
+      const bodyTop = z1 - COUNTERTOP_H;
+      mkBox(group, w, bodyTop-z0, d, 0, z0, 0, def.color, 0.6);
+      mkBox(group, w-8, bodyTop-z0-10, 1.2, 0, z0+6, d/2-0.6, '#2b2e31', 0.35, 0.5);
+      mkBox(group, w-16, 2, 1.5, 0, z1-22, d/2+0.3, '#b9bec2', 0.3, 0.7);
+      addCountertop(group, w, d, bodyTop);
+      break;
+    }
+    case 'dish': {
+      const bodyTop = z1 - COUNTERTOP_H;
+      mkBox(group, w, bodyTop-z0, d, 0, z0, 0, def.color, 0.65);
+      mkBox(group, w-6, bodyTop-z0-6, 1.2, 0, z0+3, d/2-0.6, shadeColor(def.color,0.85), 0.5);
+      addCountertop(group, w, d, bodyTop);
+      break;
+    }
+    case 'winefridge': {
+      const bodyTop = z1 - COUNTERTOP_H;
+      mkBox(group, w, bodyTop-z0, d, 0, z0, 0, def.color, 0.5);
+      mkBox(group, w-6, bodyTop-z0-6, 1, 0, z0+3, d/2-0.5, '#3d5566', 0.2, 0.1);
+      for(let s=0;s<3;s++){
+        mkBox(group, w-10, 0.8, 0.6, 0, z0+15+s*18, d/2-0.2, '#1c2126', 0.3);
+      }
+      addCountertop(group, w, d, bodyTop);
+      break;
+    }
+    case 'wall': {
+      mkBox(group, w, z1-z0, d, 0, z0, 0, def.color, 0.75);
+      mkBox(group, w-4, z1-z0-4, 1, 0, z0+2, d/2-0.5, shadeColor(def.color,0.85), 0.6);
+      mkBox(group, 1.5, 8, 1.2, w/2-6, z1-16, d/2+0.2, '#2a2a2a', 0.4, 0.6);
+      break;
+    }
+    case 'fridge': {
+      const hgt = z1-z0;
+      mkBox(group, w, hgt, d, 0, z0, 0, def.color, 0.45, 0.3);
+      mkBox(group, w+0.2, 1, d+0.2, 0, z0+hgt*0.35, 0, '#2b2e31', 0.4);
+      mkBox(group, 0.8, hgt-4, d+0.2, 0, z0+2, 0, '#2b2e31', 0.4);
+      mkBox(group, 2, hgt*0.28, 2, w/2-4, z0+hgt*0.55, d/2+0.5, '#1c1f22', 0.3, 0.6);
+      mkBox(group, 2, hgt*0.18, 2, w/2-4, z0+hgt*0.1, d/2+0.5, '#1c1f22', 0.3, 0.6);
+      break;
+    }
+    case 'table': {
+      mkBox(group, w, 4, d, 0, z1-4, 0, def.color, 0.55);
+      const inset=6;
+      [[w/2-inset,d/2-inset],[-(w/2-inset),d/2-inset],[w/2-inset,-(d/2-inset)],[-(w/2-inset),-(d/2-inset)]]
+        .forEach(([lx,lz])=>mkBox(group, 4, z1-4, 4, lx, 0, lz, shadeColor(def.color,0.7), 0.6));
+      break;
+    }
+    case 'chair': {
+      mkBox(group, w, 4, d, 0, 42, 0, def.color, 0.6);
+      mkBox(group, w, z1-46, 3, 0, 46, -d/2+1.5, shadeColor(def.color,0.8), 0.6);
+      const inset=4;
+      [[w/2-inset,d/2-inset],[-(w/2-inset),d/2-inset],[w/2-inset,-(d/2-inset)],[-(w/2-inset),-(d/2-inset)]]
+        .forEach(([lx,lz])=>mkBox(group, 3, 42, 3, lx, 0, lz, shadeColor(def.color,0.7), 0.6));
+      break;
+    }
+    default: {
+      mkBox(group, w, z1-z0, d, 0, z0, 0, def.color, 0.7);
+    }
+  }
+  return group;
 }
 
 function build3D(){
@@ -2060,14 +2306,12 @@ function build3D(){
   }
 
   for(const f of state.furniture){
-    const def = FURNITURE_TYPES[f.type] || {z0:0,z1:80,color:0x999999};
-    const h = (def.z1-def.z0)*M;
-    const geo = new THREE.BoxGeometry(f.w*M, h, f.d*M);
-    const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.7});
-    const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(f.x*M, def.z0*M + h/2, f.y*M);
-    mesh.rotation.y = -f.rotation*Math.PI/180;
-    scene.add(mesh);
+    const def = FURNITURE_TYPES[f.type] || {z0:0,z1:80,color:'#999999'};
+    const group = buildFurnitureGroup(f, def);
+    group.scale.set(M,M,M);
+    group.position.set(f.x*M, 0, f.y*M);
+    group.rotation.y = -f.rotation*Math.PI/180;
+    scene.add(group);
   }
 
   resize3d();
