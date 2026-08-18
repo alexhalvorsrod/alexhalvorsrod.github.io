@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grunnriss — Kitchen &amp; Room Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root{
+    --ink:#1c1f22;
+    --ink-soft:#4a5058;
+    --paper:#faf7f1;
+    --paper-line-major:#c9d4dd;
+    --paper-line-minor:#e6ebef;
+    --brass:#b8794a;
+    --brass-dark:#8f5c36;
+    --panel-bg:#20242a;
+    --panel-bg-2:#282d34;
+    --panel-line:#383e46;
+    --panel-text:#e9e6de;
+    --panel-text-dim:#9aa0a8;
+    --accent-blue:#5b8fa8;
+    --danger:#c05a4a;
+    --radius:6px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    color:var(--panel-text);
+    background:var(--panel-bg);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;}
+
+  /* ---------- top bar ---------- */
+  #topbar{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 12px;
+    background:var(--panel-bg);
+    border-bottom:1px solid var(--panel-line);
+    flex-shrink:0;
+    flex-wrap:wrap;
+  }
+  #topbar .brand{
+    font-weight:700;
+    font-size:15px;
+    letter-spacing:.02em;
+    color:var(--panel-text);
+    margin-right:10px;
+    display:flex;
+    align-items:baseline;
+    gap:6px;
+  }
+  #topbar .brand small{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:400;
+    font-size:10px;
+    color:var(--brass);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+  .divider{width:1px;height:22px;background:var(--panel-line);margin:0 4px;}
+  button.tool{
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--panel-text-dim);
+    padding:6px 10px;
+    border-radius:var(--radius);
+    font-size:12.5px;
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    white-space:nowrap;
+  }
+  button.tool:hover{background:var(--panel-bg-2);color:var(--panel-text);}
+  button.tool.active{background:var(--brass);color:#1c1108;border-color:var(--brass-dark);font-weight:600;}
+  button.tool svg{width:14px;height:14px;flex-shrink:0;}
+  button.icon-only{padding:6px 8px;}
+  select.tool{
+    background:var(--panel-bg-2);
+    color:var(--panel-text);
+    border:1px solid var(--panel-line);
+    border-radius:var(--radius);
+    padding:6px 8px;
+    font-size:12.5px;
+    font-family:'Inter',sans-serif;
+  }
+  #topbar .spacer{flex:1;}
+
+  /* ---------- layout ---------- */
+  #main{flex:1;display:flex;min-height:0;}
+  #leftpanel{
+    width:196px;
+    background:var(--panel-bg);
+    border-right:1px solid var(--panel-line);
+    overflow-y:auto;
+    flex-shrink:0;
+    padding:10px;
+  }
+  #leftpanel h3{
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.09em;
+    color:var(--brass);
+    margin:14px 0 8px;
+    font-weight:600;
+  }
+  #leftpanel h3:first-child{margin-top:2px;}
+  .furn-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    text-align:left;
+    background:var(--panel-bg-2);
+    border:1px solid var(--panel-line);
+    color:var(--panel-text);
+    border-radius:var(--radius);
+    padding:7px 8px;
+    margin-bottom:5px;
+    font-size:12px;
+    cursor:pointer;
+  }
+  .furn-item:hover{border-color:var(--brass);}
+  .furn-item.active{background:var(--brass);color:#1c1108;border-color:var(--brass-dark);font-weight:600;}
+  .furn-swatch{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+  .hint{
+    font-size:11px;
+    color:var(--panel-text-dim);
+    line-height:1.5;
+    background:var(--panel-bg-2);
+    border:1px solid var(--panel-line);
+    border-radius:var(--radius);
+    padding:8px;
+    margin-top:6px;
+  }
+
+  #canvaswrap{flex:1;position:relative;background:var(--paper);overflow:hidden;}
+  canvas{position:absolute;top:0;left:0;display:block;}
+  #viewport3d{position:absolute;top:0;left:0;width:100%;height:100%;display:none;background:#0d1116;}
+
+  #statusbar{
+    position:absolute;bottom:0;left:0;right:0;
+    display:flex;align-items:center;gap:16px;
+    padding:6px 12px;
+    background:rgba(28,31,34,.88);
+    color:var(--panel-text-dim);
+    font-size:11px;
+    font-family:'JetBrains Mono',monospace;
+    border-top:1px solid var(--panel-line);
+  }
+  #statusbar .fill{flex:1;}
+
+  #rightpanel{
+    width:240px;
+    background:var(--panel-bg);
+    border-left:1px solid var(--panel-line);
+    flex-shrink:0;
+    overflow-y:auto;
+    padding:14px;
+    display:none;
+  }
+  #rightpanel.visible{display:block;}
+  #rightpanel h3{
+    font-size:12.5px;
+    margin:0 0 12px;
+    color:var(--panel-text);
+    font-weight:600;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  #rightpanel h3 .type-tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--brass);
+    background:rgba(184,121,74,.12);
+    border:1px solid rgba(184,121,74,.35);
+    padding:2px 6px;
+    border-radius:4px;
+  }
+  .field{margin-bottom:11px;}
+  .field label{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--panel-text-dim);
+    margin-bottom:4px;
+  }
+  .field input[type=number], .field input[type=text], .field select{
+    width:100%;
+    background:var(--panel-bg-2);
+    border:1px solid var(--panel-line);
+    color:var(--panel-text);
+    border-radius:var(--radius);
+    padding:6px 8px;
+    font-size:13px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .field-row{display:flex;gap:8px;}
+  .field-row .field{flex:1;}
+  #rightpanel button.danger{
+    width:100%;
+    background:transparent;
+    border:1px solid var(--danger);
+    color:var(--danger);
+    padding:8px;
+    border-radius:var(--radius);
+    font-size:12px;
+    cursor:pointer;
+    margin-top:6px;
+    font-weight:600;
+  }
+  #rightpanel button.danger:hover{background:rgba(192,90,74,.12);}
+
+  .toast{
+    position:absolute;top:14px;left:50%;transform:translateX(-50%);
+    background:var(--panel-bg-2);
+    border:1px solid var(--brass);
+    color:var(--panel-text);
+    padding:8px 16px;
+    border-radius:var(--radius);
+    font-size:12.5px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s;
+    z-index:50;
+  }
+  .toast.show{opacity:1;}
+
+  input[type=file]{display:none;}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div class="brand">Grunnriss <small>kitchen &amp; room planner</small></div>
+  <div class="divider"></div>
+  <button class="tool active" data-mode="select" id="btn-select">Select</button>
+  <button class="tool" data-mode="wall" id="btn-wall">Draw wall</button>
+  <button class="tool" data-mode="door" id="btn-door">+ Door</button>
+  <button class="tool" data-mode="window" id="btn-window">+ Window</button>
+  <button class="tool" data-mode="arch" id="btn-arch">+ Archway</button>
+  <div class="divider"></div>
+  <button class="tool icon-only" id="btn-undo" title="Undo last wall point">Undo pt</button>
+  <button class="tool icon-only" id="btn-delete" title="Delete selected (Del)">Delete</button>
+  <div class="spacer"></div>
+  <button class="tool" id="btn-save">Export plan (.json)</button>
+  <button class="tool" id="btn-load">Import plan</button>
+  <input type="file" id="file-input" accept="application/json">
+  <button class="tool" id="btn-png">Export PNG</button>
+  <div class="divider"></div>
+  <button class="tool" id="btn-view2d" style="background:var(--brass);color:#1c1108;font-weight:600;">2D Plan</button>
+  <button class="tool" id="btn-view3d">3D Preview</button>
+</div>
+
+<div id="main">
+  <div id="leftpanel">
+    <h3>Room</h3>
+    <div class="hint">Pick <b>Draw wall</b>, click to place corners, double-click or press Esc to finish a wall run. Everything snaps to 5&nbsp;cm.</div>
+
+    <h3>Openings</h3>
+    <div class="hint">With <b>+ Door</b>, <b>+ Window</b> or <b>+ Archway</b> active, click a point on a wall to insert it there. Arches get a true curved header in the 3D view — a straight-top door doesn't.</div>
+
+    <h3>Kitchen &amp; furniture</h3>
+    <div id="furniture-list"></div>
+  </div>
+
+  <div id="canvaswrap">
+    <canvas id="planCanvas"></canvas>
+    <div id="viewport3d"></div>
+    <div id="statusbar">
+      <span id="status-mode" class="mono">SELECT</span>
+      <span id="status-coords" class="mono">x 0 cm, y 0 cm</span>
+      <span class="fill"></span>
+      <span id="status-hint">Click and drag to pan · scroll to zoom</span>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+
+  <div id="rightpanel"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   MODEL
+   All coordinates/dimensions in centimetres unless noted.
+   ============================================================ */
+let state = {
+  walls: [],       // {id, x1,y1,x2,y2, thickness, height}
+  openings: [],    // {id, wallId, offset, width, type:'door'|'window'|'arch', sill, height, archRise}
+  furniture: [],   // {id, type, x, y, w, d, rotation, label}
+  nextId: 1
+};
+
+const FURNITURE_TYPES = {
+  base:     { label:'Base cabinet',        w:60,  d:60,  color:'#c9b28a', z0:0,   z1:90  },
+  corner:   { label:'Corner base cabinet',  w:90,  d:90,  color:'#c9b28a', z0:0,   z1:90  },
+  wall:     { label:'Wall cabinet',         w:60,  d:35,  color:'#dcc9a3', z0:140, z1:220, floating:true },
+  island:   { label:'Kitchen island',       w:140, d:90,  color:'#a9895e', z0:0,   z1:90  },
+  fridge:   { label:'Fridge / freezer',     w:70,  d:70,  color:'#8f97a0', z0:0,   z1:185 },
+  stove:    { label:'Stove / cooktop',      w:60,  d:60,  color:'#3d4650', z0:0,   z1:90  },
+  oven:     { label:'Built-in oven',        w:60,  d:60,  color:'#5c6874', z0:0,   z1:90  },
+  sink:     { label:'Sink base',            w:80,  d:60,  color:'#b7c4cc', z0:0,   z1:90  },
+  dish:     { label:'Dishwasher',           w:60,  d:60,  color:'#6d7680', z0:0,   z1:82  },
+  table:    { label:'Table',                w:120, d:80,  color:'#a9825a', z0:0,   z1:74  },
+  chair:    { label:'Chair',                w:45,  d:45,  color:'#7a5c3e', z0:0,   z1:45  }
+};
+const DEFAULT_WALL_HEIGHT = 240;
+const DEFAULT_WALL_THICK = 15;
+
+function uid(){ return state.nextId++; }
+
+/* ============================================================
+   VIEW / CAMERA (2D)
+   ============================================================ */
+const canvas = document.getElementById('planCanvas');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvaswrap');
+
+let view = { scale: 2.2, panX: 300, panY: 200 }; // scale = px per cm
+
+function resize(){
+  const r = wrap.getBoundingClientRect();
+  canvas.width = r.width * devicePixelRatio;
+  canvas.height = r.height * devicePixelRatio;
+  canvas.style.width = r.width+'px';
+  canvas.style.height = r.height+'px';
+  ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+  draw();
+}
+window.addEventListener('resize', resize);
+
+function w2s(x,y){ return [x*view.scale+view.panX, y*view.scale+view.panY]; }
+function s2w(px,py){ return [(px-view.panX)/view.scale, (py-view.panY)/view.scale]; }
+
+/* ============================================================
+   INTERACTION STATE
+   ============================================================ */
+let mode = 'select';
+let wallChain = null;          // array of {x,y} while drawing a wall run
+let placingFurnitureType = null;
+let selected = null;           // {kind:'wall'|'opening'|'furniture', id}
+let drag = null;               // active drag descriptor
+let isPanning = false;
+let panStart = null;
+let mouseWorld = {x:0,y:0};
+
+const GRID_SNAP = 5;
+function snap(v){ return Math.round(v/GRID_SNAP)*GRID_SNAP; }
+
+/* ============================================================
+   GEOMETRY HELPERS
+   ============================================================ */
+function wallLength(w){ return Math.hypot(w.x2-w.x1, w.y2-w.y1); }
+function wallAngle(w){ return Math.atan2(w.y2-w.y1, w.x2-w.x1); }
+function pointOnWall(w, offset){
+  const L = wallLength(w) || 1;
+  const t = offset / L;
+  return { x: w.x1 + (w.x2-w.x1)*t, y: w.y1 + (w.y2-w.y1)*t };
+}
+function closestPointOnSegment(px,py, x1,y1,x2,y2){
+  const dx=x2-x1, dy=y2-y1;
+  const len2 = dx*dx+dy*dy;
+  let t = len2===0 ? 0 : ((px-x1)*dx+(py-y1)*dy)/len2;
+  t = Math.max(0, Math.min(1, t));
+  return { x: x1+dx*t, y: y1+dy*t, t };
+}
+function distToSegment(px,py,x1,y1,x2,y2){
+  const c = closestPointOnSegment(px,py,x1,y1,x2,y2);
+  return Math.hypot(px-c.x, py-c.y);
+}
+function openingsForWall(wallId){
+  return state.openings.filter(o=>o.wallId===wallId).sort((a,b)=>a.offset-b.offset);
+}
+
+/* ============================================================
+   HIT TESTING
+   ============================================================ */
+function hitTest(wx, wy){
+  const tolWorld = 8 / view.scale;
+
+  // furniture (topmost first)
+  for(let i=state.furniture.length-1;i>=0;i--){
+    const f = state.furniture[i];
+    const cos=Math.cos(-f.rotation*Math.PI/180), sin=Math.sin(-f.rotation*Math.PI/180);
+    const dx=wx-f.x, dy=wy-f.y;
+    const lx = dx*cos - dy*sin, ly = dx*sin + dy*cos;
+    if(Math.abs(lx) <= f.w/2 && Math.abs(ly) <= f.d/2){
+      return {kind:'furniture', id:f.id};
+    }
+  }
+  // openings (as small markers along walls)
+  for(const o of state.openings){
+    const wall = state.walls.find(w=>w.id===o.wallId);
+    if(!wall) continue;
+    const mid = pointOnWall(wall, o.offset + o.width/2);
+    if(Math.hypot(wx-mid.x, wy-mid.y) < Math.max(o.width/2, 20)){
+      const c = closestPointOnSegment(wx,wy,wall.x1,wall.y1,wall.x2,wall.y2);
+      if(Math.hypot(wx-c.x,wy-c.y) < wall.thickness/2 + 30) return {kind:'opening', id:o.id};
+    }
+  }
+  // walls
+  for(const w of state.walls){
+    if(distToSegment(wx,wy,w.x1,w.y1,w.x2,w.y2) < w.thickness/2 + tolWorld){
+      return {kind:'wall', id:w.id};
+    }
+  }
+  return null;
+}
+
+/* ============================================================
+   DRAWING (2D canvas)
+   ============================================================ */
+function draw(){
+  const r = wrap.getBoundingClientRect();
+  ctx.clearRect(0,0,r.width,r.height);
+  drawGrid(r);
+  for(const w of state.walls) drawWall(w);
+  if(wallChain && wallChain.length){
+    drawWallChainPreview();
+  }
+  for(const f of state.furniture) drawFurniture(f);
+  drawSelectionOverlay();
+}
+
+function drawGrid(r){
+  const minorPx = GRID_SNAP*view.scale;
+  const majorEvery = 10; // every 50cm
+  ctx.save();
+  const startX = -view.panX/view.scale, startY = -view.panY/view.scale;
+  const endX = (r.width-view.panX)/view.scale, endY = (r.height-view.panY)/view.scale;
+  const x0 = Math.floor(startX/GRID_SNAP)*GRID_SNAP;
+  const y0 = Math.floor(startY/GRID_SNAP)*GRID_SNAP;
+  ctx.lineWidth = 1;
+  for(let x=x0, i=Math.round(x0/GRID_SNAP); x<endX; x+=GRID_SNAP, i++){
+    const [sx] = w2s(x,0);
+    ctx.strokeStyle = (i % majorEvery===0) ? 'var(--paper-line-major)' : 'var(--paper-line-minor)';
+    ctx.strokeStyle = (i % majorEvery===0) ? '#c9d4dd' : '#eef2f5';
+    ctx.beginPath(); ctx.moveTo(sx,0); ctx.lineTo(sx,r.height); ctx.stroke();
+  }
+  for(let y=y0, i=Math.round(y0/GRID_SNAP); y<endY; y+=GRID_SNAP, i++){
+    const [,sy] = w2s(0,y);
+    ctx.strokeStyle = (i % majorEvery===0) ? '#c9d4dd' : '#eef2f5';
+    ctx.beginPath(); ctx.moveTo(0,sy); ctx.lineTo(r.width,sy); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawWall(w){
+  const isSel = selected && selected.kind==='wall' && selected.id===w.id;
+  const opens = openingsForWall(w.id);
+  const L = wallLength(w);
+  const ang = wallAngle(w);
+  const cos=Math.cos(ang), sin=Math.sin(ang);
+  const t = w.thickness;
+
+  // build list of solid segments (offset ranges) minus openings
+  let cursor = 0;
+  const segs = [];
+  for(const o of opens){
+    const start = Math.max(0, Math.min(L, o.offset));
+    const end = Math.max(0, Math.min(L, o.offset+o.width));
+    if(start > cursor) segs.push([cursor, start]);
+    cursor = Math.max(cursor, end);
+  }
+  if(cursor < L) segs.push([cursor, L]);
+  if(segs.length===0 && opens.length===0) segs.push([0,L]);
+
+  ctx.save();
+  ctx.fillStyle = isSel ? '#3a3126' : '#2c2f33';
+  ctx.strokeStyle = isSel ? '#b8794a' : '#15171a';
+  ctx.lineWidth = 1.2;
+
+  for(const [a,b] of segs){
+    const p1 = { x: w.x1+cos*a, y: w.y1+sin*a };
+    const p2 = { x: w.x1+cos*b, y: w.y1+sin*b };
+    const nx = -sin*t/2, ny = cos*t/2;
+    const pts = [
+      [p1.x+nx,p1.y+ny],[p2.x+nx,p2.y+ny],[p2.x-nx,p2.y-ny],[p1.x-nx,p1.y-ny]
+    ].map(p=>w2s(p[0],p[1]));
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0],pts[0][1]);
+    for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+  }
+
+  // opening symbols
+  for(const o of opens){
+    drawOpeningSymbol(w, o, ang, cos, sin);
+  }
+
+  // length label
+  const mid = w2s((w.x1+w.x2)/2, (w.y1+w.y2)/2);
+  ctx.save();
+  ctx.translate(mid[0], mid[1]);
+  ctx.rotate(ang);
+  ctx.font = '600 10.5px JetBrains Mono, monospace';
+  ctx.fillStyle = '#5b8fa8';
+  ctx.textAlign = 'center';
+  ctx.fillText(Math.round(L)+' cm', 0, -t/2*view.scale - 6);
+  ctx.restore();
+
+  ctx.restore();
+}
+
+function drawOpeningSymbol(wall, o, ang, cos, sin){
+  const t = wall.thickness;
+  const p1 = { x: wall.x1+cos*o.offset, y: wall.y1+sin*o.offset };
+  const p2 = { x: wall.x1+cos*(o.offset+o.width), y: wall.y1+sin*(o.offset+o.width) };
+  const s1 = w2s(p1.x,p1.y), s2 = w2s(p2.x,p2.y);
+  const isSel = selected && selected.kind==='opening' && selected.id===o.id;
+
+  ctx.save();
+  ctx.strokeStyle = isSel ? '#b8794a' : '#1c1f22';
+  ctx.lineWidth = isSel ? 2.4 : 1.6;
+
+  if(o.type==='window'){
+    // double thin line across the gap
+    const nx=-sin*t/2, ny=cos*t/2;
+    ctx.beginPath();
+    ctx.moveTo(s1[0]+nx*view.scale*0, s1[1]);
+    ctx.strokeStyle = isSel?'#b8794a':'#5b8fa8';
+    const off1 = w2s(p1.x-sin*t*0.22, p1.y+cos*t*0.22);
+    const off2 = w2s(p2.x-sin*t*0.22, p2.y+cos*t*0.22);
+    const off3 = w2s(p1.x+sin*t*0.22, p1.y-cos*t*0.22);
+    const off4 = w2s(p2.x+sin*t*0.22, p2.y-cos*t*0.22);
+    ctx.beginPath(); ctx.moveTo(off1[0],off1[1]); ctx.lineTo(off2[0],off2[1]); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(off3[0],off3[1]); ctx.lineTo(off4[0],off4[1]); ctx.stroke();
+  } else if(o.type==='door'){
+    // swing arc from hinge (p1)
+    ctx.strokeStyle = isSel?'#b8794a':'#1c1f22';
+    ctx.beginPath(); ctx.moveTo(s1[0],s1[1]); ctx.lineTo(s2[0],s2[1]); ctx.stroke();
+    const r = o.width*view.scale;
+    const startAng = ang;
+    ctx.beginPath();
+    ctx.arc(s1[0], s1[1], r, startAng, startAng+Math.PI/2, false);
+    ctx.setLineDash([3,3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // door leaf
+    const leafEnd = w2s(p1.x + Math.cos(ang+Math.PI/2)*o.width, p1.y + Math.sin(ang+Math.PI/2)*o.width);
+    ctx.beginPath(); ctx.moveTo(s1[0],s1[1]); ctx.lineTo(leafEnd[0],leafEnd[1]); ctx.stroke();
+  } else if(o.type==='arch'){
+    // bowed double line = arch header shown in plan (springline projection)
+    const bow = Math.min(o.width*0.18, t*0.9);
+    const nx=-sin, ny=cos;
+    const c1 = w2s((p1.x+p2.x)/2 + nx*bow, (p1.y+p2.y)/2 + ny*bow);
+    ctx.strokeStyle = isSel?'#b8794a':'#8a6a48';
+    ctx.beginPath();
+    ctx.moveTo(s1[0],s1[1]);
+    ctx.quadraticCurveTo(c1[0],c1[1], s2[0],s2[1]);
+    ctx.stroke();
+    const c2 = w2s((p1.x+p2.x)/2 - nx*bow, (p1.y+p2.y)/2 - ny*bow);
+    ctx.beginPath();
+    ctx.moveTo(s1[0],s1[1]);
+    ctx.quadraticCurveTo(c2[0],c2[1], s2[0],s2[1]);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawFurniture(f){
+  const def = FURNITURE_TYPES[f.type] || {color:'#888',label:f.type};
+  const isSel = selected && selected.kind==='furniture' && selected.id===f.id;
+  const [sx,sy] = w2s(f.x,f.y);
+  ctx.save();
+  ctx.translate(sx,sy);
+  ctx.rotate(f.rotation*Math.PI/180);
+  const w = f.w*view.scale, d = f.d*view.scale;
+  ctx.fillStyle = def.color;
+  ctx.strokeStyle = isSel ? '#b8794a' : 'rgba(0,0,0,.45)';
+  ctx.lineWidth = isSel ? 2.4 : 1;
+  if(def.floating){ ctx.setLineDash([4,3]); }
+  ctx.beginPath();
+  ctx.rect(-w/2,-d/2,w,d);
+  ctx.fill(); ctx.stroke();
+  ctx.setLineDash([]);
+  // front indicator
+  ctx.fillStyle = 'rgba(0,0,0,.35)';
+  ctx.fillRect(-w/2, d/2-Math.max(2,d*0.08), w, Math.max(2,d*0.08));
+  ctx.restore();
+
+  if(view.scale > 1.1){
+    ctx.save();
+    ctx.font = '500 10px Inter, sans-serif';
+    ctx.fillStyle = '#20242a';
+    ctx.textAlign = 'center';
+    ctx.fillText(def.label, sx, sy - d/2 - 5);
+    ctx.restore();
+  }
+}
+
+function drawWallChainPreview(){
+  ctx.save();
+  ctx.strokeStyle = '#5b8fa8';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  const pts = wallChain.map(p=>w2s(p.x,p.y));
+  ctx.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
+  const mp = w2s(mouseWorld.x, mouseWorld.y);
+  ctx.lineTo(mp[0],mp[1]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#5b8fa8';
+  for(const p of pts){ ctx.beginPath(); ctx.arc(p[0],p[1],3.5,0,7); ctx.fill(); }
+  ctx.restore();
+}
+
+function drawSelectionOverlay(){
+  if(!selected || selected.kind!=='furniture') return;
+  const f = state.furniture.find(x=>x.id===selected.id);
+  if(!f) return;
+  const [sx,sy] = w2s(f.x,f.y);
+  ctx.save();
+  ctx.translate(sx,sy);
+  ctx.rotate(f.rotation*Math.PI/180);
+  const w=f.w*view.scale, d=f.d*view.scale;
+  // rotate handle
+  ctx.strokeStyle = '#b8794a'; ctx.fillStyle='#b8794a'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,-d/2); ctx.lineTo(0,-d/2-22); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,-d/2-22,5,0,7); ctx.fill();
+  // resize handle (bottom-right)
+  ctx.fillRect(w/2-5, d/2-5, 10,10);
+  ctx.restore();
+}
+
+/* ============================================================
+   HANDLE HIT DETECTION for selected furniture
+   ============================================================ */
+function furnitureHandleAt(px,py){
+  if(!selected || selected.kind!=='furniture') return null;
+  const f = state.furniture.find(x=>x.id===selected.id);
+  if(!f) return null;
+  const [sx,sy] = w2s(f.x,f.y);
+  const rad = f.rotation*Math.PI/180;
+  const cos=Math.cos(rad), sin=Math.sin(rad);
+  const w=f.w*view.scale, d=f.d*view.scale;
+  function toWorldPx(lx,ly){ return [sx + lx*cos - ly*sin, sy + lx*sin + ly*cos]; }
+  const rh = toWorldPx(0, -d/2-22);
+  if(Math.hypot(px-rh[0],py-rh[1]) < 8) return 'rotate';
+  const rz = toWorldPx(w/2, d/2);
+  if(Math.hypot(px-rz[0],py-rz[1]) < 9) return 'resize';
+  return null;
+}
+
+/* ============================================================
+   MODE / TOOLBAR
+   ============================================================ */
+const modeButtons = {
+  select: document.getElementById('btn-select'),
+  wall: document.getElementById('btn-wall'),
+  door: document.getElementById('btn-door'),
+  window: document.getElementById('btn-window'),
+  arch: document.getElementById('btn-arch')
+};
+function setMode(m){
+  mode = m;
+  placingFurnitureType = null;
+  wallChain = null;
+  Object.entries(modeButtons).forEach(([k,btn])=>btn.classList.toggle('active', k===m));
+  document.querySelectorAll('.furn-item').forEach(el=>el.classList.remove('active'));
+  document.getElementById('status-mode').textContent = m.toUpperCase();
+  const hints = {
+    select: 'Click to select · drag to move · Del to remove',
+    wall: 'Click to place corners · double-click / Esc to finish',
+    door: 'Click a wall to insert a door (80 cm default)',
+    window: 'Click a wall to insert a window (100 cm default)',
+    arch: 'Click a wall to insert an archway (100 cm default, no leaf)'
+  };
+  document.getElementById('status-hint').textContent = hints[m] || '';
+  draw();
+}
+Object.entries(modeButtons).forEach(([k,btn])=>btn.addEventListener('click', ()=>setMode(k)));
+
+/* furniture palette */
+const furnList = document.getElementById('furniture-list');
+Object.entries(FURNITURE_TYPES).forEach(([key,def])=>{
+  const el = document.createElement('button');
+  el.className = 'furn-item';
+  el.dataset.type = key;
+  el.innerHTML = `<span class="furn-swatch" style="background:${def.color}"></span>${def.label} <span class="mono" style="margin-left:auto;color:var(--panel-text-dim);font-size:10px;">${def.w}×${def.d}</span>`;
+  el.addEventListener('click', ()=>{
+    mode = 'furniture';
+    placingFurnitureType = key;
+    Object.entries(modeButtons).forEach(([k,btn])=>btn.classList.remove('active'));
+    document.querySelectorAll('.furn-item').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+    document.getElementById('status-mode').textContent = 'PLACE: ' + def.label.toUpperCase();
+    document.getElementById('status-hint').textContent = 'Click on the plan to place it';
+  });
+  furnList.appendChild(el);
+});
+
+/* ============================================================
+   MOUSE / KEYBOARD
+   ============================================================ */
+function eventWorld(e){
+  const r = canvas.getBoundingClientRect();
+  const px = e.clientX - r.left, py = e.clientY - r.top;
+  const [wx,wy] = s2w(px,py);
+  return {px,py,wx,wy};
+}
+
+canvas.addEventListener('mousedown', (e)=>{
+  const {px,py,wx,wy} = eventWorld(e);
+
+  if(mode==='select'){
+    const handle = furnitureHandleAt(px,py);
+    if(handle && selected && selected.kind==='furniture'){
+      const f = state.furniture.find(x=>x.id===selected.id);
+      drag = {type:'furniture-'+handle, id:f.id, startMouse:{wx,wy}, orig:{...f}};
+      return;
+    }
+    const hit = hitTest(wx,wy);
+    selected = hit;
+    renderRightPanel();
+    if(hit){
+      if(hit.kind==='furniture'){
+        const f = state.furniture.find(x=>x.id===hit.id);
+        drag = {type:'furniture-move', id:f.id, startMouse:{wx,wy}, orig:{...f}};
+      } else if(hit.kind==='wall'){
+        const w = state.walls.find(x=>x.id===hit.id);
+        drag = {type:'wall-move', id:w.id, startMouse:{wx,wy}, orig:{...w}};
+      }
+    } else {
+      isPanning = true;
+      panStart = {px,py,panX:view.panX,panY:view.panY};
+    }
+    draw();
+    return;
+  }
+
+  if(mode==='wall'){
+    const p = {x:snap(wx), y:snap(wy)};
+    if(!wallChain) wallChain = [p];
+    else wallChain.push(p);
+    draw();
+    return;
+  }
+
+  if(mode==='furniture' && placingFurnitureType){
+    const def = FURNITURE_TYPES[placingFurnitureType];
+    const f = {id:uid(), type:placingFurnitureType, x:snap(wx), y:snap(wy), w:def.w, d:def.d, rotation:0, label:def.label};
+    state.furniture.push(f);
+    selected = {kind:'furniture', id:f.id};
+    setMode('select');
+    selected = {kind:'furniture', id:f.id};
+    renderRightPanel();
+    draw();
+    return;
+  }
+
+  if(mode==='door' || mode==='window' || mode==='arch'){
+    const hit = hitTest(wx,wy);
+    if(hit && hit.kind==='wall'){
+      const wall = state.walls.find(x=>x.id===hit.id);
+      const c = closestPointOnSegment(wx,wy,wall.x1,wall.y1,wall.x2,wall.y2);
+      const offsetFromStart = Math.hypot(c.x-wall.x1, c.y-wall.y1);
+      const widthDefault = mode==='door'?80: mode==='window'?100:100;
+      let offset = snap(offsetFromStart - widthDefault/2);
+      offset = Math.max(0, Math.min(wallLength(wall)-widthDefault, offset));
+      const o = {
+        id:uid(), wallId:wall.id, offset, width:widthDefault, type:mode,
+        sill: mode==='window'?90:0,
+        height: mode==='window'?130: (mode==='arch'?200:210),
+        archRise: mode==='arch'? Math.round(widthDefault*0.45):0
+      };
+      state.openings.push(o);
+      selected = {kind:'opening', id:o.id};
+      setMode('select');
+      selected = {kind:'opening', id:o.id};
+      renderRightPanel();
+      draw();
+    } else {
+      showToast('Click directly on a wall to add an opening');
+    }
+    return;
+  }
+});
+
+canvas.addEventListener('mousemove', (e)=>{
+  const {px,py,wx,wy} = eventWorld(e);
+  mouseWorld = {x:wx,y:wy};
+  document.getElementById('status-coords').textContent = `x ${Math.round(wx)} cm, y ${Math.round(wy)} cm`;
+
+  if(isPanning){
+    view.panX = panStart.panX + (px-panStart.px);
+    view.panY = panStart.panY + (py-panStart.py);
+    draw();
+    return;
+  }
+  if(drag){
+    const dx = wx - drag.startMouse.wx, dy = wy - drag.startMouse.wy;
+    if(drag.type==='furniture-move'){
+      const f = state.furniture.find(x=>x.id===drag.id);
+      f.x = snap(drag.orig.x + dx); f.y = snap(drag.orig.y + dy);
+    } else if(drag.type==='furniture-rotate'){
+      const f = state.furniture.find(x=>x.id===drag.id);
+      const ang = Math.atan2(wy-f.y, wx-f.x)*180/Math.PI + 90;
+      f.rotation = Math.round(ang/15)*15;
+    } else if(drag.type==='furniture-resize'){
+      const f = state.furniture.find(x=>x.id===drag.id);
+      const rad = -f.rotation*Math.PI/180;
+      const lx = dx*Math.cos(rad) - dy*Math.sin(rad);
+      const ly = dx*Math.sin(rad) + dy*Math.cos(rad);
+      f.w = Math.max(20, snap(drag.orig.w + lx*2));
+      f.d = Math.max(20, snap(drag.orig.d + ly*2));
+    } else if(drag.type==='wall-move'){
+      const w = state.walls.find(x=>x.id===drag.id);
+      w.x1 = snap(drag.orig.x1+dx); w.y1 = snap(drag.orig.y1+dy);
+      w.x2 = snap(drag.orig.x2+dx); w.y2 = snap(drag.orig.y2+dy);
+    }
+    draw();
+    if(selected) renderRightPanel(true);
+    return;
+  }
+  if(mode==='wall' && wallChain) draw();
+});
+
+window.addEventListener('mouseup', ()=>{
+  isPanning=false; panStart=null; drag=null;
+});
+
+canvas.addEventListener('dblclick', ()=>{
+  if(mode==='wall' && wallChain) finishWallChain();
+});
+
+canvas.addEventListener('wheel', (e)=>{
+  e.preventDefault();
+  const {px,py} = eventWorld(e);
+  const before = s2w(px,py);
+  const factor = e.deltaY < 0 ? 1.08 : 0.92;
+  view.scale = Math.max(0.3, Math.min(8, view.scale*factor));
+  const after = s2w(px,py);
+  view.panX += (after[0]-before[0])*view.scale;
+  view.panY += (after[1]-before[1])*view.scale;
+  draw();
+}, {passive:false});
+
+window.addEventListener('keydown', (e)=>{
+  if(e.key==='Escape'){
+    if(wallChain){ finishWallChain(); }
+    else { selected=null; renderRightPanel(); draw(); }
+  }
+  if((e.key==='Delete' || e.key==='Backspace') && document.activeElement.tagName!=='INPUT'){
+    deleteSelected();
+  }
+  if(e.key==='Enter' && wallChain){ finishWallChain(); }
+});
+
+function finishWallChain(){
+  if(wallChain && wallChain.length>1){
+    for(let i=0;i<wallChain.length-1;i++){
+      const a=wallChain[i], b=wallChain[i+1];
+      if(a.x===b.x && a.y===b.y) continue;
+      state.walls.push({id:uid(), x1:a.x,y1:a.y,x2:b.x,y2:b.y, thickness:DEFAULT_WALL_THICK, height:DEFAULT_WALL_HEIGHT});
+    }
+  }
+  wallChain = null;
+  draw();
+}
+
+document.getElementById('btn-undo').addEventListener('click', ()=>{
+  if(wallChain && wallChain.length>1){ wallChain.pop(); draw(); }
+});
+
+document.getElementById('btn-delete').addEventListener('click', deleteSelected);
+function deleteSelected(){
+  if(!selected) return;
+  if(selected.kind==='wall'){
+    state.walls = state.walls.filter(w=>w.id!==selected.id);
+    state.openings = state.openings.filter(o=>o.wallId!==selected.id);
+  } else if(selected.kind==='opening'){
+    state.openings = state.openings.filter(o=>o.id!==selected.id);
+  } else if(selected.kind==='furniture'){
+    state.furniture = state.furniture.filter(f=>f.id!==selected.id);
+  }
+  selected = null;
+  renderRightPanel();
+  draw();
+}
+
+/* ============================================================
+   RIGHT PANEL (properties)
+   ============================================================ */
+const rightpanel = document.getElementById('rightpanel');
+function renderRightPanel(skipIfTyping){
+  if(skipIfTyping && document.activeElement && document.activeElement.tagName==='INPUT') return;
+  if(!selected){ rightpanel.classList.remove('visible'); rightpanel.innerHTML=''; return; }
+  rightpanel.classList.add('visible');
+
+  if(selected.kind==='furniture'){
+    const f = state.furniture.find(x=>x.id===selected.id);
+    if(!f){ selected=null; return renderRightPanel(); }
+    const def = FURNITURE_TYPES[f.type];
+    rightpanel.innerHTML = `
+      <h3>${def.label} <span class="type-tag">furniture</span></h3>
+      <div class="field"><label>Label</label><input type="text" id="p-label" value="${f.label}"></div>
+      <div class="field-row">
+        <div class="field"><label>Width (cm)</label><input type="number" id="p-w" value="${f.w}"></div>
+        <div class="field"><label>Depth (cm)</label><input type="number" id="p-d" value="${f.d}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>X (cm)</label><input type="number" id="p-x" value="${Math.round(f.x)}"></div>
+        <div class="field"><label>Y (cm)</label><input type="number" id="p-y" value="${Math.round(f.y)}"></div>
+      </div>
+      <div class="field"><label>Rotation (°)</label><input type="number" id="p-rot" value="${f.rotation}"></div>
+      <button class="danger" id="p-del">Delete</button>
+    `;
+    bind('p-label', v=>f.label=v, true);
+    bind('p-w', v=>f.w=Math.max(10,+v));
+    bind('p-d', v=>f.d=Math.max(10,+v));
+    bind('p-x', v=>f.x=+v);
+    bind('p-y', v=>f.y=+v);
+    bind('p-rot', v=>f.rotation=+v);
+    document.getElementById('p-del').addEventListener('click', deleteSelected);
+  }
+
+  else if(selected.kind==='wall'){
+    const w = state.walls.find(x=>x.id===selected.id);
+    if(!w){ selected=null; return renderRightPanel(); }
+    rightpanel.innerHTML = `
+      <h3>Wall <span class="type-tag">wall</span></h3>
+      <div class="field"><label>Length (cm, read-only)</label><input type="text" value="${Math.round(wallLength(w))}" disabled></div>
+      <div class="field"><label>Thickness (cm)</label><input type="number" id="p-t" value="${w.thickness}"></div>
+      <div class="field"><label>Height (cm)</label><input type="number" id="p-h" value="${w.height}"></div>
+      <button class="danger" id="p-del">Delete wall</button>
+    `;
+    bind('p-t', v=>w.thickness=Math.max(5,+v));
+    bind('p-h', v=>w.height=Math.max(150,+v));
+    document.getElementById('p-del').addEventListener('click', deleteSelected);
+  }
+
+  else if(selected.kind==='opening'){
+    const o = state.openings.find(x=>x.id===selected.id);
+    if(!o){ selected=null; return renderRightPanel(); }
+    const wall = state.walls.find(w=>w.id===o.wallId);
+    const maxW = wall ? Math.round(wallLength(wall)) : 999;
+    rightpanel.innerHTML = `
+      <h3>${o.type[0].toUpperCase()+o.type.slice(1)} <span class="type-tag">opening</span></h3>
+      <div class="field-row">
+        <div class="field"><label>Width (cm)</label><input type="number" id="p-w" value="${o.width}"></div>
+        <div class="field"><label>Offset (cm)</label><input type="number" id="p-off" value="${Math.round(o.offset)}"></div>
+      </div>
+      <div class="field"><label>${o.type==='window'?'Sill height (cm)':'Height to lintel / springline (cm)'}</label>
+        <input type="number" id="p-h" value="${o.type==='window'?o.sill:o.height}"></div>
+      ${o.type==='window' ? `<div class="field"><label>Window height (cm)</label><input type="number" id="p-wh" value="${o.height}"></div>` : ''}
+      ${o.type==='arch' ? `<div class="field"><label>Arch rise (cm) — how tall the curve is above the springline</label><input type="number" id="p-rise" value="${o.archRise}"></div>` : ''}
+      <div class="hint">Max width on this wall: ${maxW} cm.</div>
+      <button class="danger" id="p-del">Delete</button>
+    `;
+    bind('p-w', v=>o.width=Math.max(20,Math.min(maxW,+v)));
+    bind('p-off', v=>o.offset=Math.max(0,Math.min(maxW-o.width,+v)));
+    if(o.type==='window'){
+      bind('p-h', v=>o.sill=+v);
+      bind('p-wh', v=>o.height=+v);
+    } else {
+      bind('p-h', v=>o.height=+v);
+    }
+    if(o.type==='arch') bind('p-rise', v=>o.archRise=Math.max(5,+v));
+    document.getElementById('p-del').addEventListener('click', deleteSelected);
+  }
+
+  function bind(id, setter, isText){
+    const el = document.getElementById(id);
+    el.addEventListener('input', ()=>{ setter(isText?el.value:el.value); draw(); });
+  }
+}
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer=null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+/* ============================================================
+   EXPORT / IMPORT
+   ============================================================ */
+document.getElementById('btn-save').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'kitchen-plan.json';
+  a.click();
+  showToast('Plan exported');
+});
+document.getElementById('btn-load').addEventListener('click', ()=>document.getElementById('file-input').click());
+document.getElementById('file-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data.walls || !data.furniture) throw new Error('bad file');
+      state = data;
+      selected = null;
+      renderRightPanel();
+      draw();
+      showToast('Plan imported');
+    }catch(err){
+      showToast('Could not read that file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+document.getElementById('btn-png').addEventListener('click', ()=>{
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = 'kitchen-plan.png';
+  a.click();
+});
+
+/* ============================================================
+   3D PREVIEW (three.js) — models real opening geometry:
+   arches get a curved cut, doors/windows a rectangular cut.
+   ============================================================ */
+const viewport3d = document.getElementById('viewport3d');
+let three = null; // {renderer, scene, camera, raf}
+let orbit = { theta: Math.PI*0.25, phi: 1.0, radius: 900, target: new THREE.Vector3(0,0,0) };
+let dragging3d = false, lastMouse3d = null;
+
+function ensureThree(){
+  if(three) return three;
+  const renderer = new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(2, window.devicePixelRatio||1));
+  viewport3d.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0d1116);
+  const camera = new THREE.PerspectiveCamera(45, 1, 1, 20000);
+  three = {renderer, scene, camera};
+
+  renderer.domElement.addEventListener('mousedown', (e)=>{ dragging3d=true; lastMouse3d={x:e.clientX,y:e.clientY}; });
+  window.addEventListener('mouseup', ()=>dragging3d=false);
+  window.addEventListener('mousemove', (e)=>{
+    if(!dragging3d) return;
+    const dx = e.clientX-lastMouse3d.x, dy = e.clientY-lastMouse3d.y;
+    lastMouse3d = {x:e.clientX,y:e.clientY};
+    orbit.theta -= dx*0.008;
+    orbit.phi = Math.max(0.15, Math.min(1.5, orbit.phi - dy*0.008));
+  });
+  renderer.domElement.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    orbit.radius = Math.max(150, Math.min(4000, orbit.radius * (e.deltaY<0?0.9:1.1)));
+  }, {passive:false});
+
+  function animate(){
+    three.raf = requestAnimationFrame(animate);
+    const {theta,phi,radius,target} = orbit;
+    camera.position.set(
+      target.x + radius*Math.sin(phi)*Math.cos(theta),
+      target.y + radius*Math.cos(phi),
+      target.z + radius*Math.sin(phi)*Math.sin(theta)
+    );
+    camera.lookAt(target);
+    renderer.render(scene, camera);
+  }
+  animate();
+  return three;
+}
+
+function resize3d(){
+  if(!three) return;
+  const r = wrap.getBoundingClientRect();
+  three.renderer.setSize(r.width, r.height);
+  three.camera.aspect = r.width/r.height;
+  three.camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize3d);
+
+function buildOpeningHolePath(bottom, top, width, isArch, archRise){
+  const path = new THREE.Path();
+  if(!isArch){
+    path.moveTo(0, bottom);
+    path.lineTo(0, top);
+    path.lineTo(width, top);
+    path.lineTo(width, bottom);
+    path.lineTo(0, bottom);
+    return path;
+  }
+  const rise = Math.max(2, Math.min(archRise, width/2*1.4));
+  path.moveTo(0, bottom);
+  path.lineTo(0, top);
+  path.quadraticCurveTo(0, top+rise, width/2, top+rise);
+  path.quadraticCurveTo(width, top+rise, width, top);
+  path.lineTo(width, bottom);
+  path.lineTo(0, bottom);
+  return path;
+}
+
+function build3D(){
+  const t3 = ensureThree();
+  const scene = t3.scene;
+  // clear scene
+  while(scene.children.length) scene.remove(scene.children[0]);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const sun = new THREE.DirectionalLight(0xfff2e0, 0.9);
+  sun.position.set(400,700,300);
+  scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xbcd6ff, 0.35);
+  fill.position.set(-400,300,-300);
+  scene.add(fill);
+
+  const M = 0.01; // cm -> m
+
+  // bounding box for floor + camera target
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const w of state.walls){
+    minX=Math.min(minX,w.x1,w.x2); maxX=Math.max(maxX,w.x1,w.x2);
+    minY=Math.min(minY,w.y1,w.y2); maxY=Math.max(maxY,w.y1,w.y2);
+  }
+  for(const f of state.furniture){
+    minX=Math.min(minX,f.x); maxX=Math.max(maxX,f.x);
+    minY=Math.min(minY,f.y); maxY=Math.max(maxY,f.y);
+  }
+  if(!isFinite(minX)){ minX=0;maxX=400;minY=0;maxY=300; }
+  const cx = (minX+maxX)/2*M, cz=(minY+maxY)/2*M;
+  orbit.target.set(cx, 100*M, cz);
+  orbit.radius = Math.max(400, Math.hypot((maxX-minX)*M,(maxY-minY)*M)*1.3);
+
+  // floor
+  const floorPad = 60;
+  const floorGeo = new THREE.PlaneGeometry(((maxX-minX)+floorPad*2)*M, ((maxY-minY)+floorPad*2)*M);
+  const floorMat = new THREE.MeshStandardMaterial({color:0xcdb896, roughness:0.85});
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI/2;
+  floor.position.set(cx, 0, cz);
+  scene.add(floor);
+
+  const wallMat = new THREE.MeshStandardMaterial({color:0xf3efe6, roughness:0.92});
+
+  for(const w of state.walls){
+    const L = wallLength(w);
+    if(L<1) continue;
+    const shape = new THREE.Shape();
+    shape.moveTo(0,0); shape.lineTo(L,0); shape.lineTo(L,w.height); shape.lineTo(0,w.height); shape.lineTo(0,0);
+    const opens = openingsForWall(w.id);
+    for(const o of opens){
+      const bottom = o.type==='window' ? o.sill : 0;
+      const top = o.type==='window' ? o.sill+o.height : o.height;
+      const holePath = buildOpeningHolePath(bottom, top, o.width, o.type==='arch', o.archRise||0);
+      // translate hole into wall-local x by offset
+      const shifted = new THREE.Path();
+      holePath.curves.forEach((c)=>{}); // no-op, we rebuild via points for reliability
+      const pts = holePath.getPoints(24);
+      shifted.moveTo(pts[0].x+o.offset, pts[0].y);
+      for(let i=1;i<pts.length;i++) shifted.lineTo(pts[i].x+o.offset, pts[i].y);
+      shape.holes.push(shifted);
+    }
+    let geo;
+    try{
+      geo = new THREE.ExtrudeGeometry(shape, {depth:w.thickness, bevelEnabled:false, curveSegments:16});
+    }catch(err){
+      geo = new THREE.BoxGeometry(L, w.height, w.thickness);
+      geo.translate(L/2, w.height/2, 0);
+    }
+    geo.translate(0,0,-w.thickness/2);
+    geo.scale(M,M,M);
+    const mesh = new THREE.Mesh(geo, wallMat);
+    const ang = wallAngle(w);
+    mesh.rotation.y = -ang;
+    mesh.position.set(w.x1*M, 0, w.y1*M);
+    scene.add(mesh);
+  }
+
+  for(const f of state.furniture){
+    const def = FURNITURE_TYPES[f.type] || {z0:0,z1:80,color:0x999999};
+    const h = (def.z1-def.z0)*M;
+    const geo = new THREE.BoxGeometry(f.w*M, h, f.d*M);
+    const mat = new THREE.MeshStandardMaterial({color:def.color, roughness:0.7});
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(f.x*M, def.z0*M + h/2, f.y*M);
+    mesh.rotation.y = -f.rotation*Math.PI/180;
+    scene.add(mesh);
+  }
+
+  resize3d();
+}
+
+/* ============================================================
+   VIEW TOGGLE
+   ============================================================ */
+const btn2d = document.getElementById('btn-view2d'), btn3d = document.getElementById('btn-view3d');
+btn2d.addEventListener('click', ()=>{
+  viewport3d.style.display='none'; canvas.style.display='block';
+  btn2d.style.background='var(--brass)'; btn2d.style.color='#1c1108'; btn2d.style.fontWeight='600';
+  btn3d.style.background=''; btn3d.style.color=''; btn3d.style.fontWeight='';
+});
+btn3d.addEventListener('click', ()=>{
+  try{
+    build3D();
+    canvas.style.display='none'; viewport3d.style.display='block';
+    btn3d.style.background='var(--brass)'; btn3d.style.color='#1c1108'; btn3d.style.fontWeight='600';
+    btn2d.style.background=''; btn2d.style.color=''; btn2d.style.fontWeight='';
+    resize3d();
+  }catch(err){
+    showToast('3D preview failed to build — plan is still safe in 2D');
+    console.error(err);
+  }
+});
+
+/* ============================================================
+   SEED EXAMPLE ROOM (small L-shaped kitchen with one arch)
+   so the tool isn't a blank page on first load
+   ============================================================ */
+function seed(){
+  const w1 = {id:uid(), x1:0,y1:0, x2:400,y2:0, thickness:15, height:240};
+  const w2 = {id:uid(), x1:400,y1:0, x2:400,y2:320, thickness:15, height:240};
+  const w3 = {id:uid(), x1:400,y1:320, x2:0,y2:320, thickness:15, height:240};
+  const w4 = {id:uid(), x1:0,y1:320, x2:0,y2:0, thickness:15, height:240};
+  state.walls.push(w1,w2,w3,w4);
+  state.openings.push({id:uid(), wallId:w4.id, offset:100, width:110, type:'arch', sill:0, height:200, archRise:55});
+  state.openings.push({id:uid(), wallId:w1.id, offset:150, width:100, type:'window', sill:90, height:120});
+  state.furniture.push(
+    {id:uid(), type:'base', x:60, y:280, w:60, d:60, rotation:0, label:'Base cabinet'},
+    {id:uid(), type:'sink', x:150, y:280, w:80, d:60, rotation:0, label:'Sink base'},
+    {id:uid(), type:'stove', x:260, y:280, w:60, d:60, rotation:0, label:'Stove / cooktop'},
+    {id:uid(), type:'fridge', x:370, y:60, w:70, d:70, rotation:90, label:'Fridge / freezer'},
+    {id:uid(), type:'wall', x:150, y:295, w:60, d:35, rotation:0, label:'Wall cabinet'},
+    {id:uid(), type:'island', x:220, y:170, w:140, d:90, rotation:0, label:'Kitchen island'}
+  );
+}
+seed();
+
+/* ============================================================
+   INIT
+   ============================================================ */
+resize();
+setMode('select');
+draw();
+
+})();
+</script>
+</body>
+</html>
