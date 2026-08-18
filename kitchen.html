@@ -150,6 +150,19 @@
   #canvaswrap{flex:1;position:relative;background:var(--paper);overflow:hidden;}
   canvas{position:absolute;top:0;left:0;display:block;}
   #viewport3d{position:absolute;top:0;left:0;width:100%;height:100%;display:none;background:#0d1116;}
+  #viewport3d-hint{
+    position:absolute; left:50%; bottom:14px; transform:translateX(-50%);
+    background:rgba(20,23,27,.78);
+    color:var(--panel-text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    padding:6px 12px;
+    border-radius:6px;
+    border:1px solid var(--panel-line);
+    pointer-events:none;
+    white-space:nowrap;
+    z-index:5;
+  }
 
   #statusbar{
     position:absolute;bottom:0;left:0;right:0;
@@ -321,7 +334,7 @@
 <div id="main">
   <div id="leftpanel">
     <h3>Room</h3>
-    <div class="field"><label>Ceiling height (cm)</label><input type="number" id="ceiling-height" value="240"></div>
+    <div class="field"><label>Ceiling height (cm)</label><input type="number" id="ceiling-height" value="260"></div>
     <div class="hint">Pick <b>Draw wall</b>, click to place corners, double-click or press Esc to finish a wall run. Everything snaps to 5&nbsp;cm. Walls that meet at a shared corner join cleanly — no gap.</div>
     <div class="hint">Freehand clicking places corners on the wall's structural centerline, so it won't hit your tape numbers exactly. Once a wall exists, select it and set its <b>Length — inside (cm)</b> field to match what you actually measured — that's the one that reflects real inside-face distance, and the plan label on each wall shows that same inside number.</div>
     <div class="hint"><b>Type: Partition / Load-bearing</b> toggles which kind new walls are drawn as. Load-bearing walls default to 25&nbsp;cm and show darker with a hatch fill in 2D and a concrete tone in 3D; partitions default to 10&nbsp;cm. Change it anytime per wall in the properties panel.</div>
@@ -336,12 +349,18 @@
     <h3>Materials <span style="font-weight:400;color:var(--panel-text-dim);text-transform:none;letter-spacing:0;">— 3D view only</span></h3>
     <div class="field"><label>Flooring</label>
       <select id="floor-select">
-        <option value="herringbone">Herringbone parquet (fiskebein)</option>
-        <option value="plank">Straight plank oak</option>
+        <option value="herringbone-classic">Herringbone — classic (fiskebein, diagonal)</option>
+        <option value="herringbone-straight">Herringbone — straight lay (parallel to walls)</option>
+        <option value="herringbone-wide">Herringbone — wide plank (diagonal)</option>
+        <option value="plank">Straight plank</option>
         <option value="tile">Light tile</option>
         <option value="concrete">Polished concrete</option>
       </select>
     </div>
+    <div class="field"><label>Floor colour</label>
+      <div id="floor-swatches" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+    </div>
+    <div class="hint">Floor colour applies to the herringbone and plank options — tile and concrete keep their own fixed look.</div>
     <div class="field"><label>Wall colour</label>
       <div id="wall-swatches" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
@@ -361,7 +380,9 @@
 
   <div id="canvaswrap">
     <canvas id="planCanvas"></canvas>
-    <div id="viewport3d"></div>
+    <div id="viewport3d">
+      <div id="viewport3d-hint">Drag to orbit · Right-click/Shift+drag to pan · Scroll to zoom · WASD / arrows to walk · Q/E for height</div>
+    </div>
     <div id="statusbar">
       <span id="status-mode" class="mono">SELECT</span>
       <span id="status-coords" class="mono">x 0 cm, y 0 cm</span>
@@ -399,8 +420,9 @@ let state = {
   openings: [],    // {id, wallId, offset, width, type:'door'|'window'|'arch', sill, height, archRise}
   furniture: [],   // {id, type, x, y, w, d, rotation, label}
   rooms: [],       // {id, name, rects:[{x,y,w,d}], area_m2, centroid, color}
-  ceilingHeight: 240,
-  floorMaterial: 'herringbone', // 'herringbone' | 'plank' | 'tile' | 'concrete'
+  ceilingHeight: 260,
+  floorMaterial: 'herringbone-classic', // 'herringbone-classic' | 'herringbone-straight' | 'herringbone-wide' | 'plank' | 'tile' | 'concrete'
+  floorTone: 'natural-oak', // 'natural-oak' | 'honey-oak' | 'walnut-dark' | 'whitewash-grey' | 'smoked-black'
   wallColor: '#f4f0e6',
   wallPanel: 'none', // 'none' | 'beadboard-full' | 'beadboard-wainscot'
   nextId: 1
@@ -420,12 +442,20 @@ const FURNITURE_TYPES = {
   table:      { label:'Table',                w:120, d:80,  color:'#a9825a', z0:0,   z1:74  },
   chair:      { label:'Chair',                w:45,  d:45,  color:'#7a5c3e', z0:0,   z1:45  }
 };
-let DEFAULT_WALL_HEIGHT = 240;
+let DEFAULT_WALL_HEIGHT = 260;
 const WALL_TYPES = {
   loadBearing: { label:'Load-bearing', thickness:25, fill:'#3a3d42', fillSel:'#4a3d2e', hatch:true  },
   partition:   { label:'Partition',    thickness:10, fill:'#c7cdd3', fillSel:'#e8d6bd', hatch:false }
 };
 let newWallKind = 'partition'; // which type new walls are drawn as
+
+const FLOOR_TONES = {
+  'natural-oak':    { swatch:'#c9a06b', base:'#c9a06b', tones:[[201,160,107],[190,148,96],[211,172,118],[180,138,88],[197,155,101]] },
+  'honey-oak':      { swatch:'#d1a35e', base:'#d1a35e', tones:[[214,166,95],[201,153,82],[224,180,110],[190,142,75],[208,160,90]] },
+  'walnut-dark':    { swatch:'#5a4530', base:'#5a4530', tones:[[92,68,45],[78,56,36],[104,80,54],[68,48,30],[86,63,41]] },
+  'whitewash-grey': { swatch:'#c9c2b3', base:'#c9c2b3', tones:[[201,194,179],[190,183,168],[212,205,190],[180,173,158],[197,190,175]] },
+  'smoked-black':   { swatch:'#2e2a26', base:'#2e2a26', tones:[[46,42,38],[38,34,30],[54,50,45],[32,28,24],[42,38,33]] }
+};
 
 function uid(){ return state.nextId++; }
 function wallKind(w){ return w.kind || (w.thickness>=18 ? 'loadBearing' : 'partition'); }
@@ -1149,7 +1179,7 @@ Object.entries(FURNITURE_TYPES).forEach(([key,def])=>{
 const ceilingInput = document.getElementById('ceiling-height');
 ceilingInput.addEventListener('focus', ()=>pushHistory());
 ceilingInput.addEventListener('input', (e)=>{
-  const v = Math.max(150, +e.target.value || 240);
+  const v = Math.max(150, +e.target.value || 260);
   state.ceilingHeight = v;
   DEFAULT_WALL_HEIGHT = v;
   for(const w of state.walls) w.height = v;
@@ -1161,6 +1191,7 @@ ceilingInput.addEventListener('input', (e)=>{
 const WALL_COLOR_PRESETS = ['#f4f0e6','#e8e2d5','#d9d2c3','#b9c4b8','#9aa8b0','#3c3f42'];
 const floorSelect = document.getElementById('floor-select');
 const wallSwatchesEl = document.getElementById('wall-swatches');
+const floorSwatchesEl = document.getElementById('floor-swatches');
 const panelSelect = document.getElementById('panel-select');
 
 function refreshMaterialsUI(){
@@ -1181,6 +1212,23 @@ function refreshMaterialsUI(){
     });
     wallSwatchesEl.appendChild(sw);
   });
+  if(floorSwatchesEl){
+    floorSwatchesEl.innerHTML = '';
+    Object.entries(FLOOR_TONES).forEach(([key,def])=>{
+      const sw = document.createElement('button');
+      sw.type = 'button';
+      sw.title = def.swatch;
+      const isSel = (state.floorTone||'natural-oak')===key;
+      sw.style.cssText = `width:22px;height:22px;border-radius:5px;background:${def.swatch};cursor:pointer;border:2px solid ${isSel?'var(--brass)':'var(--panel-line)'};padding:0;`;
+      sw.addEventListener('click', ()=>{
+        pushHistory();
+        state.floorTone = key;
+        refreshMaterialsUI();
+        if(viewport3d.style.display==='block') build3D();
+      });
+      floorSwatchesEl.appendChild(sw);
+    });
+  }
 }
 floorSelect.addEventListener('change', ()=>{
   pushHistory();
@@ -1446,11 +1494,11 @@ document.getElementById('btn-clear').addEventListener('click', ()=>{
         danger: true,
         onConfirm: ()=>{
           pushHistory();
-          state = { walls:[], openings:[], furniture:[], rooms:[], ceilingHeight:240, floorMaterial:'herringbone', wallColor:'#f4f0e6', wallPanel:'none', nextId:1 };
-          DEFAULT_WALL_HEIGHT = 240;
+          state = { walls:[], openings:[], furniture:[], rooms:[], ceilingHeight:260, floorMaterial:'herringbone-classic', floorTone:'natural-oak', wallColor:'#f4f0e6', wallPanel:'none', nextId:1 };
+          DEFAULT_WALL_HEIGHT = 260;
           selected = null;
           wallChain = null;
-          document.getElementById('ceiling-height').value = 240;
+          document.getElementById('ceiling-height').value = 260;
           refreshMaterialsUI();
           renderRoomsList();
           renderRightPanel();
@@ -1733,10 +1781,12 @@ document.getElementById('file-input').addEventListener('change', (e)=>{
       const data = JSON.parse(reader.result);
       if(!data.walls || !data.furniture) throw new Error('bad file');
       if(!data.rooms) data.rooms = [];
-      if(!data.floorMaterial) data.floorMaterial = 'herringbone';
+      if(!data.floorMaterial) data.floorMaterial = 'herringbone-classic';
+      if(data.floorMaterial==='herringbone') data.floorMaterial = 'herringbone-classic'; // old save files
+      if(!data.floorTone) data.floorTone = 'natural-oak';
       if(!data.wallColor) data.wallColor = '#f4f0e6';
       if(!data.wallPanel) data.wallPanel = 'none';
-      if(!data.ceilingHeight) data.ceilingHeight = (data.walls[0] && data.walls[0].height) || 240;
+      if(!data.ceilingHeight) data.ceilingHeight = (data.walls[0] && data.walls[0].height) || 260;
       for(const w of data.walls){
         if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
         if(!w.height) w.height = data.ceilingHeight;
@@ -1772,7 +1822,8 @@ document.getElementById('btn-png').addEventListener('click', ()=>{
 const viewport3d = document.getElementById('viewport3d');
 let three = null; // {renderer, scene, camera, raf}
 let orbit = { theta: Math.PI*0.25, phi: 1.0, radius: 7, target: new THREE.Vector3(0,0,0) };
-let dragging3d = false, lastMouse3d = null;
+let dragging3d = false, panning3d = false, lastMouse3d = null;
+const keysHeld3d = new Set();
 
 function ensureThree(){
   if(three) return three;
@@ -1784,22 +1835,63 @@ function ensureThree(){
   const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 2000);
   three = {renderer, scene, camera};
 
-  renderer.domElement.addEventListener('mousedown', (e)=>{ dragging3d=true; lastMouse3d={x:e.clientX,y:e.clientY}; });
-  window.addEventListener('mouseup', ()=>dragging3d=false);
+  renderer.domElement.addEventListener('contextmenu', e=>e.preventDefault());
+  renderer.domElement.addEventListener('mousedown', (e)=>{
+    dragging3d = true;
+    panning3d = (e.button===2 || e.shiftKey);
+    lastMouse3d = {x:e.clientX,y:e.clientY};
+  });
+  window.addEventListener('mouseup', ()=>{ dragging3d=false; panning3d=false; });
   window.addEventListener('mousemove', (e)=>{
     if(!dragging3d) return;
     const dx = e.clientX-lastMouse3d.x, dy = e.clientY-lastMouse3d.y;
     lastMouse3d = {x:e.clientX,y:e.clientY};
-    orbit.theta -= dx*0.008;
-    orbit.phi = Math.max(0.15, Math.min(1.5, orbit.phi - dy*0.008));
+    if(panning3d){
+      const panSpeed = Math.max(0.006, orbit.radius*0.0022);
+      const rightX = -Math.sin(orbit.theta), rightZ = Math.cos(orbit.theta);
+      const fwdX = -Math.cos(orbit.theta), fwdZ = -Math.sin(orbit.theta);
+      orbit.target.x += -rightX*dx*panSpeed + fwdX*dy*panSpeed;
+      orbit.target.z += -rightZ*dx*panSpeed + fwdZ*dy*panSpeed;
+    } else {
+      orbit.theta -= dx*0.008;
+      orbit.phi = Math.max(0.15, Math.min(1.5, orbit.phi - dy*0.008));
+    }
   });
   renderer.domElement.addEventListener('wheel', (e)=>{
     e.preventDefault();
     orbit.radius = Math.max(0.4, Math.min(60, orbit.radius * (e.deltaY<0?0.9:1.1)));
   }, {passive:false});
 
+  // WASD / arrow-key flythrough — lets you walk the camera around a big,
+  // multi-room plan instead of only orbiting a single fixed point
+  window.addEventListener('keydown', (e)=>{
+    if(viewport3d.style.display!=='block') return;
+    const el = document.activeElement;
+    if(el && (el.tagName==='INPUT' || el.tagName==='SELECT' || el.tagName==='TEXTAREA')) return;
+    const k = e.key.toLowerCase();
+    if(['w','a','s','d','q','e','arrowup','arrowdown','arrowleft','arrowright'].includes(k)){
+      keysHeld3d.add(k);
+      e.preventDefault();
+    }
+  });
+  window.addEventListener('keyup', (e)=> keysHeld3d.delete(e.key.toLowerCase()));
+  window.addEventListener('blur', ()=> keysHeld3d.clear());
+
   function animate(){
     three.raf = requestAnimationFrame(animate);
+
+    if(keysHeld3d.size && viewport3d.style.display==='block'){
+      const moveSpeed = Math.max(0.03, Math.min(2, orbit.radius*0.022));
+      const rightX = -Math.sin(orbit.theta), rightZ = Math.cos(orbit.theta);
+      const fwdX = -Math.cos(orbit.theta), fwdZ = -Math.sin(orbit.theta);
+      if(keysHeld3d.has('w')||keysHeld3d.has('arrowup')){ orbit.target.x+=fwdX*moveSpeed; orbit.target.z+=fwdZ*moveSpeed; }
+      if(keysHeld3d.has('s')||keysHeld3d.has('arrowdown')){ orbit.target.x-=fwdX*moveSpeed; orbit.target.z-=fwdZ*moveSpeed; }
+      if(keysHeld3d.has('a')||keysHeld3d.has('arrowleft')){ orbit.target.x-=rightX*moveSpeed; orbit.target.z-=rightZ*moveSpeed; }
+      if(keysHeld3d.has('d')||keysHeld3d.has('arrowright')){ orbit.target.x+=rightX*moveSpeed; orbit.target.z+=rightZ*moveSpeed; }
+      if(keysHeld3d.has('e')) orbit.target.y += moveSpeed*0.5;
+      if(keysHeld3d.has('q')) orbit.target.y = Math.max(0, orbit.target.y - moveSpeed*0.5);
+    }
+
     const {theta,phi,radius,target} = orbit;
     camera.position.set(
       target.x + radius*Math.sin(phi)*Math.cos(theta),
@@ -1848,7 +1940,7 @@ function buildOpeningHolePath(bottom, top, width, isArch, archRise){
    These are stylised approximations for gauging look and scale,
    not photoreal renders of a specific product.
    ============================================================ */
-function generateFloorTexture(kind, widthCm, heightCm){
+function generateFloorTexture(kind, widthCm, heightCm, toneKey){
   const maxDim = 1800;
   const scale = Math.min(4, maxDim/Math.max(widthCm, heightCm, 1));
   const w = Math.max(64, Math.round(widthCm*scale));
@@ -1856,8 +1948,11 @@ function generateFloorTexture(kind, widthCm, heightCm){
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const cx = c.getContext('2d');
-  if(kind==='herringbone') drawHerringboneFloor(cx,w,h,scale);
-  else if(kind==='plank') drawPlankFloor(cx,w,h,scale);
+  const tone = FLOOR_TONES[toneKey] || FLOOR_TONES['natural-oak'];
+  if(kind==='herringbone-classic') drawHerringboneFloor(cx,w,h,scale,tone,'classic');
+  else if(kind==='herringbone-straight') drawHerringboneFloor(cx,w,h,scale,tone,'straight');
+  else if(kind==='herringbone-wide') drawHerringboneFloor(cx,w,h,scale,tone,'wide');
+  else if(kind==='plank') drawPlankFloor(cx,w,h,scale,tone);
   else if(kind==='tile') drawTileFloor(cx,w,h,scale);
   else drawConcreteFloor(cx,w,h,scale);
   const tex = new THREE.CanvasTexture(c);
@@ -1872,27 +1967,30 @@ function seededRand(seed){
   return x - Math.floor(x);
 }
 
-function drawHerringboneFloor(ctx,w,h,scale){
-  const baseTone = '#c9a06b';
-  ctx.fillStyle = baseTone;
+function drawHerringboneFloor(ctx,w,h,scale,tone,variant){
+  ctx.fillStyle = tone.base;
   ctx.fillRect(0,0,w,h);
 
-  const W = Math.max(4, 6*scale);   // board width
-  const L = W*4;                    // board length, 4:1 — narrow strip parquet proportions
-  const step = (L/Math.SQRT2) * 0.84; // tightened so planks overlap slightly rather than risk gaps
-  const oakTones = [
-    [201,160,107], [190,148,96], [211,172,118], [180,138,88], [197,155,101]
-  ];
+  // 'classic': narrow strip, 45° diagonal weave (traditional fiskebein)
+  // 'straight': same weave but laid parallel to the walls (0°/90°) instead of diagonal
+  // 'wide': wider modern-format boards, still 45° diagonal
+  const W = variant==='wide' ? Math.max(8, 11*scale) : Math.max(4, 6*scale);
+  const L = W*4;
+  const diagonal = variant!=='straight';
+  const step = diagonal ? (L/Math.SQRT2)*0.84 : L*0.84;
+  const oakTones = tone.tones;
 
   let row=0;
   for(let y=-L; y<h+L; y+=step){
     let col=0;
     for(let x=-L; x<w+L; x+=step){
       const seed = row*131.7 + col*371.3;
-      const rot = ((row+col)%2===0) ? Math.PI/4 : -Math.PI/4;
-      const tone = oakTones[Math.floor(seededRand(seed)*oakTones.length)];
+      const rot = diagonal
+        ? (((row+col)%2===0) ? Math.PI/4 : -Math.PI/4)
+        : (((row+col)%2===0) ? 0 : Math.PI/2);
+      const t = oakTones[Math.floor(seededRand(seed)*oakTones.length)];
       const shade = 0.88 + seededRand(seed+1)*0.22; // per-plank brightness variation
-      const [r,g,b] = tone.map(c=>Math.min(255, Math.round(c*shade)));
+      const [r,g,b] = t.map(c=>Math.min(255, Math.round(c*shade)));
 
       ctx.save();
       ctx.translate(x,y);
@@ -1901,7 +1999,7 @@ function drawHerringboneFloor(ctx,w,h,scale){
       ctx.fillRect(-L/2,-W/2,L,W);
 
       // wood grain — a few faint streaks along the board's length
-      ctx.strokeStyle = `rgba(90,60,30,${0.05+seededRand(seed+2)*0.05})`;
+      ctx.strokeStyle = `rgba(40,25,15,${0.05+seededRand(seed+2)*0.05})`;
       ctx.lineWidth = Math.max(1, W*0.08);
       for(let g2=0; g2<3; g2++){
         const gy = -W/2 + (g2+0.5)*(W/3) + (seededRand(seed+3+g2)-0.5)*W*0.3;
@@ -1938,26 +2036,26 @@ function addFloorVignette(ctx,w,h){
   ctx.fillRect(0,0,w,h);
 }
 
-function drawPlankFloor(ctx,w,h,scale){
-  ctx.fillStyle = '#c9a877';
+function drawPlankFloor(ctx,w,h,scale,tone){
+  ctx.fillStyle = tone.base;
   ctx.fillRect(0,0,w,h);
   const L = Math.max(30,120*scale), W = Math.max(6,14*scale);
-  const oakTones = [[205,174,125],[194,161,113],[216,184,135],[184,150,101]];
+  const oakTones = tone.tones;
   let row=0;
   for(let y=0;y<h;y+=W){
     let x = (row%2===0) ? 0 : -L/2;
     let i=0;
     while(x<w){
       const seed = row*97.3 + i*211.7;
-      const tone = oakTones[Math.floor(seededRand(seed)*oakTones.length)];
+      const t = oakTones[Math.floor(seededRand(seed)*oakTones.length)];
       const shade = 0.9 + seededRand(seed+1)*0.18;
-      const [r,g,b] = tone.map(c=>Math.min(255,Math.round(c*shade)));
+      const [r,g,b] = t.map(c=>Math.min(255,Math.round(c*shade)));
       const bw = Math.max(1,L-2), bh = Math.max(1,W-2);
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillRect(x,y,bw,bh);
       for(let g2=0; g2<2; g2++){
         const gy = y + (g2+0.5)*(bh/2) + (seededRand(seed+2+g2)-0.5)*bh*0.3;
-        ctx.strokeStyle = `rgba(90,60,30,${0.05+seededRand(seed+4+g2)*0.05})`;
+        ctx.strokeStyle = `rgba(40,25,15,${0.05+seededRand(seed+4+g2)*0.05})`;
         ctx.lineWidth = Math.max(1, W*0.06);
         ctx.beginPath(); ctx.moveTo(x+2,gy); ctx.lineTo(x+bw-2,gy); ctx.stroke();
       }
@@ -2254,7 +2352,7 @@ function build3D(){
   const floorWidthCm = (maxX-minX)+floorPad*2;
   const floorDepthCm = (maxY-minY)+floorPad*2;
   const floorGeo = new THREE.PlaneGeometry(floorWidthCm*M, floorDepthCm*M);
-  const floorTex = generateFloorTexture(state.floorMaterial||'herringbone', floorWidthCm, floorDepthCm);
+  const floorTex = generateFloorTexture(state.floorMaterial||'herringbone-classic', floorWidthCm, floorDepthCm, state.floorTone||'natural-oak');
   const floorMat = new THREE.MeshStandardMaterial({map:floorTex, roughness: state.floorMaterial==='concrete'?0.55:0.8});
   const floor = new THREE.Mesh(floorGeo, floorMat);
   floor.rotation.x = -Math.PI/2;
@@ -2344,10 +2442,10 @@ btn3d.addEventListener('click', ()=>{
    so the tool isn't a blank page on first load
    ============================================================ */
 function seed(){
-  const w1 = {id:uid(), x1:0,y1:0, x2:400,y2:0, thickness:25, height:240, kind:'loadBearing'};
-  const w2 = {id:uid(), x1:400,y1:0, x2:400,y2:320, thickness:25, height:240, kind:'loadBearing'};
-  const w3 = {id:uid(), x1:400,y1:320, x2:0,y2:320, thickness:25, height:240, kind:'loadBearing'};
-  const w4 = {id:uid(), x1:0,y1:320, x2:0,y2:0, thickness:25, height:240, kind:'loadBearing'};
+  const w1 = {id:uid(), x1:0,y1:0, x2:400,y2:0, thickness:25, height:260, kind:'loadBearing'};
+  const w2 = {id:uid(), x1:400,y1:0, x2:400,y2:320, thickness:25, height:260, kind:'loadBearing'};
+  const w3 = {id:uid(), x1:400,y1:320, x2:0,y2:320, thickness:25, height:260, kind:'loadBearing'};
+  const w4 = {id:uid(), x1:0,y1:320, x2:0,y2:0, thickness:25, height:260, kind:'loadBearing'};
   state.walls.push(w1,w2,w3,w4);
   state.openings.push({id:uid(), wallId:w4.id, offset:100, width:110, type:'arch', sill:0, height:200, archRise:55});
   state.openings.push({id:uid(), wallId:w1.id, offset:150, width:100, type:'window', sill:90, height:120});
