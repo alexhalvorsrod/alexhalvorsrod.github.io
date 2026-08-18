@@ -312,6 +312,7 @@
   <div class="divider"></div>
   <button class="tool active" data-mode="select" id="btn-select">Select</button>
   <button class="tool" data-mode="wall" id="btn-wall">Draw wall</button>
+  <button class="tool" data-mode="drawroom" id="btn-drawroom">Draw room</button>
   <button class="tool icon-only" id="btn-wallkind" title="Toggle the type new walls are drawn as">Type: Partition (10cm)</button>
   <button class="tool" data-mode="door" id="btn-door">+ Door</button>
   <button class="tool" data-mode="window" id="btn-window">+ Window</button>
@@ -342,7 +343,7 @@
     <h3>Openings</h3>
     <div class="hint">With <b>+ Door</b>, <b>+ Window</b> or <b>+ Archway</b> active, click a point on a wall to insert it there. Arches get a true curved header in the 3D view — a straight-top door doesn't.</div>
 
-    <h3>Rooms</h3>
+    <h3>Rooms <span id="rooms-total" style="font-weight:400;color:var(--brass);text-transform:none;letter-spacing:0;font-family:'JetBrains Mono',monospace;font-size:11px;"></span></h3>
     <div id="rooms-list"></div>
     <div class="hint">Close a wall run back to its start (or box in an area with separate walls), pick <b>Define room</b>, then click inside — you'll be asked to name it and get its floor area. Do this once per room: kitchen now, living room next.</div>
 
@@ -386,6 +387,7 @@
     <div id="statusbar">
       <span id="status-mode" class="mono">SELECT</span>
       <span id="status-coords" class="mono">x 0 cm, y 0 cm</span>
+      <span id="status-total" class="mono" style="color:var(--brass);"></span>
       <span class="fill"></span>
       <span id="status-hint">Click and drag to pan · scroll to zoom</span>
     </div>
@@ -489,6 +491,8 @@ function s2w(px,py){ return [(px-view.panX)/view.scale, (py-view.panY)/view.scal
    ============================================================ */
 let mode = 'select';
 let wallChain = null;          // array of {x,y} while drawing a wall run
+let roomDrawStart = null;      // {x,y} start corner while drag-drawing a room rectangle
+let roomDrawEnd = null;        // {x,y} live end corner during that drag
 let placingFurnitureType = null;
 let selected = null;           // {kind:'wall'|'opening'|'furniture', id}
 let drag = null;               // active drag descriptor
@@ -577,8 +581,30 @@ function draw(){
   if(wallChain && wallChain.length){
     drawWallChainPreview();
   }
+  if(roomDrawStart && roomDrawEnd){
+    drawRoomDrawPreview();
+  }
   for(const f of state.furniture) drawFurniture(f);
   drawSelectionOverlay();
+}
+
+function drawRoomDrawPreview(){
+  const x1=Math.min(roomDrawStart.x,roomDrawEnd.x), x2=Math.max(roomDrawStart.x,roomDrawEnd.x);
+  const y1=Math.min(roomDrawStart.y,roomDrawEnd.y), y2=Math.max(roomDrawStart.y,roomDrawEnd.y);
+  const p1=w2s(x1,y1), p2=w2s(x2,y2);
+  ctx.save();
+  ctx.strokeStyle = '#5b8fa8';
+  ctx.fillStyle = 'rgba(91,143,168,.12)';
+  ctx.lineWidth = 2;
+  ctx.setLineDash([6,4]);
+  ctx.fillRect(p1[0],p1[1],p2[0]-p1[0],p2[1]-p1[1]);
+  ctx.strokeRect(p1[0],p1[1],p2[0]-p1[0],p2[1]-p1[1]);
+  ctx.setLineDash([]);
+  ctx.font = '600 11px JetBrains Mono, monospace';
+  ctx.fillStyle = '#5b8fa8';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${Math.round(x2-x1)} × ${Math.round(y2-y1)} cm`, (p1[0]+p2[0])/2, p1[1]-8);
+  ctx.restore();
 }
 
 function drawRoom(room){
@@ -1119,6 +1145,7 @@ function furnitureHandleAt(px,py){
 const modeButtons = {
   select: document.getElementById('btn-select'),
   wall: document.getElementById('btn-wall'),
+  drawroom: document.getElementById('btn-drawroom'),
   door: document.getElementById('btn-door'),
   window: document.getElementById('btn-window'),
   arch: document.getElementById('btn-arch'),
@@ -1128,12 +1155,15 @@ function setMode(m){
   mode = m;
   placingFurnitureType = null;
   wallChain = null;
+  roomDrawStart = null;
+  roomDrawEnd = null;
   Object.entries(modeButtons).forEach(([k,btn])=>btn.classList.toggle('active', k===m));
   document.querySelectorAll('.furn-item').forEach(el=>el.classList.remove('active'));
   document.getElementById('status-mode').textContent = m.toUpperCase();
   const hints = {
     select: 'Click to select · drag to move · Del to remove',
     wall: 'Click to place corners · double-click / Esc to finish',
+    drawroom: 'Drag from one corner to the opposite corner to draw all 4 walls at once',
     door: 'Click a wall to insert a door (80 cm default)',
     window: 'Click a wall to insert a window (100 cm default)',
     arch: 'Click a wall to insert an archway (100 cm default, no leaf)',
@@ -1294,6 +1324,13 @@ canvas.addEventListener('mousedown', (e)=>{
     return;
   }
 
+  if(mode==='drawroom'){
+    roomDrawStart = {x:snap(wx), y:snap(wy)};
+    roomDrawEnd = {...roomDrawStart};
+    draw();
+    return;
+  }
+
   if(mode==='furniture' && placingFurnitureType){
     const def = FURNITURE_TYPES[placingFurnitureType];
     const f = {id:uid(), type:placingFurnitureType, x:snap(wx), y:snap(wy), w:def.w, d:def.d, rotation:0, label:def.label};
@@ -1394,10 +1431,15 @@ canvas.addEventListener('mousemove', (e)=>{
     return;
   }
   if(mode==='wall' && wallChain) draw();
+  if(mode==='drawroom' && roomDrawStart){
+    roomDrawEnd = {x:snap(wx), y:snap(wy)};
+    draw();
+  }
 });
 
 window.addEventListener('mouseup', ()=>{
   if(drag && drag.type==='wall-move') scheduleRoomRefresh();
+  if(mode==='drawroom' && roomDrawStart) finishRoomDraw();
   isPanning=false; panStart=null; drag=null;
 });
 
@@ -1420,6 +1462,7 @@ canvas.addEventListener('wheel', (e)=>{
 window.addEventListener('keydown', (e)=>{
   if(e.key==='Escape'){
     if(wallChain){ finishWallChain(); }
+    else if(roomDrawStart){ roomDrawStart=null; roomDrawEnd=null; draw(); }
     else { selected=null; renderRightPanel(); draw(); }
   }
   if((e.key==='Delete' || e.key==='Backspace') && document.activeElement.tagName!=='INPUT'){
@@ -1453,6 +1496,43 @@ function finishWallChain(){
   }
   wallChain = null;
   draw();
+}
+
+function finishRoomDraw(){
+  const start = roomDrawStart, end = roomDrawEnd || roomDrawStart;
+  roomDrawStart = null;
+  roomDrawEnd = null;
+  if(!start){ draw(); return; }
+  const x1 = Math.min(start.x, end.x), x2 = Math.max(start.x, end.x);
+  const y1 = Math.min(start.y, end.y), y2 = Math.max(start.y, end.y);
+  if(x2-x1 < 20 || y2-y1 < 20){ draw(); return; } // ignore accidental clicks/tiny drags
+
+  pushHistory();
+  const kindDef = WALL_TYPES[newWallKind];
+  const corners = [[x1,y1],[x2,y1],[x2,y2],[x1,y2]];
+  for(let i=0;i<4;i++){
+    const a = corners[i], b = corners[(i+1)%4];
+    state.walls.push({id:uid(), x1:a[0],y1:a[1],x2:b[0],y2:b[1], thickness:kindDef.thickness, height:DEFAULT_WALL_HEIGHT, kind:newWallKind});
+  }
+  scheduleRoomRefresh();
+  draw();
+
+  const cx = (x1+x2)/2, cy = (y1+y2)/2;
+  const result = floodFillRoom(cx, cy);
+  if(result){
+    showNamePrompt('Name this room', 'e.g. Kitchen', (name)=>{
+      if(!name) return;
+      const palette = ['#d7c9a8','#b7cdd1','#cdb9d8','#c9d6b0','#e0c3b0','#b0c9e0'];
+      state.rooms.push({
+        id: uid(), name,
+        rects: result.rects, area_m2: result.area_m2, centroid: result.centroid,
+        color: palette[state.rooms.length % palette.length]
+      });
+      renderRoomsList();
+      draw();
+      showToast(`"${name}" added — ${result.area_m2.toFixed(1)} m²`);
+    });
+  }
 }
 
 document.getElementById('btn-undo').addEventListener('click', ()=>{
@@ -1682,6 +1762,11 @@ function renderRightPanel(skipIfTyping){
 
 function renderRoomsList(){
   const el = document.getElementById('rooms-list');
+  const totalEl = document.getElementById('rooms-total');
+  const total = state.rooms.reduce((sum,r)=>sum+(r.stale?0:r.area_m2), 0);
+  if(totalEl) totalEl.textContent = state.rooms.length ? `— Total: ${total.toFixed(1)} m²` : '';
+  const statusTotalEl = document.getElementById('status-total');
+  if(statusTotalEl) statusTotalEl.textContent = state.rooms.length ? `Total: ${total.toFixed(1)} m²` : '';
   if(!el) return;
   if(!state.rooms.length){
     el.innerHTML = '<div class="hint">No rooms defined yet.</div>';
@@ -2442,21 +2527,67 @@ btn3d.addEventListener('click', ()=>{
    so the tool isn't a blank page on first load
    ============================================================ */
 function seed(){
-  const w1 = {id:uid(), x1:0,y1:0, x2:400,y2:0, thickness:25, height:260, kind:'loadBearing'};
-  const w2 = {id:uid(), x1:400,y1:0, x2:400,y2:320, thickness:25, height:260, kind:'loadBearing'};
-  const w3 = {id:uid(), x1:400,y1:320, x2:0,y2:320, thickness:25, height:260, kind:'loadBearing'};
-  const w4 = {id:uid(), x1:0,y1:320, x2:0,y2:0, thickness:25, height:260, kind:'loadBearing'};
-  state.walls.push(w1,w2,w3,w4);
-  state.openings.push({id:uid(), wallId:w4.id, offset:100, width:110, type:'arch', sill:0, height:200, archRise:55});
-  state.openings.push({id:uid(), wallId:w1.id, offset:150, width:100, type:'window', sill:90, height:120});
-  state.furniture.push(
-    {id:uid(), type:'base', x:60, y:280, w:60, d:60, rotation:0, label:'Base cabinet'},
-    {id:uid(), type:'sink', x:150, y:280, w:80, d:60, rotation:0, label:'Sink base'},
-    {id:uid(), type:'stove', x:260, y:280, w:60, d:60, rotation:0, label:'Stove / cooktop'},
-    {id:uid(), type:'fridge', x:370, y:60, w:70, d:70, rotation:90, label:'Fridge / freezer'},
-    {id:uid(), type:'wall', x:150, y:295, w:60, d:35, rotation:0, label:'Wall cabinet'},
-    {id:uid(), type:'island', x:220, y:170, w:140, d:90, rotation:0, label:'Kitchen island'}
+  // Fifth pass — this one found and fixed a real bug in the last pass, not
+  // a judgment call. Pixel data showed the wall at x≈201-220 running
+  // continuously from Bad all the way down through Entré with no break —
+  // I'd wrongly pulled Entré's west wall back to align with Kjøkken's.
+  // Entré and Bad share the same west wall; only Kjøkken sits further
+  // east. The front door isn't on that west wall either — it's on
+  // Entré's SOUTH wall (the one leading toward Stue), confirmed by a
+  // clear door-swing symbol there in the image, which I'd missed
+  // entirely before. Dimensions are inside (tape-measured) distances.
+  // Ceiling height is 267cm per the plan's "Takhøyde:267cm" label.
+  DEFAULT_WALL_HEIGHT = 267;
+  state.ceilingHeight = 267;
+  const H = 267, EXT = 20, INT = 10, THICK = 40; // wall height, exterior, interior partition, structural divider
+
+  // exterior walls (load-bearing), clockwise from top-left
+  const w1  = {id:uid(), x1:-10,  y1:-10,  x2:530,  y2:-10,  thickness:EXT, height:H, kind:'loadBearing'}; // top
+  const w2  = {id:uid(), x1:530,  y1:-10,  x2:530,  y2:940,  thickness:EXT, height:H, kind:'loadBearing'}; // right
+  const w3  = {id:uid(), x1:530,  y1:940,  x2:50,   y2:940,  thickness:EXT, height:H, kind:'loadBearing'}; // bottom
+  const w4  = {id:uid(), x1:50,   y1:940,  x2:50,   y2:510,  thickness:EXT, height:H, kind:'loadBearing'}; // Stue west
+  const w5  = {id:uid(), x1:50,   y1:510,  x2:-160, y2:510,  thickness:EXT, height:H, kind:'loadBearing'}; // Entré south wall — front door here
+  const w6a = {id:uid(), x1:-160, y1:510,  x2:-160, y2:290,  thickness:EXT, height:H, kind:'loadBearing'}; // Bad + Entré west wall, one continuous run
+  const w6d = {id:uid(), x1:-160, y1:290,  x2:-50,  y2:240,  thickness:EXT, height:H, kind:'loadBearing'}; // diagonal — the kitchen's indent over the bathroom
+  const w6f = {id:uid(), x1:-10,  y1:240,  x2:-10,  y2:-10,  thickness:EXT, height:H, kind:'loadBearing'}; // Kjøkken west wall
+
+  // interior walls
+  const w9  = {id:uid(), x1:-50, y1:240, x2:235, y2:240,  thickness:INT,   height:H, kind:'partition'};   // Kjøkken south wall
+  const w10 = {id:uid(), x1:-50, y1:240, x2:-50, y2:400,  thickness:INT,   height:H, kind:'partition'};   // Bad east wall
+  const w11 = {id:uid(), x1:-160,y1:400, x2:-50, y2:400,  thickness:INT,   height:H, kind:'partition'};   // Bad / Entré divider — WC door here
+  const w7  = {id:uid(), x1:235, y1:-10, x2:235, y2:490,  thickness:INT,   height:H, kind:'partition'};   // west block vs Soverom/Spisestue
+  const w8  = {id:uid(), x1:235, y1:255, x2:530, y2:255,  thickness:INT,   height:H, kind:'partition'};   // Soverom vs Spisestue
+  const w12 = {id:uid(), x1:530, y1:510, x2:50,  y2:510,  thickness:THICK, height:H, kind:'loadBearing'}; // Spisestue/Kjøkken block vs Stue — unusually thick in the source plan
+
+  state.walls.push(w1,w2,w3,w4,w5,w6a,w6d,w6f,w9,w10,w11,w7,w8,w12);
+
+  state.openings.push(
+    {id:uid(), wallId:w1.id,  offset:60,  width:100, type:'window', sill:90, height:120}, // Kjøkken window
+    {id:uid(), wallId:w1.id,  offset:330, width:100, type:'window', sill:90, height:120}, // Soverom window
+    {id:uid(), wallId:w3.id,  offset:165, width:150, type:'door',   sill:0,  height:220}, // Stue balcony door
+    {id:uid(), wallId:w5.id,  offset:75,  width:80,  type:'door',   sill:0,  height:210}, // front door, into Entré
+    {id:uid(), wallId:w8.id,  offset:30,  width:90,  type:'door',   sill:0,  height:210}, // Soverom <-> Spisestue
+    {id:uid(), wallId:w9.id,  offset:190, width:90,  type:'arch',   sill:0,  height:205, archRise:45}, // Kjøkken <-> Entré — open archway, no door leaf shown in the plan
+    {id:uid(), wallId:w11.id, offset:20,  width:70,  type:'door',   sill:0,  height:210}, // Bad (WC) door, into Entré
+    {id:uid(), wallId:w12.id, offset:280, width:100, type:'door',   sill:0,  height:210}  // Entré <-> Stue
   );
+
+  // Rooms, matched to the labels in the plan. Furniture is left for you to
+  // place — that's the actual point of the tool, not something to guess for you.
+  const roomDefs = [
+    {name:'Kjøkken',   x:110, y:115, color:'#d7c9a8'},
+    {name:'Bad',       x:-100,y:350, color:'#b7cdd1'},
+    {name:'Entré',     x:0,   y:460, color:'#cdb9d8'},
+    {name:'Soverom',   x:380, y:125, color:'#c9d6b0'},
+    {name:'Spisestue', x:380, y:375, color:'#e0c3b0'},
+    {name:'Stue',      x:290, y:725, color:'#b0c9e0'}
+  ];
+  for(const rd of roomDefs){
+    const result = floodFillRoom(rd.x, rd.y);
+    if(result){
+      state.rooms.push({id:uid(), name:rd.name, rects:result.rects, area_m2:result.area_m2, centroid:result.centroid, color:rd.color});
+    }
+  }
 }
 seed();
 
@@ -2466,6 +2597,7 @@ seed();
 resize();
 setMode('select');
 renderRoomsList();
+document.getElementById('ceiling-height').value = state.ceilingHeight;
 draw();
 
 })();
