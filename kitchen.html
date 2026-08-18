@@ -251,6 +251,7 @@
   <div class="divider"></div>
   <button class="tool active" data-mode="select" id="btn-select">Select</button>
   <button class="tool" data-mode="wall" id="btn-wall">Draw wall</button>
+  <button class="tool icon-only" id="btn-wallkind" title="Toggle the type new walls are drawn as">Type: Partition (10cm)</button>
   <button class="tool" data-mode="door" id="btn-door">+ Door</button>
   <button class="tool" data-mode="window" id="btn-window">+ Window</button>
   <button class="tool" data-mode="arch" id="btn-arch">+ Archway</button>
@@ -270,7 +271,8 @@
 <div id="main">
   <div id="leftpanel">
     <h3>Room</h3>
-    <div class="hint">Pick <b>Draw wall</b>, click to place corners, double-click or press Esc to finish a wall run. Everything snaps to 5&nbsp;cm.</div>
+    <div class="hint">Pick <b>Draw wall</b>, click to place corners, double-click or press Esc to finish a wall run. Everything snaps to 5&nbsp;cm. Walls that meet at a shared corner join cleanly — no gap.</div>
+    <div class="hint"><b>Type: Partition / Load-bearing</b> toggles which kind new walls are drawn as. Load-bearing walls default to 25&nbsp;cm and show darker with a hatch fill in 2D and a concrete tone in 3D; partitions default to 10&nbsp;cm. Change it anytime per wall in the properties panel.</div>
 
     <h3>Openings</h3>
     <div class="hint">With <b>+ Door</b>, <b>+ Window</b> or <b>+ Archway</b> active, click a point on a wall to insert it there. Arches get a true curved header in the 3D view — a straight-top door doesn't.</div>
@@ -323,9 +325,14 @@ const FURNITURE_TYPES = {
   chair:    { label:'Chair',                w:45,  d:45,  color:'#7a5c3e', z0:0,   z1:45  }
 };
 const DEFAULT_WALL_HEIGHT = 240;
-const DEFAULT_WALL_THICK = 15;
+const WALL_TYPES = {
+  loadBearing: { label:'Load-bearing', thickness:25, fill:'#3a3d42', fillSel:'#4a3d2e', hatch:true  },
+  partition:   { label:'Partition',    thickness:10, fill:'#c7cdd3', fillSel:'#e8d6bd', hatch:false }
+};
+let newWallKind = 'partition'; // which type new walls are drawn as
 
 function uid(){ return state.nextId++; }
+function wallKind(w){ return w.kind || (w.thickness>=18 ? 'loadBearing' : 'partition'); }
 
 /* ============================================================
    VIEW / CAMERA (2D)
@@ -463,6 +470,23 @@ function drawGrid(r){
   ctx.restore();
 }
 
+const CONNECT_EPS = 0.6; // cm — endpoints this close count as "meeting"
+function wallEndExtension(wall){
+  // If an endpoint coincides with another wall's endpoint, extend that end by
+  // half this wall's thickness so the two rectangles overlap and fill the
+  // corner notch instead of leaving a gap or a mitre seam.
+  let extStart = 0, extEnd = 0;
+  for(const other of state.walls){
+    if(other.id===wall.id) continue;
+    const pts = [[other.x1,other.y1],[other.x2,other.y2]];
+    for(const [ox,oy] of pts){
+      if(Math.hypot(wall.x1-ox, wall.y1-oy) < CONNECT_EPS) extStart = Math.max(extStart, wall.thickness/2);
+      if(Math.hypot(wall.x2-ox, wall.y2-oy) < CONNECT_EPS) extEnd = Math.max(extEnd, wall.thickness/2);
+    }
+  }
+  return {extStart, extEnd};
+}
+
 function drawWall(w){
   const isSel = selected && selected.kind==='wall' && selected.id===w.id;
   const opens = openingsForWall(w.id);
@@ -470,6 +494,9 @@ function drawWall(w){
   const ang = wallAngle(w);
   const cos=Math.cos(ang), sin=Math.sin(ang);
   const t = w.thickness;
+  const kind = wallKind(w);
+  const kindDef = WALL_TYPES[kind];
+  const {extStart, extEnd} = wallEndExtension(w);
 
   // build list of solid segments (offset ranges) minus openings
   let cursor = 0;
@@ -482,9 +509,15 @@ function drawWall(w){
   }
   if(cursor < L) segs.push([cursor, L]);
   if(segs.length===0 && opens.length===0) segs.push([0,L]);
+  // extend the outer edges of the run into connected corners (only where
+  // that edge isn't actually cut off by a door/window/arch opening)
+  if(segs.length){
+    if(segs[0][0]===0) segs[0][0] = -extStart;
+    if(segs[segs.length-1][1]===L) segs[segs.length-1][1] = L+extEnd;
+  }
 
   ctx.save();
-  ctx.fillStyle = isSel ? '#3a3126' : '#2c2f33';
+  ctx.fillStyle = isSel ? kindDef.fillSel : kindDef.fill;
   ctx.strokeStyle = isSel ? '#b8794a' : '#15171a';
   ctx.lineWidth = 1.2;
 
@@ -500,6 +533,22 @@ function drawWall(w){
     for(let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0],pts[i][1]);
     ctx.closePath();
     ctx.fill(); ctx.stroke();
+    if(kindDef.hatch){
+      ctx.save();
+      ctx.clip();
+      ctx.strokeStyle = 'rgba(255,255,255,.16)';
+      ctx.lineWidth = 1;
+      const bx = pts.reduce((m,p)=>Math.min(m,p[0]),Infinity), by = pts.reduce((m,p)=>Math.min(m,p[1]),Infinity);
+      const bx2 = pts.reduce((m,p)=>Math.max(m,p[0]),-Infinity), by2 = pts.reduce((m,p)=>Math.max(m,p[1]),-Infinity);
+      const step = 7;
+      ctx.beginPath();
+      for(let hx=bx-((by2-by)); hx<bx2; hx+=step){
+        ctx.moveTo(hx, by2);
+        ctx.lineTo(hx+(by2-by), by);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
   }
 
   // opening symbols
@@ -692,6 +741,18 @@ function setMode(m){
 }
 Object.entries(modeButtons).forEach(([k,btn])=>btn.addEventListener('click', ()=>setMode(k)));
 
+const btnWallKind = document.getElementById('btn-wallkind');
+function refreshWallKindButton(){
+  const def = WALL_TYPES[newWallKind];
+  btnWallKind.textContent = `Type: ${def.label} (${def.thickness}cm)`;
+  btnWallKind.style.background = newWallKind==='loadBearing' ? 'rgba(184,121,74,.25)' : '';
+}
+btnWallKind.addEventListener('click', ()=>{
+  newWallKind = newWallKind==='loadBearing' ? 'partition' : 'loadBearing';
+  refreshWallKindButton();
+});
+refreshWallKindButton();
+
 /* furniture palette */
 const furnList = document.getElementById('furniture-list');
 Object.entries(FURNITURE_TYPES).forEach(([key,def])=>{
@@ -873,7 +934,8 @@ function finishWallChain(){
     for(let i=0;i<wallChain.length-1;i++){
       const a=wallChain[i], b=wallChain[i+1];
       if(a.x===b.x && a.y===b.y) continue;
-      state.walls.push({id:uid(), x1:a.x,y1:a.y,x2:b.x,y2:b.y, thickness:DEFAULT_WALL_THICK, height:DEFAULT_WALL_HEIGHT});
+      const kindDef = WALL_TYPES[newWallKind];
+      state.walls.push({id:uid(), x1:a.x,y1:a.y,x2:b.x,y2:b.y, thickness:kindDef.thickness, height:DEFAULT_WALL_HEIGHT, kind:newWallKind});
     }
   }
   wallChain = null;
@@ -939,13 +1001,27 @@ function renderRightPanel(skipIfTyping){
   else if(selected.kind==='wall'){
     const w = state.walls.find(x=>x.id===selected.id);
     if(!w){ selected=null; return renderRightPanel(); }
+    if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
     rightpanel.innerHTML = `
-      <h3>Wall <span class="type-tag">wall</span></h3>
+      <h3>Wall <span class="type-tag">${WALL_TYPES[w.kind].label.toLowerCase()}</span></h3>
       <div class="field"><label>Length (cm, read-only)</label><input type="text" value="${Math.round(wallLength(w))}" disabled></div>
+      <div class="field"><label>Wall type</label>
+        <select id="p-kind">
+          <option value="partition" ${w.kind==='partition'?'selected':''}>Partition (thin, non-structural)</option>
+          <option value="loadBearing" ${w.kind==='loadBearing'?'selected':''}>Load-bearing</option>
+        </select>
+      </div>
       <div class="field"><label>Thickness (cm)</label><input type="number" id="p-t" value="${w.thickness}"></div>
       <div class="field"><label>Height (cm)</label><input type="number" id="p-h" value="${w.height}"></div>
+      <div class="hint">Load-bearing walls render darker with a hatch fill in 2D and a concrete tone in 3D, so you can tell them apart from partitions at a glance. Changing the type resets thickness to a sensible default — you can still fine-tune it after.</div>
       <button class="danger" id="p-del">Delete wall</button>
     `;
+    document.getElementById('p-kind').addEventListener('change', (e)=>{
+      w.kind = e.target.value;
+      w.thickness = WALL_TYPES[w.kind].thickness;
+      renderRightPanel();
+      draw();
+    });
     bind('p-t', v=>w.thickness=Math.max(5,+v));
     bind('p-h', v=>w.height=Math.max(150,+v));
     document.getElementById('p-del').addEventListener('click', deleteSelected);
@@ -1044,7 +1120,7 @@ document.getElementById('btn-png').addEventListener('click', ()=>{
    ============================================================ */
 const viewport3d = document.getElementById('viewport3d');
 let three = null; // {renderer, scene, camera, raf}
-let orbit = { theta: Math.PI*0.25, phi: 1.0, radius: 900, target: new THREE.Vector3(0,0,0) };
+let orbit = { theta: Math.PI*0.25, phi: 1.0, radius: 7, target: new THREE.Vector3(0,0,0) };
 let dragging3d = false, lastMouse3d = null;
 
 function ensureThree(){
@@ -1054,7 +1130,7 @@ function ensureThree(){
   viewport3d.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d1116);
-  const camera = new THREE.PerspectiveCamera(45, 1, 1, 20000);
+  const camera = new THREE.PerspectiveCamera(45, 1, 0.05, 2000);
   three = {renderer, scene, camera};
 
   renderer.domElement.addEventListener('mousedown', (e)=>{ dragging3d=true; lastMouse3d={x:e.clientX,y:e.clientY}; });
@@ -1068,7 +1144,7 @@ function ensureThree(){
   });
   renderer.domElement.addEventListener('wheel', (e)=>{
     e.preventDefault();
-    orbit.radius = Math.max(150, Math.min(4000, orbit.radius * (e.deltaY<0?0.9:1.1)));
+    orbit.radius = Math.max(0.4, Math.min(60, orbit.radius * (e.deltaY<0?0.9:1.1)));
   }, {passive:false});
 
   function animate(){
@@ -1144,7 +1220,7 @@ function build3D(){
   if(!isFinite(minX)){ minX=0;maxX=400;minY=0;maxY=300; }
   const cx = (minX+maxX)/2*M, cz=(minY+maxY)/2*M;
   orbit.target.set(cx, 100*M, cz);
-  orbit.radius = Math.max(400, Math.hypot((maxX-minX)*M,(maxY-minY)*M)*1.3);
+  orbit.radius = Math.max(2.5, Math.hypot((maxX-minX)*M,(maxY-minY)*M)*1.3);
 
   // floor
   const floorPad = 60;
@@ -1155,13 +1231,16 @@ function build3D(){
   floor.position.set(cx, 0, cz);
   scene.add(floor);
 
-  const wallMat = new THREE.MeshStandardMaterial({color:0xf3efe6, roughness:0.92});
+  const wallMatLoadBearing = new THREE.MeshStandardMaterial({color:0x8b8f94, roughness:0.95});
+  const wallMatPartition = new THREE.MeshStandardMaterial({color:0xf3efe6, roughness:0.9});
 
   for(const w of state.walls){
     const L = wallLength(w);
     if(L<1) continue;
+    const {extStart, extEnd} = wallEndExtension(w);
+    const x0 = -extStart, x1 = L+extEnd;
     const shape = new THREE.Shape();
-    shape.moveTo(0,0); shape.lineTo(L,0); shape.lineTo(L,w.height); shape.lineTo(0,w.height); shape.lineTo(0,0);
+    shape.moveTo(x0,0); shape.lineTo(x1,0); shape.lineTo(x1,w.height); shape.lineTo(x0,w.height); shape.lineTo(x0,0);
     const opens = openingsForWall(w.id);
     for(const o of opens){
       const bottom = o.type==='window' ? o.sill : 0;
@@ -1184,7 +1263,7 @@ function build3D(){
     }
     geo.translate(0,0,-w.thickness/2);
     geo.scale(M,M,M);
-    const mesh = new THREE.Mesh(geo, wallMat);
+    const mesh = new THREE.Mesh(geo, wallKind(w)==='loadBearing' ? wallMatLoadBearing : wallMatPartition);
     const ang = wallAngle(w);
     mesh.rotation.y = -ang;
     mesh.position.set(w.x1*M, 0, w.y1*M);
@@ -1232,10 +1311,10 @@ btn3d.addEventListener('click', ()=>{
    so the tool isn't a blank page on first load
    ============================================================ */
 function seed(){
-  const w1 = {id:uid(), x1:0,y1:0, x2:400,y2:0, thickness:15, height:240};
-  const w2 = {id:uid(), x1:400,y1:0, x2:400,y2:320, thickness:15, height:240};
-  const w3 = {id:uid(), x1:400,y1:320, x2:0,y2:320, thickness:15, height:240};
-  const w4 = {id:uid(), x1:0,y1:320, x2:0,y2:0, thickness:15, height:240};
+  const w1 = {id:uid(), x1:0,y1:0, x2:400,y2:0, thickness:25, height:240, kind:'loadBearing'};
+  const w2 = {id:uid(), x1:400,y1:0, x2:400,y2:320, thickness:25, height:240, kind:'loadBearing'};
+  const w3 = {id:uid(), x1:400,y1:320, x2:0,y2:320, thickness:25, height:240, kind:'loadBearing'};
+  const w4 = {id:uid(), x1:0,y1:320, x2:0,y2:0, thickness:25, height:240, kind:'loadBearing'};
   state.walls.push(w1,w2,w3,w4);
   state.openings.push({id:uid(), wallId:w4.id, offset:100, width:110, type:'arch', sill:0, height:200, archRise:55});
   state.openings.push({id:uid(), wallId:w1.id, offset:150, width:100, type:'window', sill:90, height:120});
