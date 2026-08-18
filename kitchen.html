@@ -83,6 +83,8 @@
     white-space:nowrap;
   }
   button.tool:hover{background:var(--panel-bg-2);color:var(--panel-text);}
+  button.tool:disabled{opacity:.35;cursor:not-allowed;}
+  button.tool:disabled:hover{background:transparent;}
   button.tool.active{background:var(--brass);color:#1c1108;border-color:var(--brass-dark);font-weight:600;}
   button.tool svg{width:14px;height:14px;flex-shrink:0;}
   button.icon-only{padding:6px 8px;}
@@ -292,6 +294,9 @@
 <div id="topbar">
   <div class="brand">Grunnriss <small>kitchen &amp; room planner</small></div>
   <div class="divider"></div>
+  <button class="tool icon-only" id="btn-undo-history" title="Undo (Ctrl+Z)" disabled>↺ Undo</button>
+  <button class="tool icon-only" id="btn-redo-history" title="Redo (Ctrl+Shift+Z)" disabled>↻ Redo</button>
+  <div class="divider"></div>
   <button class="tool active" data-mode="select" id="btn-select">Select</button>
   <button class="tool" data-mode="wall" id="btn-wall">Draw wall</button>
   <button class="tool icon-only" id="btn-wallkind" title="Toggle the type new walls are drawn as">Type: Partition (10cm)</button>
@@ -339,6 +344,14 @@
     <div class="field"><label>Wall colour</label>
       <div id="wall-swatches" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
     </div>
+    <div class="field"><label>Wall panelling</label>
+      <select id="panel-select">
+        <option value="none">None (flat paint)</option>
+        <option value="beadboard-full">Beadboard — full height</option>
+        <option value="beadboard-wainscot">Beadboard — wainscot (~100cm)</option>
+      </select>
+    </div>
+    <div class="hint">Beadboard boards pick up your chosen wall colour. Note: this tool doesn't track which side of a wall faces into a room, so panelling renders on both faces — orbit around and ignore whichever side is actually the outside.</div>
     <div class="hint">These are stylised, generated patterns for gauging look and scale — not photoreal renders of an actual product SKU.</div>
 
     <h3>Kitchen &amp; furniture</h3>
@@ -388,6 +401,7 @@ let state = {
   ceilingHeight: 240,
   floorMaterial: 'herringbone', // 'herringbone' | 'plank' | 'tile' | 'concrete'
   wallColor: '#f4f0e6',
+  wallPanel: 'none', // 'none' | 'beadboard-full' | 'beadboard-wainscot'
   nextId: 1
 };
 
@@ -659,6 +673,62 @@ function refreshAllRooms(){
   renderRoomsList();
   draw();
   if(anyStale) showToast("A room's walls no longer close it off — its area may be out of date");
+}
+
+/* ============================================================
+   UNDO / REDO
+   One snapshot per meaningful action (a placed item, a finished
+   drag, a field edit session) rather than per keystroke/frame —
+   that's what makes Ctrl+Z feel like "undo the last thing I did"
+   instead of scrubbing through hundreds of micro-steps.
+   ============================================================ */
+let undoStack = [];
+let redoStack = [];
+const MAX_HISTORY = 60;
+
+function snapshotState(){
+  return JSON.parse(JSON.stringify({
+    walls: state.walls, openings: state.openings, furniture: state.furniture, rooms: state.rooms,
+    ceilingHeight: state.ceilingHeight, floorMaterial: state.floorMaterial, wallColor: state.wallColor,
+    wallPanel: state.wallPanel, nextId: state.nextId
+  }));
+}
+function pushHistory(){
+  undoStack.push(snapshotState());
+  if(undoStack.length > MAX_HISTORY) undoStack.shift();
+  redoStack = [];
+  refreshHistoryButtons();
+}
+function restoreSnapshot(snap){
+  state = JSON.parse(JSON.stringify(snap));
+  DEFAULT_WALL_HEIGHT = state.ceilingHeight;
+  selected = null;
+  wallChain = null;
+  document.getElementById('ceiling-height').value = state.ceilingHeight;
+  refreshMaterialsUI();
+  renderRoomsList();
+  renderRightPanel();
+  draw();
+  if(viewport3d.style.display==='block') build3D();
+}
+function undo(){
+  if(!undoStack.length) return;
+  const snap = undoStack.pop();
+  redoStack.push(snapshotState());
+  restoreSnapshot(snap);
+  refreshHistoryButtons();
+}
+function redo(){
+  if(!redoStack.length) return;
+  const snap = redoStack.pop();
+  undoStack.push(snapshotState());
+  restoreSnapshot(snap);
+  refreshHistoryButtons();
+}
+function refreshHistoryButtons(){
+  const u = document.getElementById('btn-undo-history'), r = document.getElementById('btn-redo-history');
+  if(u) u.disabled = undoStack.length===0;
+  if(r) r.disabled = redoStack.length===0;
 }
 
 function wallEndExtension(wall){
@@ -1051,7 +1121,9 @@ Object.entries(FURNITURE_TYPES).forEach(([key,def])=>{
 });
 
 /* ceiling height (global, not per-wall) */
-document.getElementById('ceiling-height').addEventListener('input', (e)=>{
+const ceilingInput = document.getElementById('ceiling-height');
+ceilingInput.addEventListener('focus', ()=>pushHistory());
+ceilingInput.addEventListener('input', (e)=>{
   const v = Math.max(150, +e.target.value || 240);
   state.ceilingHeight = v;
   DEFAULT_WALL_HEIGHT = v;
@@ -1060,13 +1132,15 @@ document.getElementById('ceiling-height').addEventListener('input', (e)=>{
   if(viewport3d.style.display==='block') build3D();
 });
 
-/* materials — floor + wall colour (3D view only) */
+/* materials — floor + wall colour + wall panelling (3D view only) */
 const WALL_COLOR_PRESETS = ['#f4f0e6','#e8e2d5','#d9d2c3','#b9c4b8','#9aa8b0','#3c3f42'];
 const floorSelect = document.getElementById('floor-select');
 const wallSwatchesEl = document.getElementById('wall-swatches');
+const panelSelect = document.getElementById('panel-select');
 
 function refreshMaterialsUI(){
   floorSelect.value = state.floorMaterial;
+  if(panelSelect) panelSelect.value = state.wallPanel || 'none';
   wallSwatchesEl.innerHTML = '';
   WALL_COLOR_PRESETS.forEach(color=>{
     const sw = document.createElement('button');
@@ -1075,6 +1149,7 @@ function refreshMaterialsUI(){
     const isSel = state.wallColor.toLowerCase()===color.toLowerCase();
     sw.style.cssText = `width:22px;height:22px;border-radius:5px;background:${color};cursor:pointer;border:2px solid ${isSel?'var(--brass)':'var(--panel-line)'};padding:0;`;
     sw.addEventListener('click', ()=>{
+      pushHistory();
       state.wallColor = color;
       refreshMaterialsUI();
       if(viewport3d.style.display==='block') build3D();
@@ -1083,9 +1158,17 @@ function refreshMaterialsUI(){
   });
 }
 floorSelect.addEventListener('change', ()=>{
+  pushHistory();
   state.floorMaterial = floorSelect.value;
   if(viewport3d.style.display==='block') build3D();
 });
+if(panelSelect){
+  panelSelect.addEventListener('change', ()=>{
+    pushHistory();
+    state.wallPanel = panelSelect.value;
+    if(viewport3d.style.display==='block') build3D();
+  });
+}
 refreshMaterialsUI();
 
 /* ============================================================
@@ -1105,6 +1188,7 @@ canvas.addEventListener('mousedown', (e)=>{
     const handle = furnitureHandleAt(px,py);
     if(handle && selected && selected.kind==='furniture'){
       const f = state.furniture.find(x=>x.id===selected.id);
+      pushHistory();
       drag = {type:'furniture-'+handle, id:f.id, startMouse:{wx,wy}, orig:{...f}};
       return;
     }
@@ -1114,9 +1198,11 @@ canvas.addEventListener('mousedown', (e)=>{
     if(hit){
       if(hit.kind==='furniture'){
         const f = state.furniture.find(x=>x.id===hit.id);
+        pushHistory();
         drag = {type:'furniture-move', id:f.id, startMouse:{wx,wy}, orig:{...f}};
       } else if(hit.kind==='wall'){
         const w = state.walls.find(x=>x.id===hit.id);
+        pushHistory();
         drag = {type:'wall-move', id:w.id, startMouse:{wx,wy}, orig:{...w}};
       }
     } else {
@@ -1138,6 +1224,7 @@ canvas.addEventListener('mousedown', (e)=>{
   if(mode==='furniture' && placingFurnitureType){
     const def = FURNITURE_TYPES[placingFurnitureType];
     const f = {id:uid(), type:placingFurnitureType, x:snap(wx), y:snap(wy), w:def.w, d:def.d, rotation:0, label:def.label};
+    pushHistory();
     state.furniture.push(f);
     selected = {kind:'furniture', id:f.id};
     setMode('select');
@@ -1162,6 +1249,7 @@ canvas.addEventListener('mousedown', (e)=>{
         height: mode==='window'?130: (mode==='arch'?200:210),
         archRise: mode==='arch'? Math.round(widthDefault*0.45):0
       };
+      pushHistory();
       state.openings.push(o);
       selected = {kind:'opening', id:o.id};
       setMode('select');
@@ -1183,6 +1271,7 @@ canvas.addEventListener('mousedown', (e)=>{
     showNamePrompt('Name this room', 'e.g. Kitchen', (name)=>{
       if(!name) return;
       const palette = ['#d7c9a8','#b7cdd1','#cdb9d8','#c9d6b0','#e0c3b0','#b0c9e0'];
+      pushHistory();
       state.rooms.push({
         id: uid(), name,
         rects: result.rects, area_m2: result.area_m2, centroid: result.centroid,
@@ -1264,10 +1353,23 @@ window.addEventListener('keydown', (e)=>{
     deleteSelected();
   }
   if(e.key==='Enter' && wallChain){ finishWallChain(); }
+
+  const isTypingInField = document.activeElement && document.activeElement.tagName==='INPUT';
+  if(!isTypingInField && (e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){
+    e.preventDefault();
+    if(e.shiftKey) redo(); else undo();
+  }
+  if(!isTypingInField && (e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='y'){
+    e.preventDefault();
+    redo();
+  }
 });
+document.getElementById('btn-undo-history').addEventListener('click', undo);
+document.getElementById('btn-redo-history').addEventListener('click', redo);
 
 function finishWallChain(){
   if(wallChain && wallChain.length>1){
+    pushHistory();
     for(let i=0;i<wallChain.length-1;i++){
       const a=wallChain[i], b=wallChain[i+1];
       if(a.x===b.x && a.y===b.y) continue;
@@ -1287,6 +1389,7 @@ document.getElementById('btn-undo').addEventListener('click', ()=>{
 document.getElementById('btn-delete').addEventListener('click', deleteSelected);
 function deleteSelected(){
   if(!selected) return;
+  pushHistory();
   if(selected.kind==='wall'){
     state.walls = state.walls.filter(w=>w.id!==selected.id);
     state.openings = state.openings.filter(o=>o.wallId!==selected.id);
@@ -1313,11 +1416,12 @@ document.getElementById('btn-clear').addEventListener('click', ()=>{
     onConfirm: ()=>{
       showModal({
         title: 'Are you really sure?',
-        message: "There's no undo for this — the whole plan will be gone for good.",
+        message: "This clears everything. You can still Ctrl+Z it back if you change your mind right after.",
         confirmLabel: 'Yes, really clear everything',
         danger: true,
         onConfirm: ()=>{
-          state = { walls:[], openings:[], furniture:[], rooms:[], ceilingHeight:240, floorMaterial:'herringbone', wallColor:'#f4f0e6', nextId:1 };
+          pushHistory();
+          state = { walls:[], openings:[], furniture:[], rooms:[], ceilingHeight:240, floorMaterial:'herringbone', wallColor:'#f4f0e6', wallPanel:'none', nextId:1 };
           DEFAULT_WALL_HEIGHT = 240;
           selected = null;
           wallChain = null;
@@ -1373,9 +1477,13 @@ function renderRightPanel(skipIfTyping){
     const w = state.walls.find(x=>x.id===selected.id);
     if(!w){ selected=null; return renderRightPanel(); }
     if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
+    const angDeg = Math.round(wallAngle(w)*180/Math.PI);
     rightpanel.innerHTML = `
       <h3>Wall <span class="type-tag">${WALL_TYPES[w.kind].label.toLowerCase()}</span></h3>
-      <div class="field"><label>Length (cm)</label><input type="number" id="p-len" value="${Math.round(wallLength(w))}"></div>
+      <div class="field-row">
+        <div class="field"><label>Length (cm)</label><input type="number" id="p-len" value="${Math.round(wallLength(w))}"></div>
+        <div class="field"><label>Angle (°)</label><input type="number" id="p-ang" value="${angDeg}"></div>
+      </div>
       <div class="field"><label>Wall type</label>
         <select id="p-kind">
           <option value="partition" ${w.kind==='partition'?'selected':''}>Partition (thin, non-structural)</option>
@@ -1385,10 +1493,11 @@ function renderRightPanel(skipIfTyping){
       <div class="field"><label>Thickness (cm)</label><input type="number" id="p-t" value="${w.thickness}"></div>
       <div class="field"><label>Height (cm)</label><input type="number" id="p-h" value="${w.height}"></div>
       <div class="hint">Load-bearing walls render darker with a hatch fill in 2D and a concrete tone in 3D, so you can tell them apart from partitions at a glance. Changing the type resets thickness to a sensible default — you can still fine-tune it after.</div>
-      <div class="hint">Changing length keeps the wall's first corner fixed and moves its second corner. Any wall that was joined at that corner moves with it, so the room stays closed.</div>
+      <div class="hint">Length and angle both pivot around the wall's first corner and move its second corner. Any wall joined at that second corner moves with it, so the room stays closed.</div>
       <button class="danger" id="p-del">Delete wall</button>
     `;
     document.getElementById('p-kind').addEventListener('change', (e)=>{
+      pushHistory();
       w.kind = e.target.value;
       w.thickness = WALL_TYPES[w.kind].thickness;
       renderRightPanel();
@@ -1399,6 +1508,12 @@ function renderRightPanel(skipIfTyping){
       const newLen = Math.max(10, +v);
       const ang = wallAngle(w);
       moveWallEndpoint(w, 2, w.x1 + Math.cos(ang)*newLen, w.y1 + Math.sin(ang)*newLen);
+      scheduleRoomRefresh();
+    });
+    bind('p-ang', v=>{
+      const newAngRad = (+v || 0) * Math.PI/180;
+      const len = wallLength(w);
+      moveWallEndpoint(w, 2, w.x1 + Math.cos(newAngRad)*len, w.y1 + Math.sin(newAngRad)*len);
       scheduleRoomRefresh();
     });
     bind('p-t', v=>{ w.thickness=Math.max(5,+v); scheduleRoomRefresh(); });
@@ -1420,35 +1535,40 @@ function renderRightPanel(skipIfTyping){
         <div class="field"><label>Wall before (cm)</label><input type="number" id="p-before" value="${before}"></div>
         <div class="field"><label>Wall after (cm)</label><input type="number" id="p-after" value="${after}"></div>
       </div>
-      <div class="hint">"Before" and "after" are the solid wall lengths on each side of the opening, along this wall. Edit either one to slide the opening — they stay in sync with each other automatically.</div>
+      <div class="hint">"Before" and "after" are the solid wall lengths on each side of the opening. Editing any of these three fields stretches or shrinks the <b>wall itself</b> (from its second corner) so all three hold at once — they don't just redistribute inside a fixed wall length anymore.</div>
       <div class="field"><label>${o.type==='window'?'Sill height (cm)':'Height to lintel / springline (cm)'}</label>
         <input type="number" id="p-h" value="${o.type==='window'?o.sill:o.height}"></div>
       ${o.type==='window' ? `<div class="field"><label>Window height (cm)</label><input type="number" id="p-wh" value="${o.height}"></div>` : ''}
       ${o.type==='arch' ? `<div class="field"><label>Arch rise (cm) — how tall the curve is above the springline</label><input type="number" id="p-rise" value="${o.archRise}"></div>` : ''}
-      <div class="hint">Max width on this wall: ${maxW} cm.</div>
+      <div class="hint" id="p-total-hint">Wall total: ${maxW} cm.</div>
       <button class="danger" id="p-del">Delete</button>
     `;
-    bind('p-w', v=>{
-      o.width = Math.max(20, Math.min(maxW, +v));
-      const beforeEl = document.getElementById('p-before'), afterEl = document.getElementById('p-after');
-      o.offset = Math.min(o.offset, maxW-o.width);
-      if(beforeEl) beforeEl.value = Math.round(o.offset);
-      if(afterEl) afterEl.value = Math.round(maxW-o.offset-o.width);
-    });
+    const widthInput = document.getElementById('p-w');
     const beforeInput = document.getElementById('p-before');
     const afterInput = document.getElementById('p-after');
-    beforeInput.addEventListener('input', ()=>{
-      const v = Math.max(0, Math.min(maxW-o.width, +beforeInput.value || 0));
-      o.offset = v;
-      afterInput.value = Math.round(maxW - o.width - v);
+    const totalHint = document.getElementById('p-total-hint');
+
+    function applyOpeningGeometry(){
+      const beforeVal = Math.max(0, +beforeInput.value || 0);
+      const widthVal = Math.max(20, +widthInput.value || o.width);
+      const afterVal = Math.max(0, +afterInput.value || 0);
+      o.offset = beforeVal;
+      o.width = widthVal;
+      const newTotalLength = Math.max(20, beforeVal + widthVal + afterVal);
+      if(wall){
+        const ang = wallAngle(wall);
+        moveWallEndpoint(wall, 2, wall.x1 + Math.cos(ang)*newTotalLength, wall.y1 + Math.sin(ang)*newTotalLength);
+        scheduleRoomRefresh();
+      }
+      if(totalHint) totalHint.textContent = `Wall total: ${Math.round(newTotalLength)} cm.`;
       draw();
+    }
+
+    [widthInput, beforeInput, afterInput].forEach(el=>{
+      el.addEventListener('focus', ()=>pushHistory());
+      el.addEventListener('input', applyOpeningGeometry);
     });
-    afterInput.addEventListener('input', ()=>{
-      const v = Math.max(0, +afterInput.value || 0);
-      o.offset = Math.max(0, Math.min(maxW-o.width, maxW - o.width - v));
-      beforeInput.value = Math.round(o.offset);
-      draw();
-    });
+
     if(o.type==='window'){
       bind('p-h', v=>o.sill=+v);
       bind('p-wh', v=>o.height=+v);
@@ -1474,6 +1594,7 @@ function renderRightPanel(skipIfTyping){
 
   function bind(id, setter, isText){
     const el = document.getElementById(id);
+    el.addEventListener('focus', ()=>pushHistory());
     el.addEventListener('input', ()=>{ setter(isText?el.value:el.value); draw(); if(isText) renderRoomsList(); });
   }
 }
@@ -1581,11 +1702,13 @@ document.getElementById('file-input').addEventListener('change', (e)=>{
       if(!data.rooms) data.rooms = [];
       if(!data.floorMaterial) data.floorMaterial = 'herringbone';
       if(!data.wallColor) data.wallColor = '#f4f0e6';
+      if(!data.wallPanel) data.wallPanel = 'none';
       if(!data.ceilingHeight) data.ceilingHeight = (data.walls[0] && data.walls[0].height) || 240;
       for(const w of data.walls){
         if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
         if(!w.height) w.height = data.ceilingHeight;
       }
+      pushHistory();
       state = data;
       DEFAULT_WALL_HEIGHT = state.ceilingHeight;
       selected = null;
@@ -1775,6 +1898,80 @@ function drawConcreteFloor(ctx,w,h,scale){
   }
 }
 
+/* ============================================================
+   BEADBOARD WALL PANELLING (3D only)
+   Built as real thin board geometry rather than a texture, so it
+   doesn't depend on how three.js maps UVs across an extruded wall
+   shape with door/window/arch cutouts — each "board" is its own
+   slim box, coloured by your chosen wall colour with alternating
+   shading to read as individual tongue-and-groove strips, plus a
+   cap rail for the wainscot height option.
+   Renders on a single, fixed local face of each wall — this tool
+   doesn't track which side faces into a room, so on some walls
+   that may end up being the "outside" face rather than the inside.
+   ============================================================ */
+function addBeadboardToWall(scene, wall, M, style, baseColor){
+  const L = wallLength(wall);
+  if(L<1) return;
+  const wainscot = style==='beadboard-wainscot';
+  const panelHeight = wainscot ? 100 : wall.height;
+  const {extStart, extEnd} = wallEndExtension(wall);
+  const opens = openingsForWall(wall.id);
+
+  // same solid-segment logic used for the 2D wall fill and 3D extrusion
+  let cursor = 0;
+  const rawSegs = [];
+  for(const o of opens){
+    const start = Math.max(0, Math.min(L, o.offset));
+    const end = Math.max(0, Math.min(L, o.offset+o.width));
+    if(start > cursor) rawSegs.push([cursor, start]);
+    cursor = Math.max(cursor, end);
+  }
+  if(cursor < L) rawSegs.push([cursor, L]);
+  if(rawSegs.length===0 && opens.length===0) rawSegs.push([0, L]);
+  if(rawSegs.length){
+    if(rawSegs[0][0]===0) rawSegs[0][0] = -extStart;
+    if(rawSegs[rawSegs.length-1][1]===L) rawSegs[rawSegs.length-1][1] = L+extEnd;
+  }
+
+  const ang = wallAngle(wall);
+  const cos = Math.cos(ang), sin = Math.sin(ang);
+  const nx = -sin, ny = cos; // outward normal, one fixed side
+  const faceOffset = wall.thickness/2 + 0.6; // cm, sits just proud of the wall face
+
+  const boardMat1 = new THREE.MeshStandardMaterial({color:baseColor.clone(), roughness:0.72});
+  const boardMat2 = new THREE.MeshStandardMaterial({color:baseColor.clone().multiplyScalar(0.88), roughness:0.72});
+  const capMat = new THREE.MeshStandardMaterial({color:baseColor.clone().multiplyScalar(1.08), roughness:0.6});
+  const boardWidthCm = 10;
+  let boardIndex = 0;
+
+  for(const [a,b] of rawSegs){
+    if(b-a < 2) continue;
+    for(let x=a; x<b; x+=boardWidthCm){
+      const bw = Math.min(boardWidthCm, b-x);
+      if(bw < 2) continue;
+      const geo = new THREE.BoxGeometry(Math.max(1,bw*0.92)*M, panelHeight*M, 1.2*M);
+      const mesh = new THREE.Mesh(geo, (boardIndex%2===0) ? boardMat1 : boardMat2);
+      const mid = x + bw/2;
+      const px = wall.x1 + cos*mid, py = wall.y1 + sin*mid;
+      mesh.position.set((px+nx*faceOffset)*M, panelHeight*M/2, (py+ny*faceOffset)*M);
+      mesh.rotation.y = -ang;
+      scene.add(mesh);
+      boardIndex++;
+    }
+    if(wainscot){
+      const segLen = b-a;
+      const mid = a + segLen/2;
+      const px = wall.x1 + cos*mid, py = wall.y1 + sin*mid;
+      const capGeo = new THREE.BoxGeometry(segLen*M, 3*M, 2.4*M);
+      const cap = new THREE.Mesh(capGeo, capMat);
+      cap.position.set((px+nx*faceOffset)*M, panelHeight*M + 1.5*M, (py+ny*faceOffset)*M);
+      cap.rotation.y = -ang;
+      scene.add(cap);
+    }
+  }
+}
+
 function build3D(){
   const t3 = ensureThree();
   const scene = t3.scene;
@@ -1856,6 +2053,10 @@ function build3D(){
     mesh.rotation.y = -ang;
     mesh.position.set(w.x1*M, 0, w.y1*M);
     scene.add(mesh);
+
+    if(state.wallPanel && state.wallPanel!=='none'){
+      addBeadboardToWall(scene, w, M, state.wallPanel, baseWallColor);
+    }
   }
 
   for(const f of state.furniture){
