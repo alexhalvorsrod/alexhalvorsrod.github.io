@@ -600,10 +600,10 @@ function drawRoomDrawPreview(){
   ctx.fillRect(p1[0],p1[1],p2[0]-p1[0],p2[1]-p1[1]);
   ctx.strokeRect(p1[0],p1[1],p2[0]-p1[0],p2[1]-p1[1]);
   ctx.setLineDash([]);
-  ctx.font = '600 11px JetBrains Mono, monospace';
-  ctx.fillStyle = '#5b8fa8';
+  ctx.font = '700 13px JetBrains Mono, monospace';
+  ctx.fillStyle = '#3f6e85';
   ctx.textAlign = 'center';
-  ctx.fillText(`${Math.round(x2-x1)} × ${Math.round(y2-y1)} cm`, (p1[0]+p2[0])/2, p1[1]-8);
+  ctx.fillText(`inside: ${Math.round(x2-x1)} × ${Math.round(y2-y1)} cm`, (p1[0]+p2[0])/2, p1[1]-9);
   ctx.restore();
 }
 
@@ -676,6 +676,82 @@ function drawGrid(r){
 }
 
 const CONNECT_EPS = 0.6; // cm — endpoints this close count as "meeting"
+
+/* Add a new axis-aligned wall segment, but if it runs along the same line
+   as an existing wall and overlaps it significantly, reuse/extend that
+   wall instead of adding a second overlapping one on top of it. This is
+   what lets two rooms drawn side by side share a single dividing wall
+   instead of ending up with a double-thick seam between them. */
+function mergeOrAddWall(x1,y1,x2,y2,thickness,kind){
+  const isHoriz = Math.abs(y1-y2) < 0.5;
+  const isVert = Math.abs(x1-x2) < 0.5;
+  if(isHoriz || isVert){
+    const EPS = 1.0; // cm tolerance for "the same line"
+    let unionMin = isHoriz ? Math.min(x1,x2) : Math.min(y1,y2);
+    let unionMax = isHoriz ? Math.max(x1,x2) : Math.max(y1,y2);
+    const newPerp = isHoriz ? y1 : x1;
+    const newLen = unionMax-unionMin;
+
+    // Find every existing wall on this same line that overlaps the new
+    // segment — there can be more than one if this segment bridges two
+    // previously-separate walls (e.g. closing a third room against two
+    // neighbors at once) — and fold them all into a single wall instead
+    // of leaving redundant overlapping leftovers.
+    const matches = [];
+    for(const w of state.walls){
+      const wHoriz = Math.abs(w.y1-w.y2) < 0.5;
+      const wVert = Math.abs(w.x1-w.x2) < 0.5;
+      if(isHoriz && !wHoriz) continue;
+      if(isVert && !wVert) continue;
+      const wPerp = isHoriz ? w.y1 : w.x1;
+      if(Math.abs(wPerp-newPerp) > EPS) continue;
+      const wMin = isHoriz ? Math.min(w.x1,w.x2) : Math.min(w.y1,w.y2);
+      const wMax = isHoriz ? Math.max(w.x1,w.x2) : Math.max(w.y1,w.y2);
+      const overlapLen = Math.min(unionMax,wMax) - Math.max(unionMin,wMin);
+      const wLen = wMax-wMin;
+      if(overlapLen > 10 && overlapLen > Math.min(newLen,wLen)*0.5) matches.push(w);
+    }
+
+    if(matches.length){
+      for(const w of matches){
+        const wMin = isHoriz ? Math.min(w.x1,w.x2) : Math.min(w.y1,w.y2);
+        const wMax = isHoriz ? Math.max(w.x1,w.x2) : Math.max(w.y1,w.y2);
+        unionMin = Math.min(unionMin, wMin);
+        unionMax = Math.max(unionMax, wMax);
+      }
+      const surviving = matches[0];
+      const oldStart = isHoriz ? Math.min(surviving.x1,surviving.x2) : Math.min(surviving.y1,surviving.y2);
+      const shift = oldStart - unionMin; // how far the wall's "offset 0" end just moved
+      const maxThickness = Math.max(thickness, ...matches.map(w=>w.thickness));
+      if(isHoriz){
+        if(surviving.x1<=surviving.x2){ surviving.x1=unionMin; surviving.x2=unionMax; } else { surviving.x1=unionMax; surviving.x2=unionMin; }
+      } else {
+        if(surviving.y1<=surviving.y2){ surviving.y1=unionMin; surviving.y2=unionMax; } else { surviving.y1=unionMax; surviving.y2=unionMin; }
+      }
+      surviving.thickness = maxThickness; // keep the thickest of all merged walls (e.g. load-bearing wins)
+      if(shift !== 0){
+        for(const o of state.openings){
+          if(o.wallId===surviving.id) o.offset += shift; // keep existing doors/windows in the same physical spot
+        }
+      }
+      // fold any OTHER matched walls into the survivor: move their openings over, then remove them
+      for(let i=1;i<matches.length;i++){
+        const dead = matches[i];
+        const deadOldStart = isHoriz ? Math.min(dead.x1,dead.x2) : Math.min(dead.y1,dead.y2);
+        const deadShift = deadOldStart - unionMin;
+        for(const o of state.openings){
+          if(o.wallId===dead.id){ o.wallId = surviving.id; o.offset += deadShift; }
+        }
+      }
+      const deadIds = new Set(matches.slice(1).map(w=>w.id));
+      if(deadIds.size) state.walls = state.walls.filter(w=>!deadIds.has(w.id));
+      return surviving;
+    }
+  }
+  const w = {id:uid(), x1,y1,x2,y2, thickness, height:DEFAULT_WALL_HEIGHT, kind};
+  state.walls.push(w);
+  return w;
+}
 
 /* Move one endpoint of a wall, and drag along any other wall whose endpoint
    coincided with it — this is what keeps corners "locked" so editing one
@@ -988,10 +1064,10 @@ function drawWall(w){
   ctx.save();
   ctx.translate(mid[0], mid[1]);
   ctx.rotate(ang);
-  ctx.font = '600 10.5px JetBrains Mono, monospace';
-  ctx.fillStyle = '#5b8fa8';
+  ctx.font = '700 14px JetBrains Mono, monospace';
+  ctx.fillStyle = '#3f6e85';
   ctx.textAlign = 'center';
-  ctx.fillText(insideLen+' cm', 0, -t/2*view.scale - 6);
+  ctx.fillText(insideLen+' cm', 0, -t/2*view.scale - 8);
   ctx.restore();
 
   ctx.restore();
@@ -1490,7 +1566,7 @@ function finishWallChain(){
       const a=wallChain[i], b=wallChain[i+1];
       if(a.x===b.x && a.y===b.y) continue;
       const kindDef = WALL_TYPES[newWallKind];
-      state.walls.push({id:uid(), x1:a.x,y1:a.y,x2:b.x,y2:b.y, thickness:kindDef.thickness, height:DEFAULT_WALL_HEIGHT, kind:newWallKind});
+      mergeOrAddWall(a.x,a.y,b.x,b.y, kindDef.thickness, newWallKind);
     }
     scheduleRoomRefresh();
   }
@@ -1498,21 +1574,59 @@ function finishWallChain(){
   draw();
 }
 
+/* Like the strict check inside mergeOrAddWall, but with a generous
+   perpendicular tolerance — used to decide, before a new room's walls are
+   even positioned, whether a given side should snap onto a wall that's
+   already there (shared with a neighboring room) rather than being
+   inflated outward as if freestanding. */
+function findNearbyColinearWall(min, max, perp, isHoriz, tolerance){
+  for(const w of state.walls){
+    const wHoriz = Math.abs(w.y1-w.y2) < 0.5;
+    if(isHoriz !== wHoriz) continue;
+    const wPerp = isHoriz ? w.y1 : w.x1;
+    if(Math.abs(wPerp-perp) > tolerance) continue;
+    const wMin = isHoriz ? Math.min(w.x1,w.x2) : Math.min(w.y1,w.y2);
+    const wMax = isHoriz ? Math.max(w.x1,w.x2) : Math.max(w.y1,w.y2);
+    const overlapLen = Math.min(max,wMax) - Math.max(min,wMin);
+    if(overlapLen > 10 && overlapLen > Math.min(max-min, wMax-wMin)*0.5) return w;
+  }
+  return null;
+}
+
 function finishRoomDraw(){
   const start = roomDrawStart, end = roomDrawEnd || roomDrawStart;
   roomDrawStart = null;
   roomDrawEnd = null;
   if(!start){ draw(); return; }
-  const x1 = Math.min(start.x, end.x), x2 = Math.max(start.x, end.x);
-  const y1 = Math.min(start.y, end.y), y2 = Math.max(start.y, end.y);
-  if(x2-x1 < 20 || y2-y1 < 20){ draw(); return; } // ignore accidental clicks/tiny drags
+  const insideX1 = Math.min(start.x, end.x), insideX2 = Math.max(start.x, end.x);
+  const insideY1 = Math.min(start.y, end.y), insideY2 = Math.max(start.y, end.y);
+  if(insideX2-insideX1 < 20 || insideY2-insideY1 < 20){ draw(); return; } // ignore accidental clicks/tiny drags
 
   pushHistory();
   const kindDef = WALL_TYPES[newWallKind];
-  const corners = [[x1,y1],[x2,y1],[x2,y2],[x1,y2]];
+  const half = kindDef.thickness/2;
+  const SNAP_TOL = 30; // cm — how close an existing wall needs to be to count as "the same boundary"
+
+  // The dragged rectangle is what you measured with a tape — the INSIDE
+  // face. Each side either snaps onto an existing wall already sitting
+  // near that boundary (so two rooms drawn side by side share one wall
+  // instead of doubling up), or — if nothing's there — gets pushed out by
+  // half its own thickness so a freestanding wall's inside face lands
+  // exactly on the line you drew, rather than its centerline.
+  const topW    = findNearbyColinearWall(insideX1, insideX2, insideY1, true,  SNAP_TOL);
+  const bottomW = findNearbyColinearWall(insideX1, insideX2, insideY2, true,  SNAP_TOL);
+  const leftW   = findNearbyColinearWall(insideY1, insideY2, insideX1, false, SNAP_TOL);
+  const rightW  = findNearbyColinearWall(insideY1, insideY2, insideX2, false, SNAP_TOL);
+
+  const topY    = topW    ? topW.y1    : insideY1 - half;
+  const bottomY = bottomW ? bottomW.y1 : insideY2 + half;
+  const leftX   = leftW   ? leftW.x1   : insideX1 - half;
+  const rightX  = rightW  ? rightW.x1  : insideX2 + half;
+
+  const corners = [[leftX,topY],[rightX,topY],[rightX,bottomY],[leftX,bottomY]];
   for(let i=0;i<4;i++){
     const a = corners[i], b = corners[(i+1)%4];
-    state.walls.push({id:uid(), x1:a[0],y1:a[1],x2:b[0],y2:b[1], thickness:kindDef.thickness, height:DEFAULT_WALL_HEIGHT, kind:newWallKind});
+    mergeOrAddWall(a[0],a[1],b[0],b[1], kindDef.thickness, newWallKind);
   }
   scheduleRoomRefresh();
   draw();
@@ -1971,8 +2085,8 @@ function ensureThree(){
       const fwdX = -Math.cos(orbit.theta), fwdZ = -Math.sin(orbit.theta);
       if(keysHeld3d.has('w')||keysHeld3d.has('arrowup')){ orbit.target.x+=fwdX*moveSpeed; orbit.target.z+=fwdZ*moveSpeed; }
       if(keysHeld3d.has('s')||keysHeld3d.has('arrowdown')){ orbit.target.x-=fwdX*moveSpeed; orbit.target.z-=fwdZ*moveSpeed; }
-      if(keysHeld3d.has('a')||keysHeld3d.has('arrowleft')){ orbit.target.x-=rightX*moveSpeed; orbit.target.z-=rightZ*moveSpeed; }
-      if(keysHeld3d.has('d')||keysHeld3d.has('arrowright')){ orbit.target.x+=rightX*moveSpeed; orbit.target.z+=rightZ*moveSpeed; }
+      if(keysHeld3d.has('a')||keysHeld3d.has('arrowleft')){ orbit.target.x+=rightX*moveSpeed; orbit.target.z+=rightZ*moveSpeed; }
+      if(keysHeld3d.has('d')||keysHeld3d.has('arrowright')){ orbit.target.x-=rightX*moveSpeed; orbit.target.z-=rightZ*moveSpeed; }
       if(keysHeld3d.has('e')) orbit.target.y += moveSpeed*0.5;
       if(keysHeld3d.has('q')) orbit.target.y = Math.max(0, orbit.target.y - moveSpeed*0.5);
     }
