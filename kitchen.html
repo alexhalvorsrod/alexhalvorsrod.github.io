@@ -2645,10 +2645,12 @@ function shadeColor(color, factor){
   return new THREE.Color(color).multiplyScalar(factor);
 }
 
-function mkBox(group, w,h,d, cx,cyBottom,cz, color, roughness=0.7, metalness=0){
+function mkBox(group, w,h,d, cx,cyBottom,cz, color, roughness=0.7, metalness=0, opacity=1){
   const hh = Math.max(0.5,h);
   const geo = new THREE.BoxGeometry(Math.max(0.5,w), hh, Math.max(0.5,d));
-  const mat = new THREE.MeshStandardMaterial({color, roughness, metalness});
+  const matOpts = {color, roughness, metalness};
+  if(opacity<1){ matOpts.transparent = true; matOpts.opacity = opacity; matOpts.depthWrite = false; }
+  const mat = new THREE.MeshStandardMaterial(matOpts);
   const mesh = new THREE.Mesh(geo, mat);
   mesh.position.set(cx, cyBottom+hh/2, cz);
   group.add(mesh);
@@ -2725,8 +2727,9 @@ function addCabinetDoor(group, w, h, cx, cyBottom, cz, f){
   if(style==='glass'){
     const inset = 3;
     const innerW = Math.max(2, w-inset*2), innerH = Math.max(2, h-inset*2);
-    // dark backing so the glass reads as see-through rather than blank
-    mkBox(group, innerW, innerH, 0.4, cx, cyBottom+inset, cz-0.35, '#20201c', 0.6);
+    // dim backing so the glass reads as a cabinet interior, not blank air —
+    // set well back so it doesn't visually dominate over the contents
+    mkBox(group, innerW, innerH, 0.4, cx, cyBottom+inset, cz-1.4, '#2a2a26', 0.65);
     // contents behind the glass
     const display = (f && f.display) || 'plates';
     if(display==='glasses'){
@@ -2734,7 +2737,7 @@ function addCabinetDoor(group, w, h, cx, cyBottom, cz, f){
       for(let c=0;c<cols;c++){
         const gx = cx - innerW/2 + 3 + c*(innerW/cols);
         const glassGeo = new THREE.CylinderGeometry(1.3,1.5,5,10);
-        const glassMat = new THREE.MeshPhysicalMaterial({color:'#dfeef0', transparent:true, opacity:0.4, roughness:0.05, transmission:0.6});
+        const glassMat = new THREE.MeshStandardMaterial({color:'#eaf5f6', transparent:true, opacity:0.45, roughness:0.1, depthWrite:false});
         const mesh = new THREE.Mesh(glassGeo, glassMat);
         mesh.position.set(gx, cyBottom+inset+3.5, cz-1);
         group.add(mesh);
@@ -2752,9 +2755,11 @@ function addCabinetDoor(group, w, h, cx, cyBottom, cz, f){
         }
       }
     }
-    // glass pane
+    // glass pane — plain alpha transparency, not the "transmission" model
+    // (that needs a render pass this setup doesn't do, so it was rendering
+    // as solid instead of see-through)
     const paneGeo = new THREE.BoxGeometry(innerW, innerH, 0.6);
-    const paneMat = new THREE.MeshPhysicalMaterial({color:'#dce8ea', transparent:true, opacity:0.22, roughness:0.05, transmission:0.55});
+    const paneMat = new THREE.MeshStandardMaterial({color:'#e4eef0', transparent:true, opacity:0.2, roughness:0.08, depthWrite:false});
     const pane = new THREE.Mesh(paneGeo, paneMat);
     pane.position.set(cx, cyBottom+h/2, cz);
     group.add(pane);
@@ -2774,7 +2779,7 @@ function addCabinetDoor(group, w, h, cx, cyBottom, cz, f){
 
 function addWineBottleHorizontal(group, cx, cyBottom, cz, tint){
   const len=15, bodyR=2, neckLen=3.5, neckR=0.8;
-  const bodyMat = new THREE.MeshPhysicalMaterial({color:tint, transparent:true, opacity:0.82, roughness:0.15, transmission:0.25});
+  const bodyMat = new THREE.MeshStandardMaterial({color:tint, transparent:true, opacity:0.85, roughness:0.2, depthWrite:false});
   const body = new THREE.Mesh(new THREE.CylinderGeometry(bodyR,bodyR,len,12), bodyMat);
   body.rotation.z = Math.PI/2;
   body.position.set(cx, cyBottom+bodyR, cz);
@@ -2798,7 +2803,7 @@ function buildFurnitureGroup(f, def, marbleTex){
     case 'base': case 'corner': case 'island': {
       const bodyTop = z1 - COUNTERTOP_H;
       const bodyH = bodyTop - z0;
-      mkBox(group, w, bodyH, d, 0, z0, 0, shadeColor(def.color,0.92), 0.75);
+      mkBox(group, w, bodyH, d, 0, z0, 0, '#e2ded6', 0.75);
       mkBox(group, w, 9, 1, 0, z0, d/2-3.5, '#1c1d1f', 0.5); // recessed toe kick
       const doorH = Math.max(4, bodyH-9-3);
       addCabinetDoor(group, w-4, doorH, 0, z0+9, d/2-0.6, f);
@@ -2809,7 +2814,7 @@ function buildFurnitureGroup(f, def, marbleTex){
     case 'sink': {
       const bodyTop = z1 - COUNTERTOP_H;
       const bodyH = bodyTop - z0;
-      mkBox(group, w, bodyH, d, 0, z0, 0, shadeColor(def.color,0.92), 0.75);
+      mkBox(group, w, bodyH, d, 0, z0, 0, '#e2ded6', 0.75);
       mkBox(group, w, 9, 1, 0, z0, d/2-3.5, '#1c1d1f', 0.5);
       const doorH = Math.max(4, bodyH-9-3);
       addCabinetDoor(group, w-4, doorH, 0, z0+9, d/2-0.6, f);
@@ -2852,7 +2857,7 @@ function buildFurnitureGroup(f, def, marbleTex){
       const bodyTop = z1 - COUNTERTOP_H;
       const bodyH = bodyTop - z0;
       mkBox(group, w, bodyH, d, 0, z0, 0, def.color, 0.5);
-      mkBox(group, w-6, bodyH-6, 1, 0, z0+3, d/2-0.5, '#3d5566', 0.2, 0.15);
+      mkBox(group, w-6, bodyH-6, 1, 0, z0+3, d/2-0.5, '#3d5566', 0.15, 0.1, 0.35);
       const shelfCount = 3;
       const innerTop = bodyH-6, innerBottom = 3;
       const tints = ['#2d4a2e','#3a2418','#4a1f22'];
@@ -2869,7 +2874,7 @@ function buildFurnitureGroup(f, def, marbleTex){
       break;
     }
     case 'wall': {
-      mkBox(group, w, z1-z0, d, 0, z0, 0, shadeColor(def.color,0.92), 0.75);
+      mkBox(group, w, z1-z0, d, 0, z0, 0, '#e2ded6', 0.75);
       addCabinetDoor(group, w-4, z1-z0-4, 0, z0+2, d/2-0.5, f);
       mkBox(group, 1.5, 8, 1.2, w/2-6, z1-16, d/2+0.2, '#2a2a2a', 0.4, 0.6);
       break;
