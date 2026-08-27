@@ -379,6 +379,8 @@
   <input type="file" id="file-input" accept="application/json">
   <button class="tool" id="btn-png">Export PNG</button>
   <div class="divider"></div>
+  <button class="tool" id="btn-trudvangveien" style="background:var(--brass);color:#1c1108;font-weight:600;">🏠 Trudvangveien</button>
+  <div class="divider"></div>
   <button class="tool" id="btn-view2d" style="background:var(--brass);color:#1c1108;font-weight:600;">2D Plan</button>
   <button class="tool" id="btn-view3d">3D Preview</button>
   <div class="divider"></div>
@@ -2357,6 +2359,44 @@ document.getElementById('btn-save').addEventListener('click', ()=>{
   a.click();
   showToast('Plan exported');
 });
+function loadPlanData(data){
+  if(!data.rooms) data.rooms = [];
+  if(!data.floorMaterial) data.floorMaterial = 'herringbone-classic';
+  if(data.floorMaterial==='herringbone') data.floorMaterial = 'herringbone-classic'; // old save files
+  if(!data.floorTone) data.floorTone = 'natural-oak';
+  if(!data.wallColor) data.wallColor = '#f4f0e6';
+  if(!data.wallPanel) data.wallPanel = 'none';
+  if(!data.ceilingHeight) data.ceilingHeight = (data.walls[0] && data.walls[0].height) || 260;
+  for(const w of data.walls){
+    if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
+    if(!w.height) w.height = data.ceilingHeight;
+  }
+  pushHistory();
+  state = data;
+  DEFAULT_WALL_HEIGHT = state.ceilingHeight;
+  selected = null;
+  document.getElementById('ceiling-height').value = state.ceilingHeight;
+  refreshMaterialsUI();
+  renderRoomsList();
+  renderRightPanel();
+  draw();
+}
+
+const TRUDVANGVEIEN_PLAN = {"walls":[{"id":1,"x1":-204.99999752599112,"y1":595.9999977378529,"x2":265,"y2":595,"thickness":48,"height":267,"kind":"partition"},{"id":2,"x1":265,"y1":595,"x2":265,"y2":1024,"thickness":10,"height":267,"kind":"partition"},{"id":3,"x1":265,"y1":1024,"x2":-204.9989361738247,"y2":1024.99999773654,"thickness":10,"height":267,"kind":"partition"},{"id":4,"x1":-204.9989361738247,"y1":1024.99999773654,"x2":-204.99999752599112,"y2":595.9999977378529,"thickness":10,"height":267,"kind":"partition"},{"id":5,"x1":-24.999999999999986,"y1":335,"x2":265.2,"y2":335,"thickness":10,"height":267,"kind":"partition"},{"id":6,"x1":265.2,"y1":335,"x2":265,"y2":570,"thickness":10,"height":267,"kind":"partition"},{"id":8,"x1":-25,"y1":570,"x2":-24.999999999999986,"y2":335,"thickness":10,"height":267,"kind":"partition"},{"id":12,"x1":-25,"y1":75,"x2":265,"y2":75,"thickness":10,"height":267,"kind":"partition"},{"id":13,"x1":265,"y1":75,"x2":265,"y2":330,"thickness":10,"height":267,"kind":"partition"},{"id":15,"x1":-25,"y1":330,"x2":-25,"y2":75,"thickness":10,"height":267,"kind":"partition"},{"id":17,"x1":-265,"y1":75,"x2":-25,"y2":75,"thickness":10,"height":267,"kind":"partition"},{"id":20,"x1":-265,"y1":325,"x2":-265,"y2":75,"thickness":10,"height":267,"kind":"partition"},{"id":29,"x1":-405,"y1":455,"x2":-30,"y2":455,"thickness":10,"height":267,"kind":"partition"},{"id":31,"x1":-210,"y1":575,"x2":-405,"y2":575,"thickness":10,"height":267,"kind":"partition"},{"id":32,"x1":-405,"y1":575,"x2":-405,"y2":455,"thickness":10,"height":267,"kind":"partition"},{"id":41,"x1":-265,"y1":325,"x2":-205,"y2":325,"thickness":10,"height":267,"kind":"partition"},{"id":42,"x1":-205,"y1":325,"x2":-205,"y2":450.3993620398445,"thickness":10,"height":267,"kind":"partition"},{"id":48,"x1":-405,"y1":400,"x2":-325,"y2":320,"thickness":10,"height":267,"kind":"partition"},{"id":49,"x1":-325,"y1":320,"x2":-270,"y2":320,"thickness":10,"height":267,"kind":"partition"},{"id":51,"x1":-405,"y1":455,"x2":-405,"y2":400,"thickness":10,"height":267,"kind":"partition"}],"openings":[{"id":9,"wallId":8,"offset":0.5,"width":86,"type":"arch","sill":0,"height":200,"archRise":45},{"id":10,"wallId":1,"offset":264.6,"width":98,"type":"arch","sill":0,"height":158.5,"archRise":45},{"id":11,"wallId":1,"offset":70,"width":98,"type":"arch","sill":0,"height":158.5,"archRise":45},{"id":16,"wallId":5,"offset":103.7,"width":89,"type":"door","sill":0,"height":210,"archRise":0},{"id":45,"wallId":29,"offset":210,"width":80,"type":"door","sill":0,"height":210,"archRise":0},{"id":47,"wallId":31,"offset":55,"width":80,"type":"door","sill":0,"height":210,"archRise":0},{"id":52,"wallId":3,"offset":135,"width":200,"type":"window","sill":50,"height":200,"archRise":0},{"id":53,"wallId":12,"offset":60,"width":150,"type":"window","sill":80,"height":170,"archRise":0},{"id":54,"wallId":17,"offset":45,"width":100,"type":"window","sill":90,"height":130,"archRise":0},{"id":55,"wallId":17,"offset":175,"width":40,"type":"window","sill":90,"height":130,"archRise":0}],"furniture":[{"id":56,"type":"winefridge","x":80,"y":597,"w":40,"d":45,"rotation":0,"label":"Wine fridge"},{"id":57,"type":"base","x":129,"y":600,"w":57,"d":40,"rotation":0,"label":"Base cabinet","doorStyle":"glass","doorColor":"#f2ede1","display":"glasses"},{"id":58,"type":"sink","x":105,"y":541,"w":60,"d":60,"rotation":180,"label":"Sink base"},{"id":60,"type":"dish","x":165,"y":541,"w":60,"d":60,"rotation":180,"label":"Dishwasher"},{"id":61,"type":"base","x":65,"y":541,"w":20,"d":60,"rotation":180,"label":"Base cabinet","doorStyle":"wood","doorColor":"#f2ede1","display":"plates"},{"id":62,"type":"corner","x":230,"y":505,"w":130,"d":60,"rotation":90,"label":"Corner base cabinet","doorStyle":"wood","doorColor":"#f2ede1","display":"plates"},{"id":63,"type":"base","x":110,"y":575,"w":20,"d":100,"rotation":270,"label":"Base cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":64,"type":"base","x":230,"y":360,"w":40,"d":60,"rotation":90,"label":"Base cabinet","doorStyle":"wood","doorColor":"#f2ede1","display":"plates"},{"id":65,"type":"stove","x":230,"y":410,"w":60,"d":60,"rotation":90,"label":"Stove / cooktop"},{"id":66,"type":"wall","x":243,"y":410,"w":60,"d":35,"rotation":90,"label":"Wall cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":67,"type":"wall","x":243,"y":360,"w":40,"d":35,"rotation":90,"label":"Wall cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":68,"type":"wall","x":243,"y":470,"w":60,"d":35,"rotation":90,"label":"Wall cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":69,"type":"wall","x":243,"y":530,"w":60,"d":35,"rotation":90,"label":"Wall cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":70,"type":"wall","x":243,"y":565,"w":10,"d":35,"rotation":90,"label":"Wall cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":71,"type":"fridge","x":15,"y":380,"w":70,"d":70,"rotation":-90,"label":"Fridge / freezer"},{"id":72,"type":"rug","x":130,"y":870,"w":200,"d":300,"rotation":0,"label":"Rug"},{"id":73,"type":"bed","x":160,"y":140,"w":120,"d":200,"rotation":90,"label":"Bed"},{"id":74,"type":"bed","x":-160,"y":150,"w":140,"d":200,"rotation":270,"label":"Bed"},{"id":75,"type":"base","x":195,"y":542,"w":120,"d":58,"rotation":180,"label":"Base cabinet","doorStyle":"painted","doorColor":"#f2ede1","display":"plates"},{"id":76,"type":"sofa","x":210,"y":885,"w":255,"d":213,"rotation":90,"label":"Sofa (with chaise)","couchW":255,"couchD":93,"couchH":75,"chaiseW":95,"chaiseD":213,"chaiseH":82,"chaiseSide":"right"},{"id":77,"type":"marbleoaktable","x":105,"y":850,"w":92,"d":79,"rotation":0,"label":"Marble & oak table (custom)"},{"id":78,"type":"table","x":15,"y":700,"w":150,"d":90,"rotation":0,"label":"Dining table"},{"id":79,"type":"chair","x":-20,"y":650,"w":45,"d":45,"rotation":0,"label":"Dining chair"},{"id":80,"type":"chair","x":50,"y":650,"w":45,"d":45,"rotation":0,"label":"Dining chair"},{"id":81,"type":"chair","x":-20,"y":745,"w":45,"d":45,"rotation":180,"label":"Dining chair"},{"id":82,"type":"chair","x":50,"y":745,"w":45,"d":45,"rotation":180,"label":"Dining chair"},{"id":83,"type":"picture","x":10,"y":620,"w":70,"d":3,"rotation":0,"label":"Wall picture"},{"id":84,"type":"picture","x":260,"y":890,"w":200,"d":10,"rotation":90,"label":"Wall picture"},{"id":85,"type":"tvtable","x":-180,"y":895,"w":180,"d":42,"rotation":-90,"label":"TV table"},{"id":86,"type":"tv","x":-185,"y":890,"w":145,"d":6,"rotation":270,"label":"TV (65\")"},{"id":87,"type":"plant","x":235,"y":650,"w":40,"d":40,"rotation":0,"label":"Plant"},{"id":88,"type":"plant","x":-180,"y":780,"w":40,"d":40,"rotation":0,"label":"Plant"}],"rooms":[],"ceilingHeight":267,"floorMaterial":"herringbone-classic","floorTone":"natural-oak","wallColor":"#d9d2c3","wallPanel":"beadboard-wainscot","nextId":90}
+;
+document.getElementById('btn-trudvangveien').addEventListener('click', ()=>{
+  showModal({
+    title: 'Load Trudvangveien?',
+    message: 'This replaces the current plan with your saved Trudvangveien apartment design. Export the current plan first if you want to keep it.',
+    confirmLabel: 'Load it',
+    danger: true,
+    onConfirm: ()=>{
+      loadPlanData(JSON.parse(JSON.stringify(TRUDVANGVEIEN_PLAN)));
+      showToast('Trudvangveien loaded');
+    }
+  });
+});
+
 document.getElementById('btn-load').addEventListener('click', ()=>document.getElementById('file-input').click());
 document.getElementById('file-input').addEventListener('change', (e)=>{
   const file = e.target.files[0];
@@ -2366,26 +2406,7 @@ document.getElementById('file-input').addEventListener('change', (e)=>{
     try{
       const data = JSON.parse(reader.result);
       if(!data.walls || !data.furniture) throw new Error('bad file');
-      if(!data.rooms) data.rooms = [];
-      if(!data.floorMaterial) data.floorMaterial = 'herringbone-classic';
-      if(data.floorMaterial==='herringbone') data.floorMaterial = 'herringbone-classic'; // old save files
-      if(!data.floorTone) data.floorTone = 'natural-oak';
-      if(!data.wallColor) data.wallColor = '#f4f0e6';
-      if(!data.wallPanel) data.wallPanel = 'none';
-      if(!data.ceilingHeight) data.ceilingHeight = (data.walls[0] && data.walls[0].height) || 260;
-      for(const w of data.walls){
-        if(!w.kind) w.kind = w.thickness>=18 ? 'loadBearing' : 'partition';
-        if(!w.height) w.height = data.ceilingHeight;
-      }
-      pushHistory();
-      state = data;
-      DEFAULT_WALL_HEIGHT = state.ceilingHeight;
-      selected = null;
-      document.getElementById('ceiling-height').value = state.ceilingHeight;
-      refreshMaterialsUI();
-      renderRoomsList();
-      renderRightPanel();
-      draw();
+      loadPlanData(data);
       showToast('Plan imported');
     }catch(err){
       showToast('Could not read that file');
