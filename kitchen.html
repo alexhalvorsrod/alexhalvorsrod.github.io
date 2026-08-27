@@ -537,7 +537,10 @@ const FURNITURE_TYPES = {
   bed:        { label:'Bed',                  w:160, d:200, color:'#e8e2d5', z0:0,   z1:60  },
   rug:        { label:'Rug',                  w:200, d:140, color:'#c9b8a0', z0:0,   z1:1.2 },
   plant:      { label:'Plant',                w:40,  d:40,  color:'#3e6b3e', z0:0,   z1:120 },
-  picture:    { label:'Wall picture',         w:60,  d:3,   color:'#3a2b1c', z0:130, z1:190, floating:true }
+  picture:    { label:'Wall picture',         w:60,  d:3,   color:'#3a2b1c', z0:130, z1:190, floating:true },
+  marbleoaktable: { label:'Marble & oak table (custom)', w:92, d:79, color:'#4a3220', z0:0, z1:38, custom:true,
+    primitives: [{"id":1,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":32.0,"y":19,"z":38.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":2,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":38.5,"y":19,"z":32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":3,"shape":"box","presetName":"Plank","w":75,"h":1.8,"d":75,"x":0.0,"y":37,"z":0.0,"rotY":0,"material":{"type":"marble","color":"#8a5a3c","marbleTone":"green"}},{"id":4,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":38.5,"y":19,"z":-32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":5,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":-38.5,"y":19,"z":32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":6,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":-38.5,"y":19,"z":-32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":7,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":-32.0,"y":19,"z":38.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":8,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":32.0,"y":19,"z":-38.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":9,"shape":"box","presetName":"Plank","w":15,"h":38,"d":2,"x":-32.0,"y":19,"z":-38.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":10,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":-25.5,"y":18,"z":32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":11,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":-25.5,"y":18,"z":-32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":12,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":25.5,"y":18,"z":32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":13,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":32.0,"y":18,"z":25.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":14,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":-32.0,"y":18,"z":25.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":15,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":-32.0,"y":18,"z":-25.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":16,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":32.0,"y":18,"z":-25.5,"rotY":0,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}},{"id":17,"shape":"box","presetName":"Plank","w":15,"h":36,"d":2,"x":25.5,"y":18,"z":-32.0,"rotY":-90,"material":{"type":"wood","color":"#4a3220","marbleTone":"white"}}]
+  }
 };
 const CABINET_FRONT_TYPES = new Set(['base','corner','wall','island']);
 const DOOR_COLOR_PRESETS = [
@@ -1497,7 +1500,7 @@ btnWallKind.addEventListener('click', ()=>{
 refreshWallKindButton();
 
 /* furniture palette */
-const LIVING_ROOM_TYPES = new Set(['table','chair','sofa','tv','tvtable','coffeetable','bed','rug','plant','picture']);
+const LIVING_ROOM_TYPES = new Set(['table','chair','sofa','tv','tvtable','coffeetable','bed','rug','plant','picture','marbleoaktable']);
 const furnList = document.getElementById('furniture-list');
 const furnListLiving = document.getElementById('furniture-list-living');
 Object.entries(FURNITURE_TYPES).forEach(([key,def])=>{
@@ -3014,6 +3017,16 @@ function addWineBottleFacing(group, cx, cyBottom, cz, tint, scale){
 function buildFurnitureGroup(f, def, marbleTex){
   const group = new THREE.Group();
   const w=f.w, d=f.d, z0=def.z0, z1=def.z1;
+
+  if(def.custom && def.primitives){
+    // Built from the Furniture Workshop — reuses the exact same per-piece
+    // mesh builder the workshop's own 3D preview uses, so what you designed
+    // there is what actually shows up here, not a re-interpretation of it.
+    for(const prim of def.primitives){
+      group.add(wsBuildPrimitiveMesh(prim));
+    }
+    return group;
+  }
 
   switch(f.type){
     case 'base': case 'corner': case 'island': {
